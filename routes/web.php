@@ -19,6 +19,14 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
+// Health Check Routes (for cloud platforms like Railway & Render)
+Route::get('/up', function () {
+    return response('OK', 200);
+});
+Route::get('/health', function () {
+    return response('OK', 200);
+});
+
 // Redirect root to dashboard if logged in, or to login
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');

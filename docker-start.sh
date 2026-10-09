@@ -45,7 +45,7 @@ php artisan view:clear || true
 
 # Configure Apache
 grep -q "ServerName localhost" /etc/apache2/apache2.conf || echo "ServerName localhost" >> /etc/apache2/apache2.conf
-echo "Listen 0.0.0.0:$PORT" > /etc/apache2/ports.conf
+echo "Listen $PORT" > /etc/apache2/ports.conf
 
 cat <<EOF > /etc/apache2/sites-available/000-default.conf
 <VirtualHost *:$PORT>
@@ -63,5 +63,11 @@ cat <<EOF > /etc/apache2/sites-available/000-default.conf
 </VirtualHost>
 EOF
 
-echo "Starting Apache web server on 0.0.0.0:$PORT..."
-exec apache2-foreground
+echo "Starting web server on port $PORT..."
+if apache2ctl -t > /dev/null 2>&1; then
+    echo "Apache configuration valid, starting Apache..."
+    exec apache2-foreground
+else
+    echo "Apache configuration warning, falling back to Laravel serve..."
+    exec php artisan serve --host=0.0.0.0 --port=$PORT
+fi
