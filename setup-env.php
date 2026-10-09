@@ -28,7 +28,7 @@ $railwayDomain = getenv('RAILWAY_PUBLIC_DOMAIN') ?: getenv('RAILWAY_STATIC_URL')
 if ($railwayDomain) {
     setEnvValue($env, 'APP_URL', 'https://' . $railwayDomain);
 } else {
-    setEnvValue($env, 'APP_URL', 'http://0.0.0.0:' . $port);
+    setEnvValue($env, 'APP_URL', 'https://maha-eseva-erp-production.up.railway.app');
 }
 
 // Database configuration
