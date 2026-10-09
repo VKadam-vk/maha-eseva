@@ -32,15 +32,15 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Create SQLite database file if not exists
+# Create SQLite database and storage directories
 RUN mkdir -p database storage/app/private storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
     && touch database/database.sqlite \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache database
+    && chmod -R 777 storage bootstrap/cache database
 
-# Copy startup script
+# Copy startup script and ensure LF line endings
 COPY docker-start.sh /usr/local/bin/docker-start.sh
-RUN chmod +x /usr/local/bin/docker-start.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-start.sh && chmod +x /usr/local/bin/docker-start.sh
 
 EXPOSE 80 8080
 
