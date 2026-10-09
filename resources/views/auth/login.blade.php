@@ -59,10 +59,9 @@
     </button>
 </form>
 
-@if(app()->environment(['local', 'testing']))
-<!-- Quick Role Demo Switcher for Evaluation (Local & Testing Only) -->
-<div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--surface-border);">
-    <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 10px;">Quick Test Role Switcher (Dev Mode):</span>
+<!-- Quick Role Demo Switcher for Evaluation -->
+<div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--surface-border);">
+    <span style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 10px;">Quick 1-Click Role Logins (Testing):</span>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="setCredentials('admin@mahaeseva.com', 'Password@123')" style="font-size: 11.5px; justify-content: flex-start;">
             <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Business Owner
@@ -71,10 +70,10 @@
             <i class="fa-solid fa-building" style="color: #4f46e5;"></i> Branch Admin
         </button>
         <button type="button" class="btn btn-secondary btn-sm" onclick="setCredentials('employee@mahaeseva.com', 'Password@123')" style="font-size: 11.5px; justify-content: flex-start;">
-            <i class="fa-solid fa-user-gear" style="color: #10b981;"></i> Staff Operator
+            <i class="fa-solid fa-user-gear" style="color: #10b981;"></i> Operator 1
         </button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="setCredentials('superadmin@mahaeseva.gov.in', 'Password@123')" style="font-size: 11.5px; justify-content: flex-start;">
-            <i class="fa-solid fa-shield-halved" style="color: #dc2626;"></i> Super Admin
+        <button type="button" class="btn btn-secondary btn-sm" onclick="setCredentials('operator@mahaeseva.com', 'Password@123')" style="font-size: 11.5px; justify-content: flex-start;">
+            <i class="fa-solid fa-user-check" style="color: #0284c7;"></i> Operator 2
         </button>
     </div>
 </div>
@@ -85,5 +84,4 @@ function setCredentials(email, password) {
     document.getElementById('login_password').value = password;
 }
 </script>
-@endif
 @endsection

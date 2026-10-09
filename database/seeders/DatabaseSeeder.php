@@ -28,6 +28,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (User::where('email', 'admin@mahaeseva.com')->exists()) {
+            return;
+        }
+
         // 1. Seed Roles
         $superAdminRole = Role::create(['name' => 'Platform Super Admin', 'slug' => 'PLATFORM_SUPER_ADMIN', 'description' => 'Platform super administrator with global system access']);
         $businessOwnerRole = Role::create(['name' => 'Business Owner', 'slug' => 'BUSINESS_OWNER', 'description' => 'Business tenant administrator with complete organization access']);
@@ -194,9 +198,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 5. Seed Users
-        $seedPassword = app()->environment('production') 
-            ? (env('SEED_DEFAULT_PASSWORD') ?: Str::random(32)) 
-            : 'Password@123';
+        $seedPassword = env('SEED_DEFAULT_PASSWORD', 'Password@123');
 
         // Platform Super Admin
         $superAdminUser = User::create([
@@ -257,6 +259,32 @@ class DatabaseSeeder extends Seeder
             'salary' => 25000.00,
             'id_proof_type' => 'AADHAAR',
             'id_proof_number' => '4567-8901-2345',
+            'status' => 'ACTIVE',
+        ]);
+
+        // Operator user alias (operator@mahaeseva.com)
+        $operatorUser = User::create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $mainBranch->id,
+            'name' => 'Service Counter Operator',
+            'email' => 'operator@mahaeseva.com',
+            'mobile' => '9876543225',
+            'password' => Hash::make($seedPassword),
+            'status' => 'ACTIVE',
+        ]);
+        $operatorUser->roles()->attach($employeeRole->id);
+
+        Employee::create([
+            'uuid' => (string) Str::uuid(),
+            'tenant_id' => $tenant->id,
+            'branch_id' => $mainBranch->id,
+            'user_id' => $operatorUser->id,
+            'employee_code' => 'EMP-0002',
+            'designation' => 'Counter Operator',
+            'joining_date' => '2024-02-01',
+            'salary' => 22000.00,
+            'id_proof_type' => 'PAN',
+            'id_proof_number' => 'ABCDE1234F',
             'status' => 'ACTIVE',
         ]);
 
