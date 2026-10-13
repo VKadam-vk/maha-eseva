@@ -28,23 +28,22 @@ class ServiceController extends Controller
             $query->whereIn('id', $allowedServiceIds);
         }
 
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        if ($request->filled('main_service')) {
+            $query->where('main_service_name', $request->main_service);
         }
 
         if ($request->filled('search')) {
             $s = trim($request->search);
             $query->where(function ($q) use ($s) {
                 $q->where('main_service_name', 'like', "%{$s}%")
-                  ->orWhere('sub_service_name', 'like', "%{$s}%")
-                  ->orWhere('service_code', 'like', "%{$s}%");
+                  ->orWhere('sub_service_name', 'like', "%{$s}%");
             });
         }
 
-        $services = $query->paginate(20)->withQueryString();
-        $categories = ServiceCategory::all();
+        $services = $query->orderBy('main_service_name')->orderBy('id')->paginate(20)->withQueryString();
+        $mainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
 
-        return view('services.index', compact('services', 'categories'));
+        return view('services.index', compact('services', 'mainServices'));
     }
 
     /**

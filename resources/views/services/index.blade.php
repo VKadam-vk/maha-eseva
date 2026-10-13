@@ -13,24 +13,26 @@
     </a>
 </div>
 
-<!-- Category Filters Bar -->
+<!-- Filters Bar -->
 <div class="erp-card" style="margin-bottom: 20px;">
     <div class="erp-card-body" style="padding: 16px 20px;">
         <form action="{{ route('services.index') }}" method="GET" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
             <div style="flex-grow: 1; min-width: 250px;">
-                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Search Service Name or Code</label>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Search Service Name</label>
                 <input type="text" name="search" class="form-control" placeholder="e.g. PAN CARD, Rent Agreement, Domicile..." value="{{ request('search') }}">
             </div>
 
+            @if(isset($mainServices) && count($mainServices) > 0)
             <div style="min-width: 220px;">
-                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Service Category</label>
-                <select name="category_id" class="form-select">
-                    <option value="">All Service Categories</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Main Service Filter (मुख्य सेवा)</label>
+                <select name="main_service" class="form-select">
+                    <option value="">All Main Services (सर्व सेवा)</option>
+                    @foreach($mainServices as $ms)
+                        <option value="{{ $ms }}" {{ request('main_service') == $ms ? 'selected' : '' }}>{{ $ms }}</option>
                     @endforeach
                 </select>
             </div>
+            @endif
 
             <div>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
@@ -46,10 +48,8 @@
         <table class="erp-table">
             <thead>
                 <tr>
-                    <th>Service Code</th>
-                    <th>Category</th>
-                    <th>Main Service</th>
-                    <th>Sub-Service / Variant</th>
+                    <th>Main Service (मुख्य सेवा)</th>
+                    <th>Sub-Service / Variant (उप-सेवा)</th>
                     <th>Govt Fee</th>
                     <th>Service Charge</th>
                     <th>Total Price</th>
@@ -63,11 +63,11 @@
             <tbody>
                 @forelse($services as $s)
                     <tr>
-                        <td><span style="font-family: var(--font-mono); font-weight: 700; color: #4f46e5;">{{ $s->service_code }}</span></td>
-                        <td><span class="badge badge-ready">{{ $s->category->name ?? 'General / सामान्य' }}</span></td>
-                        <td><strong>{{ $s->main_service_name }}</strong></td>
                         <td>
-                            {{ $s->sub_service_name }}
+                            <strong style="color: #0f172a; font-size: 14.5px;">{{ $s->main_service_name }}</strong>
+                        </td>
+                        <td>
+                            <span style="font-weight: 600; color: #4338ca;">{{ $s->sub_service_name }}</span>
                             @if($s->service_variant)
                                 <div style="font-size: 11px; color: var(--text-muted);">{{ $s->service_variant }}</div>
                             @endif
@@ -124,7 +124,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" style="text-align: center; padding: 24px; color: var(--text-muted);">No services found.</td>
+                        <td colspan="10" style="text-align: center; padding: 24px; color: var(--text-muted);">No services found.</td>
                     </tr>
                 @endforelse
             </tbody>

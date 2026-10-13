@@ -28,9 +28,6 @@
         <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-sliders"></i> {{ $service->main_service_name }} &mdash; {{ $service->sub_service_name }}
         </h3>
-        <span class="badge" style="background: rgba(255,255,255,0.2); color: white; font-family: var(--font-mono); font-size: 11px;">
-            {{ $service->service_code }}
-        </span>
     </div>
 
     <div class="erp-card-body" style="padding: 28px;">

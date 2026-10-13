@@ -7,7 +7,6 @@
     <div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <h1 class="page-title">{{ $service->main_service_name }}</h1>
-            <span class="badge badge-ready" style="font-family: var(--font-mono);">{{ $service->service_code }}</span>
             <span class="badge {{ $service->is_active ? 'badge-paid' : 'badge-pending' }}">{{ $service->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
         </div>
         <p class="page-subtitle">{{ $service->sub_service_name }}</p>

@@ -178,7 +178,7 @@
                                         {{ $service->sub_service_name }}
                                     </div>
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
-                                        <span class="service-pick-code">{{ $service->service_code }}</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> {{ $service->expected_processing_days }} Days</span>
                                         <span style="font-size: 11px; font-weight: 700; color: #059669;">₹{{ number_format($service->price > 0 ? $service->price : ($service->govt_fee + $service->service_charge), 0) }}</span>
                                     </div>
                                 </div>

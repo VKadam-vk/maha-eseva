@@ -61,7 +61,6 @@
             </div>
             <div class="erp-card-body" style="font-size: 13.5px; line-height: 1.8;">
                 <div><strong>Applicant Name:</strong> {{ $application->customer->name }}</div>
-                <div><strong>Service Category:</strong> {{ $application->service->category->name }}</div>
                 <div><strong>Service Requested:</strong> {{ $application->service->main_service_name }} ({{ $application->service->sub_service_name }})</div>
                 <div><strong>Registration Date:</strong> {{ $application->application_date->format('d M Y') }}</div>
                 @if($application->external_acknowledgement_no)
