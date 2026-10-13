@@ -41,11 +41,6 @@
                     <span>Customers CRM</span>
                 </a>
 
-                <a href="{{ route('applications.index') }}" class="erp-nav-link {{ request()->routeIs('applications.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-signature"></i>
-                    <span>Applications</span>
-                </a>
-
                 <a href="{{ route('services.index') }}" class="erp-nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Services Master</span>

@@ -49,7 +49,9 @@ class Service extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ServiceCategory::class, 'category_id');
+        return $this->belongsTo(ServiceCategory::class, 'category_id')->withDefault([
+            'name' => 'General / सामान्य',
+        ]);
     }
 
     public function customFields(): HasMany

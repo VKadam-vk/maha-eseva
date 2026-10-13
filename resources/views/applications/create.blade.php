@@ -82,6 +82,21 @@
                     </select>
                 </div>
 
+                <!-- Operator Work & Tutorial Links Display -->
+                <div id="service-links-box" style="display: none; background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #1e40af; margin-bottom: 8px;">
+                        <i class="fa-solid fa-link"></i> ऑपरेटर लिंक्स (Work & Tutorial Links):
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a id="btn-work-portal" href="#" target="_blank" class="btn btn-sm" style="display: none; background: #2563eb; color: white; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; box-shadow: 0 1px 3px rgba(37,99,235,0.25);">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Work Portal (सरकारी कामाचे पोर्टल)
+                        </a>
+                        <a id="btn-tutorial-video" href="#" target="_blank" class="btn btn-sm" style="display: none; background: #dc2626; color: white; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; box-shadow: 0 1px 3px rgba(220,38,38,0.25);">
+                            <i class="fa-brands fa-youtube"></i> Watch Tutorial (व्हिडिओ ट्युटोरियल)
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Dynamic Form Fields Container -->
                 <div id="dynamic-fields-container" style="background: #f8fafc; border: 1px solid var(--surface-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; display: none;">
                     <h4 style="font-size: 13.5px; font-weight: 700; margin-bottom: 12px; color: #1e293b;">
@@ -174,6 +189,7 @@ function loadServiceSchema(serviceId) {
     if (!serviceId) {
         document.getElementById('dynamic-fields-container').style.display = 'none';
         document.getElementById('required-docs-box').style.display = 'none';
+        document.getElementById('service-links-box').style.display = 'none';
         return;
     }
 
@@ -185,6 +201,30 @@ function loadServiceSchema(serviceId) {
             document.getElementById('service_charge_input').value = data.service_charge;
             document.getElementById('received_amount_input').value = data.price;
             calculateTotal();
+
+            // Render Links
+            const linksBox = document.getElementById('service-links-box');
+            const btnWork = document.getElementById('btn-work-portal');
+            const btnVideo = document.getElementById('btn-tutorial-video');
+            let hasLinks = false;
+
+            if (data.work_portal_link) {
+                btnWork.href = data.work_portal_link;
+                btnWork.style.display = 'inline-flex';
+                hasLinks = true;
+            } else {
+                btnWork.style.display = 'none';
+            }
+
+            if (data.video_instruction_link) {
+                btnVideo.href = data.video_instruction_link;
+                btnVideo.style.display = 'inline-flex';
+                hasLinks = true;
+            } else {
+                btnVideo.style.display = 'none';
+            }
+
+            linksBox.style.display = hasLinks ? 'block' : 'none';
 
             // Render Documents Checklist
             const docsBox = document.getElementById('required-docs-box');

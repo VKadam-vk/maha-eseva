@@ -31,6 +31,8 @@ class Customer extends Model
         'pincode',
         'birth_date',
         'alternate_mobile',
+        'occupation',
+        'star_rating',
         'category_id',
         'photo_path',
         'notes',
@@ -40,6 +42,7 @@ class Customer extends Model
 
     protected $casts = [
         'birth_date' => 'date',
+        'star_rating' => 'integer',
     ];
 
     protected static function booted(): void

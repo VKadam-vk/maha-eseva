@@ -88,10 +88,22 @@
                             </a>
                         </td>
                         <td>
-                            <div style="font-weight: 700; color: var(--text-main);">{{ $c->name }}</div>
-                            @if($c->email)
-                                <div style="font-size: 11.5px; color: var(--text-muted);">{{ $c->email }}</div>
-                            @endif
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 700; color: var(--text-main); text-transform: uppercase;">{{ $c->name }}</span>
+                                @if($c->star_rating)
+                                    <span style="font-size: 11px; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 5px; border-radius: 4px; font-weight: 700;">
+                                        <i class="fa-solid fa-star" style="color: #f59e0b;"></i> {{ $c->star_rating }}★
+                                    </span>
+                                @endif
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--text-muted); display: flex; gap: 6px; align-items: center; margin-top: 2px;">
+                                @if($c->occupation)
+                                    <span style="background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-weight: 600; color: #475569;">{{ strtoupper($c->occupation) }}</span>
+                                @endif
+                                @if($c->email)
+                                    <span>{{ $c->email }}</span>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             <strong style="font-family: var(--font-mono);">{{ $c->mobile }}</strong>

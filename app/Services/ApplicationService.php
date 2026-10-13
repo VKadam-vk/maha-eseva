@@ -34,9 +34,9 @@ class ApplicationService
      */
     public function createApplication(array $data, User $creator): Application
     {
-        $tenantId = $creator->tenant_id;
-        $branchId = $data['branch_id'] ?? $creator->branch_id ?? $creator->tenant->branches()->first()?->id;
         $service = Service::findOrFail($data['service_id']);
+        $tenantId = $creator->tenant_id ?? (int) ($data['tenant_id'] ?? ($service->tenant_id ?? 1));
+        $branchId = $data['branch_id'] ?? $creator->branch_id ?? $creator->tenant?->branches()->first()?->id ?? 1;
 
         return DB::transaction(function () use ($data, $service, $tenantId, $branchId, $creator) {
             $appNumber = $this->generateApplicationNumber($tenantId);
@@ -66,6 +66,7 @@ class ApplicationService
                 'branch_id' => $branchId,
                 'customer_id' => $data['customer_id'],
                 'service_id' => $service->id,
+                'sub_service' => $data['sub_service'] ?? $service->sub_service_name,
                 'application_number' => $appNumber,
                 'application_date' => $data['application_date'] ?? now()->toDateString(),
                 'assigned_employee_id' => $data['assigned_employee_id'] ?? null,
@@ -82,9 +83,11 @@ class ApplicationService
                 'external_acknowledgement_no' => $data['external_acknowledgement_no'] ?? null,
                 'external_portal_login_user' => $data['external_portal_login_user'] ?? null,
                 'due_date' => $data['due_date'] ?? $expectedCompletion,
+                'follow_up_date' => $data['follow_up_date'] ?? null,
                 'expected_completion_date' => $expectedCompletion,
                 'delivery_status' => 'PENDING',
                 'work_details' => $data['work_details'] ?? null,
+                'documents_list' => $data['documents_list'] ?? null,
                 'pending_remarks' => $data['pending_remarks'] ?? null,
                 'created_by' => $creator->id,
                 'updated_by' => $creator->id,

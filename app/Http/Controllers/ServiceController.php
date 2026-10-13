@@ -52,63 +52,160 @@ class ServiceController extends Controller
      */
     public function create(): View
     {
-        $categories = ServiceCategory::all();
-        return view('services.create', compact('categories'));
+        $existingMainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
+        return view('services.create', compact('existingMainServices'));
     }
 
     /**
-     * Store newly created service.
+     * Store newly created main service and its multiple sub-services.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'category_id' => ['required', 'exists:service_categories,id'],
-            'service_code' => ['required', 'string', 'max:30'],
+            'main_service_name' => ['required', 'string', 'max:255'],
+            'sub_services' => ['required', 'array', 'min:1'],
+            'sub_services.*.sub_service_name' => ['required', 'string', 'max:255'],
+            'sub_services.*.expected_processing_days' => ['required', 'integer', 'min:1'],
+            'sub_services.*.price' => ['required', 'numeric', 'min:0'],
+            'sub_services.*.govt_fee' => ['required', 'numeric', 'min:0'],
+            'sub_services.*.service_charge' => ['required', 'numeric', 'min:0'],
+            'sub_services.*.required_documents' => ['nullable', 'string'],
+            'sub_services.*.work_portal_link' => ['nullable', 'string', 'max:500'],
+            'sub_services.*.video_instruction_link' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $mainServiceName = strtoupper(trim($validated['main_service_name']));
+        $tenantId = Auth::user()->tenant_id;
+        $createdCount = 0;
+
+        foreach ($validated['sub_services'] as $index => $subData) {
+            $subName = trim($subData['sub_service_name']);
+
+            // Normalize URLs
+            $workLink = !empty($subData['work_portal_link']) ? trim($subData['work_portal_link']) : null;
+            if ($workLink && !preg_match('#^https?://#i', $workLink)) {
+                $workLink = 'https://' . $workLink;
+            }
+
+            $videoLink = !empty($subData['video_instruction_link']) ? trim($subData['video_instruction_link']) : null;
+            if ($videoLink && !preg_match('#^https?://#i', $videoLink)) {
+                $videoLink = 'https://' . $videoLink;
+            }
+
+            $docsList = [];
+            if (!empty($subData['required_documents'])) {
+                $docsList = array_values(array_filter(array_map('trim', explode("\n", $subData['required_documents']))));
+            }
+
+            // Auto-generate clean unique service code
+            $codePrefix = substr(preg_replace('/[^A-Za-z0-9]/', '', $mainServiceName), 0, 4) ?: 'SRV';
+            $codeSub = substr(preg_replace('/[^A-Za-z0-9]/', '', $subName), 0, 3) ?: 'SUB';
+            $serviceCode = strtoupper($codePrefix . '-' . $codeSub . '-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT));
+
+            $attempt = 1;
+            $baseCode = $serviceCode;
+            while (Service::where('tenant_id', $tenantId)->where('service_code', $serviceCode)->exists()) {
+                $serviceCode = $baseCode . '-' . rand(10, 99);
+                $attempt++;
+                if ($attempt > 10) break;
+            }
+
+            $service = Service::create([
+                'tenant_id' => $tenantId,
+                'category_id' => null,
+                'service_code' => $serviceCode,
+                'main_service_name' => $mainServiceName,
+                'sub_service_name' => $subName,
+                'price' => $subData['price'],
+                'govt_fee' => $subData['govt_fee'],
+                'service_charge' => $subData['service_charge'],
+                'expected_processing_days' => $subData['expected_processing_days'],
+                'required_documents_json' => $docsList,
+                'work_portal_link' => $workLink,
+                'service_portal_link' => $workLink,
+                'video_instruction_link' => $videoLink,
+                'is_active' => true,
+            ]);
+
+            AuditService::log('SERVICE_CREATED', $service, null, $service->toArray());
+            $createdCount++;
+        }
+
+        return redirect()->route('services.index')
+            ->with('success', "मुख्य सेवा [{$mainServiceName}] अंतर्गत {$createdCount} उप-सेवा यशस्वीरित्या सेव्ह झाल्या!");
+    }
+
+    /**
+     * Show edit service form for a single sub-service.
+     */
+    public function edit(Service $service): View
+    {
+        $existingMainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
+        return view('services.edit', compact('service', 'existingMainServices'));
+    }
+
+    /**
+     * Update an existing sub-service.
+     */
+    public function update(Request $request, Service $service): RedirectResponse
+    {
+        $validated = $request->validate([
             'main_service_name' => ['required', 'string', 'max:255'],
             'sub_service_name' => ['required', 'string', 'max:255'],
-            'service_variant' => ['nullable', 'string', 'max:100'],
-            'description' => ['nullable', 'string'],
+            'expected_processing_days' => ['required', 'integer', 'min:1'],
             'price' => ['required', 'numeric', 'min:0'],
             'govt_fee' => ['required', 'numeric', 'min:0'],
             'service_charge' => ['required', 'numeric', 'min:0'],
-            'expected_processing_days' => ['required', 'integer', 'min:1'],
-            'required_documents' => ['nullable', 'string'], // newline separated
-            'service_portal_link' => ['nullable', 'url'],
-            'work_portal_link' => ['nullable', 'url'],
-            'video_instruction_link' => ['nullable', 'url'],
-            'portal_username' => ['nullable', 'string'],
-            'portal_password' => ['nullable', 'string'],
+            'required_documents' => ['nullable', 'string'],
+            'work_portal_link' => ['nullable', 'string', 'max:500'],
+            'video_instruction_link' => ['nullable', 'string', 'max:500'],
         ]);
+
+        $workLink = !empty($validated['work_portal_link']) ? trim($validated['work_portal_link']) : null;
+        if ($workLink && !preg_match('#^https?://#i', $workLink)) {
+            $workLink = 'https://' . $workLink;
+        }
+
+        $videoLink = !empty($validated['video_instruction_link']) ? trim($validated['video_instruction_link']) : null;
+        if ($videoLink && !preg_match('#^https?://#i', $videoLink)) {
+            $videoLink = 'https://' . $videoLink;
+        }
 
         $docsList = [];
         if (!empty($validated['required_documents'])) {
             $docsList = array_values(array_filter(array_map('trim', explode("\n", $validated['required_documents']))));
         }
 
-        $service = Service::create([
-            'tenant_id' => Auth::user()->tenant_id,
-            'category_id' => $validated['category_id'],
-            'service_code' => strtoupper($validated['service_code']),
-            'main_service_name' => $validated['main_service_name'],
-            'sub_service_name' => $validated['sub_service_name'],
-            'service_variant' => $validated['service_variant'] ?? null,
-            'description' => $validated['description'] ?? null,
+        $old = $service->toArray();
+
+        $service->update([
+            'main_service_name' => strtoupper(trim($validated['main_service_name'])),
+            'sub_service_name' => trim($validated['sub_service_name']),
             'price' => $validated['price'],
             'govt_fee' => $validated['govt_fee'],
             'service_charge' => $validated['service_charge'],
             'expected_processing_days' => $validated['expected_processing_days'],
             'required_documents_json' => $docsList,
-            'service_portal_link' => $validated['service_portal_link'] ?? null,
-            'work_portal_link' => $validated['work_portal_link'] ?? null,
-            'video_instruction_link' => $validated['video_instruction_link'] ?? null,
-            'portal_username_encrypted' => $validated['portal_username'] ?? null,
-            'portal_password_encrypted' => $validated['portal_password'] ?? null,
-            'is_active' => true,
+            'work_portal_link' => $workLink,
+            'service_portal_link' => $workLink,
+            'video_instruction_link' => $videoLink,
         ]);
 
-        AuditService::log('SERVICE_CREATED', $service, null, $service->toArray());
+        AuditService::log('SERVICE_UPDATED', $service, $old, $service->toArray());
 
-        return redirect()->route('services.show', $service->id)->with('success', 'Service created successfully.');
+        return redirect()->route('services.show', $service->id)->with('success', 'उप-सेवा माहिती यशस्वीरित्या अपडेट झाली!');
+    }
+
+    /**
+     * Delete a service.
+     */
+    public function destroy(Service $service): RedirectResponse
+    {
+        $old = $service->toArray();
+        $service->delete();
+        AuditService::log('SERVICE_DELETED', $service, $old, null);
+
+        return redirect()->route('services.index')->with('success', 'सेवा यशस्वीरित्या हटवली.');
     }
 
     /**
@@ -192,6 +289,8 @@ class ServiceController extends Controller
             'service_charge' => $service->service_charge,
             'expected_processing_days' => $service->expected_processing_days,
             'required_documents' => $service->required_documents_json ?? [],
+            'work_portal_link' => $service->work_portal_link ?: $service->service_portal_link,
+            'video_instruction_link' => $service->video_instruction_link,
             'custom_fields' => $service->customFields->map(function ($f) {
                 return [
                     'id' => $f->id,

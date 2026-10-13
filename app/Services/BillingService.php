@@ -52,8 +52,8 @@ class BillingService
      */
     public function recordPayment(array $data, User $receiver): Payment
     {
-        $tenantId = $receiver->tenant_id;
-        $branchId = $data['branch_id'] ?? $receiver->branch_id ?? $receiver->tenant->branches()->first()?->id;
+        $tenantId = $receiver->tenant_id ?? (int) ($data['tenant_id'] ?? 1);
+        $branchId = $data['branch_id'] ?? $receiver->branch_id ?? $receiver->tenant?->branches()->first()?->id ?? 1;
         $amount = (float) $data['amount'];
 
         if ($amount <= 0) {

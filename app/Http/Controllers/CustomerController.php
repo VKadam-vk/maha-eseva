@@ -82,6 +82,8 @@ class CustomerController extends Controller
             'pincode' => ['nullable', 'string', 'max:10'],
             'birth_date' => ['nullable', 'date'],
             'alternate_mobile' => ['nullable', 'string', 'max:20'],
+            'occupation' => ['nullable', 'string', 'max:100'],
+            'star_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
             'category_id' => ['nullable', 'exists:customer_categories,id'],
             'branch_id' => ['nullable', 'exists:branches,id'],
             'notes' => ['nullable', 'string'],
@@ -195,6 +197,8 @@ class CustomerController extends Controller
             'pincode' => ['nullable', 'string', 'max:10'],
             'birth_date' => ['nullable', 'date'],
             'alternate_mobile' => ['nullable', 'string', 'max:20'],
+            'occupation' => ['nullable', 'string', 'max:100'],
+            'star_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
             'category_id' => ['nullable', 'exists:customer_categories,id'],
             'notes' => ['nullable', 'string'],
         ]);

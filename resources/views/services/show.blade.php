@@ -10,9 +10,12 @@
             <span class="badge badge-ready" style="font-family: var(--font-mono);">{{ $service->service_code }}</span>
             <span class="badge {{ $service->is_active ? 'badge-paid' : 'badge-pending' }}">{{ $service->is_active ? 'ACTIVE' : 'INACTIVE' }}</span>
         </div>
-        <p class="page-subtitle">{{ $service->sub_service_name }} ({{ $service->category->name }})</p>
+        <p class="page-subtitle">{{ $service->sub_service_name }}</p>
     </div>
     <div style="display: flex; gap: 8px;">
+        <a href="{{ route('services.edit', $service->id) }}" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Service
+        </a>
         <a href="{{ route('applications.create', ['service_id' => $service->id]) }}" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> New Application for Service
         </a>
@@ -31,8 +34,9 @@
         <div class="erp-card-body" style="font-size: 13.5px; line-height: 1.8;">
             <div><strong>Main Service:</strong> {{ $service->main_service_name }}</div>
             <div><strong>Sub-Service:</strong> {{ $service->sub_service_name }}</div>
-            <div><strong>Variant:</strong> {{ $service->service_variant ?? 'Standard' }}</div>
-            <div><strong>Category:</strong> {{ $service->category->name }}</div>
+            @if($service->service_variant)
+                <div><strong>Variant:</strong> {{ $service->service_variant }}</div>
+            @endif
             <div><strong>Expected Processing Time:</strong> {{ $service->expected_processing_days }} Days</div>
             <div style="border-top: 1px solid var(--surface-border); margin: 10px 0; padding-top: 10px;">
                 <div><strong>Government Fee:</strong> ₹{{ number_format($service->govt_fee, 2) }}</div>
@@ -40,13 +44,22 @@
                 <div><strong>Total Customer Price:</strong> <strong style="color: #166534; font-size: 15px;">₹{{ number_format($service->price, 2) }}</strong></div>
             </div>
 
-            @if($service->service_portal_link)
-                <div style="margin-top: 10px;">
-                    <a href="{{ $service->service_portal_link }}" target="_blank" class="btn btn-secondary btn-sm">
-                        <i class="fa-solid fa-external-link"></i> Official Portal
+            <div style="margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap;">
+                @php
+                    $workPortalLink = $service->work_portal_link ?: $service->service_portal_link;
+                @endphp
+                @if($workPortalLink)
+                    <a href="{{ $workPortalLink }}" target="_blank" class="btn btn-sm" style="background: #2563eb; color: white; border: none; font-weight: 700; padding: 6px 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(37,99,235,0.25);">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Work Portal &rarr;
                     </a>
-                </div>
-            @endif
+                @endif
+
+                @if($service->video_instruction_link)
+                    <a href="{{ $service->video_instruction_link }}" target="_blank" class="btn btn-sm" style="background: #dc2626; color: white; border: none; font-weight: 700; padding: 6px 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(220,38,38,0.25);">
+                        <i class="fa-brands fa-youtube"></i> Watch Tutorial &rarr;
+                    </a>
+                @endif
+            </div>
 
             @if(!empty($service->required_documents_json))
                 <div style="margin-top: 16px;">

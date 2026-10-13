@@ -54,6 +54,7 @@
                     <th>Service Charge</th>
                     <th>Total Price</th>
                     <th>Processing Days</th>
+                    <th>Operator Links</th>
                     <th>Custom Fields</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -63,7 +64,7 @@
                 @forelse($services as $s)
                     <tr>
                         <td><span style="font-family: var(--font-mono); font-weight: 700; color: #4f46e5;">{{ $s->service_code }}</span></td>
-                        <td><span class="badge badge-ready">{{ $s->category->name }}</span></td>
+                        <td><span class="badge badge-ready">{{ $s->category->name ?? 'General / सामान्य' }}</span></td>
                         <td><strong>{{ $s->main_service_name }}</strong></td>
                         <td>
                             {{ $s->sub_service_name }}
@@ -76,6 +77,27 @@
                         <td><strong style="color: #166534; font-size: 14px;">₹{{ number_format($s->price, 2) }}</strong></td>
                         <td>{{ $s->expected_processing_days }} Days</td>
                         <td>
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                @if($s->work_portal_link || $s->service_portal_link)
+                                    <a href="{{ $s->work_portal_link ?: $s->service_portal_link }}" target="_blank" 
+                                       class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 8px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;"
+                                       title="Open Government Work Portal">
+                                        <i class="fa-solid fa-globe"></i> Work Portal
+                                    </a>
+                                @endif
+                                @if($s->video_instruction_link)
+                                    <a href="{{ $s->video_instruction_link }}" target="_blank" 
+                                       class="btn btn-sm btn-secondary" style="font-size: 11px; padding: 4px 8px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
+                                       title="Watch Tutorial Video">
+                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                    </a>
+                                @endif
+                                @if(!$s->work_portal_link && !$s->service_portal_link && !$s->video_instruction_link)
+                                    <span style="color: #94a3b8; font-size: 11px;">No links</span>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
                             <span class="badge badge-process">{{ $s->customFields->count() }} Fields</span>
                         </td>
                         <td>
@@ -87,11 +109,14 @@
                             </form>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 6px;">
-                                <a href="{{ route('services.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Configure Fields">
-                                    <i class="fa-solid fa-gear"></i> Configure
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <a href="{{ route('services.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit Sub-Service" style="padding: 4px 8px;">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
                                 </a>
-                                <a href="{{ route('applications.create', ['service_id' => $s->id]) }}" class="btn btn-primary btn-sm" title="Apply Service">
+                                <a href="{{ route('services.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Configure Fields" style="padding: 4px 8px;">
+                                    <i class="fa-solid fa-gear"></i>
+                                </a>
+                                <a href="{{ route('applications.create', ['service_id' => $s->id]) }}" class="btn btn-primary btn-sm" title="Apply Service" style="padding: 4px 8px;">
                                     <i class="fa-solid fa-plus"></i> Apply
                                 </a>
                             </div>
@@ -99,7 +124,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" style="text-align: center; padding: 24px; color: var(--text-muted);">No services found.</td>
+                        <td colspan="12" style="text-align: center; padding: 24px; color: var(--text-muted);">No services found.</td>
                     </tr>
                 @endforelse
             </tbody>

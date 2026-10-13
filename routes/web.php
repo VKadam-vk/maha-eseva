@@ -74,6 +74,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/create', [ServiceController::class, 'create'])->name('create')->middleware('permission:services.create');
         Route::post('/', [ServiceController::class, 'store'])->name('store')->middleware('permission:services.create');
         Route::get('/{service}', [ServiceController::class, 'show'])->name('show')->middleware('permission:services.view');
+        Route::get('/{service}/edit', [ServiceController::class, 'edit'])->name('edit')->middleware('permission:services.edit');
+        Route::put('/{service}', [ServiceController::class, 'update'])->name('update')->middleware('permission:services.edit');
+        Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy')->middleware('permission:services.delete');
         Route::post('/{service}/custom-fields', [ServiceController::class, 'storeCustomField'])->name('custom_fields.store')->middleware('permission:services.edit');
         Route::delete('/custom-fields/{field}', [ServiceController::class, 'deleteCustomField'])->name('custom_fields.destroy')->middleware('permission:services.edit');
         Route::post('/{service}/toggle-status', [ServiceController::class, 'toggleStatus'])->name('toggle_status')->middleware('permission:services.edit');
@@ -113,10 +116,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/invoices/{invoice}/print', [BillingController::class, 'printInvoice'])->name('invoices.print')->middleware('permission:payments.view');
     });
 
-    // Fast Spreadsheet-Style Daily Entry
+    // Fast Spreadsheet-Style Daily Customer Entry & New Service Entry
     Route::prefix('fast-entry')->name('fast_entry.')->group(function () {
-        Route::get('/', [FastEntryController::class, 'index'])->name('index')->middleware('permission:applications.create');
-        Route::post('/store-row', [FastEntryController::class, 'storeRow'])->name('store_row')->middleware('permission:applications.create');
+        Route::get('/', [FastEntryController::class, 'index'])->name('index')->middleware('permission:customers.create');
+        Route::post('/store-row', [FastEntryController::class, 'storeRow'])->name('store_row')->middleware('permission:customers.create');
+        Route::get('/search-customers', [FastEntryController::class, 'searchCustomers'])->name('search_customers')->middleware('permission:customers.view');
+        Route::post('/store-service-entry', [FastEntryController::class, 'storeServiceEntry'])->name('store_service_entry')->middleware('permission:customers.create');
     });
 
     // Staff & Employee Management

@@ -9,10 +9,13 @@
             {{ strtoupper(substr($customer->name, 0, 1)) }}
         </div>
         <div>
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h1 class="page-title" style="font-size: 22px;">{{ $customer->name }}</h1>
                 <span class="badge badge-ready" style="font-family: var(--font-mono);">{{ $customer->customer_code }}</span>
                 <span class="badge badge-hold">{{ $customer->category?->name ?? 'Regular' }}</span>
+                <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                    <i class="fa-solid fa-star" style="color: #f59e0b;"></i> {{ $customer->star_rating ?? 5 }} ★ Rating
+                </span>
             </div>
             <p class="page-subtitle">
                 <i class="fa-solid fa-phone"></i> {{ $customer->mobile }} 
@@ -89,6 +92,15 @@
                 <div><strong>Mobile:</strong> <span style="font-family: var(--font-mono); font-weight: 700;">{{ $customer->mobile }}</span></div>
                 <div><strong>Gender:</strong> {{ $customer->gender }}</div>
                 <div><strong>Birth Date:</strong> {{ $customer->birth_date ? $customer->birth_date->format('d M Y') : 'Not provided' }}</div>
+                <div><strong>Occupation:</strong> {{ $customer->occupation ? strtoupper($customer->occupation) : 'Not specified' }}</div>
+                <div><strong>Star Rating:</strong> 
+                    <span style="color: #f59e0b; font-weight: 700;">
+                        @for($i=1; $i<=5; $i++)
+                            <i class="fa-solid fa-star {{ $i <= ($customer->star_rating ?? 5) ? '' : 'fa-regular' }}" style="color: {{ $i <= ($customer->star_rating ?? 5) ? '#f59e0b' : '#cbd5e1' }}; font-size: 13px;"></i>
+                        @endfor
+                        ({{ $customer->star_rating ?? 5 }} / 5 Stars)
+                    </span>
+                </div>
                 <div><strong>Email:</strong> {{ $customer->email ?? 'Not provided' }}</div>
                 <div><strong>Alternate Mobile:</strong> {{ $customer->alternate_mobile ?? '-' }}</div>
                 <div><strong>Address:</strong> {{ $customer->address ?? '-' }}</div>
@@ -128,39 +140,79 @@
             <table class="erp-table">
                 <thead>
                     <tr>
-                        <th>SR Number</th>
-                        <th>Application Date</th>
-                        <th>Service Name</th>
-                        <th>Assigned Staff</th>
-                        <th>Total Amount</th>
-                        <th>Received</th>
-                        <th>Work Status</th>
-                        <th>Payment</th>
-                        <th>Action</th>
+                        <th style="white-space: nowrap;">SR Number</th>
+                        <th style="white-space: nowrap;">Service Name</th>
+                        <th style="white-space: nowrap;">Sub Service</th>
+                        <th style="white-space: nowrap;">Rate (₹)</th>
+                        <th style="white-space: nowrap;">Received (₹)</th>
+                        <th style="white-space: nowrap;">Remaining (₹)</th>
+                        <th style="white-space: nowrap;">Work Details</th>
+                        <th style="white-space: nowrap;">Documents List</th>
+                        <th style="white-space: nowrap; color: #dc2626;">Pending Remark</th>
+                        <th style="white-space: nowrap;">Followup Date</th>
+                        <th style="white-space: nowrap;">Work Status</th>
+                        <th style="white-space: nowrap;">Operator</th>
+                        <th style="white-space: nowrap; text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($customer->applications as $app)
                         <tr>
-                            <td>
+                            <td style="white-space: nowrap;">
                                 <a href="{{ route('applications.show', $app->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">
                                     {{ $app->application_number }}
                                 </a>
+                                <div style="font-size: 11px; color: var(--text-muted);">{{ $app->application_date ? $app->application_date->format('d-m-Y') : '-' }}</div>
                             </td>
-                            <td>{{ $app->application_date->format('d M Y') }}</td>
-                            <td>{{ $app->service->main_service_name }} ({{ $app->service->sub_service_name }})</td>
-                            <td>{{ $app->assignedEmployee?->user?->name ?? 'Unassigned' }}</td>
-                            <td>₹{{ number_format($app->total_amount, 2) }}</td>
-                            <td style="color: #166534; font-weight: 700;">₹{{ number_format($app->received_amount, 2) }}</td>
-                            <td><span class="badge badge-process">{{ $app->work_status }}</span></td>
-                            <td><span class="badge badge-paid">{{ $app->payment_status }}</span></td>
+                            <td><strong style="text-transform: uppercase;">{{ $app->service->main_service_name }}</strong></td>
+                            <td><span style="font-weight: 600; text-transform: uppercase; color: #475569;">{{ $app->sub_service ?: ($app->service->sub_service_name ?: '-') }}</span></td>
+                            <td style="font-family: var(--font-mono); font-weight: 700;">₹{{ number_format($app->total_amount, 2) }}</td>
+                            <td style="font-family: var(--font-mono); color: #166534; font-weight: 700;">₹{{ number_format($app->received_amount, 2) }}</td>
+                            <td style="font-family: var(--font-mono); font-weight: 800; color: {{ $app->remaining_amount > 0 ? '#dc2626' : '#166534' }};">
+                                ₹{{ number_format($app->remaining_amount, 2) }}
+                            </td>
+                            <td style="font-size: 12.5px; max-width: 180px;">{{ $app->work_details ?: '-' }}</td>
+                            <td style="font-size: 12.5px; max-width: 180px;">{{ $app->documents_list ?: '-' }}</td>
                             <td>
-                                <a href="{{ route('applications.show', $app->id) }}" class="btn btn-secondary btn-sm">View <i class="fa-solid fa-arrow-right"></i></a>
+                                @if($app->pending_remarks)
+                                    <span class="badge" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700;">
+                                        {{ $app->pending_remarks }}
+                                    </span>
+                                @else
+                                    <span style="color: #166534; font-weight: 600;">ALL OK</span>
+                                @endif
+                            </td>
+                            <td style="font-family: var(--font-mono); font-size: 12px;">
+                                {{ $app->follow_up_date ? $app->follow_up_date->format('d-m-Y') : '-' }}
+                            </td>
+                            <td>
+                                @php
+                                    $statusStyle = match($app->work_status) {
+                                        'READY', 'DELIVERED', 'DONE' => 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;',
+                                        'IN_PROCESS', 'IN_PROGRESS' => 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;',
+                                        default => 'background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;'
+                                    };
+                                @endphp
+                                <span class="badge" style="{{ $statusStyle }} font-weight: 700;">
+                                    {{ $app->work_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong style="color: #334155; text-transform: uppercase;">
+                                    {{ $app->assignedEmployee?->user?->name ?? 'Unassigned' }}
+                                </strong>
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{{ route('applications.show', $app->id) }}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 4px 10px;">
+                                    <i class="fa-solid fa-eye"></i> Details
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">No applications registered for this customer.</td>
+                            <td colspan="13" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                No service entries recorded for this customer yet.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
