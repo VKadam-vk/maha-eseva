@@ -215,27 +215,6 @@ class FastEntryController extends Controller
                     'follow_up_date' => $validated['follow_up_date'] ?? null,
                 ], $user);
 
-                // If money was received, record official payment ledger
-                if ($received > 0) {
-                    $tenantId = $user->tenant_id ?? $customer->tenant_id ?? 1;
-                    $paymentCount = Payment::where('tenant_id', $tenantId)->count() + 1;
-                    $receiptNumber = sprintf('REC-%s-%05d', date('Y'), $paymentCount);
-
-                    Payment::create([
-                        'tenant_id' => $tenantId,
-                        'branch_id' => $app->branch_id,
-                        'customer_id' => $customer->id,
-                        'application_id' => $app->id,
-                        'receipt_number' => $receiptNumber,
-                        'payment_date' => now()->toDateString(),
-                        'amount' => $received,
-                        'payment_mode' => 'CASH',
-                        'payment_status' => Payment::STATUS_SUCCESS,
-                        'notes' => 'Counter Entry Receipt: ' . ($service->main_service_name ?: 'Service') . ' (' . ($validated['sub_service'] ?? '') . ')',
-                        'received_by' => $user->id,
-                    ]);
-                }
-
                 return $app->load(['service', 'customer', 'assignedEmployee.user']);
             });
 

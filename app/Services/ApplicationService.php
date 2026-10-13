@@ -41,13 +41,22 @@ class ApplicationService
         return DB::transaction(function () use ($data, $service, $tenantId, $branchId, $creator) {
             $appNumber = $this->generateApplicationNumber($tenantId);
 
-            $baseAmount = isset($data['base_amount']) ? (float) $data['base_amount'] : (float) $service->price;
             $govtFee = isset($data['govt_fee']) ? (float) $data['govt_fee'] : (float) $service->govt_fee;
             $serviceCharge = isset($data['service_charge']) ? (float) $data['service_charge'] : (float) $service->service_charge;
             $additionalCharges = isset($data['additional_charges']) ? (float) $data['additional_charges'] : 0.00;
             $discountAmount = isset($data['discount_amount']) ? (float) $data['discount_amount'] : 0.00;
-            
-            $totalAmount = max(0, ($baseAmount + $govtFee + $serviceCharge + $additionalCharges) - $discountAmount);
+
+            // Base amount represents the service price (or govt fee + service charge if not provided)
+            if (isset($data['base_amount']) && (float) $data['base_amount'] > 0) {
+                $baseAmount = (float) $data['base_amount'];
+            } elseif ($govtFee + $serviceCharge > 0) {
+                $baseAmount = $govtFee + $serviceCharge;
+            } else {
+                $baseAmount = (float) $service->price;
+            }
+
+            // Total amount = Base Amount (which already includes govt fee & service charge) + Additional - Discount
+            $totalAmount = max(0, ($baseAmount + $additionalCharges) - $discountAmount);
             $initialReceived = isset($data['received_amount']) ? (float) $data['received_amount'] : 0.00;
             $remainingAmount = max(0, $totalAmount - $initialReceived);
 

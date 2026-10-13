@@ -156,8 +156,8 @@ class Application extends Model
 
     public function recalculateFinancials(): void
     {
-        $total = ($this->base_amount + $this->govt_fee + $this->service_charge + $this->additional_charges) - $this->discount_amount;
-        $total = max(0, $total);
+        $coreAmount = ($this->base_amount > 0) ? $this->base_amount : ($this->govt_fee + $this->service_charge);
+        $total = max(0, ($coreAmount + $this->additional_charges) - $this->discount_amount);
         $received = (float) $this->payments()->where('payment_status', 'SUCCESS')->sum('amount');
         $remaining = max(0, $total - $received);
 
