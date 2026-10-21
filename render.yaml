@@ -3,8 +3,9 @@ services:
     name: maha-eseva-erp
     runtime: docker
     plan: free
-    region: oregon
+    region: singapore
     dockerfilePath: Dockerfile
+    healthCheckPath: /up
     envVars:
       - key: APP_NAME
         value: "Maha E-Seva ERP"

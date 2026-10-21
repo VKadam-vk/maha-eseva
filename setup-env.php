@@ -24,11 +24,17 @@ setEnvValue($env, 'APP_DEBUG', 'true');
 
 // Port & URL
 $port = getenv('PORT') ?: '80';
+$renderUrl = getenv('RENDER_EXTERNAL_URL') ?: (getenv('RENDER_EXTERNAL_HOSTNAME') ? 'https://' . getenv('RENDER_EXTERNAL_HOSTNAME') : null);
 $railwayDomain = getenv('RAILWAY_PUBLIC_DOMAIN') ?: getenv('RAILWAY_STATIC_URL');
-if ($railwayDomain) {
+
+if ($renderUrl) {
+    setEnvValue($env, 'APP_URL', $renderUrl);
+} elseif ($railwayDomain) {
     setEnvValue($env, 'APP_URL', 'https://' . $railwayDomain);
+} elseif (getenv('APP_URL')) {
+    setEnvValue($env, 'APP_URL', getenv('APP_URL'));
 } else {
-    setEnvValue($env, 'APP_URL', 'https://maha-eseva-erp-production.up.railway.app');
+    setEnvValue($env, 'APP_URL', 'http://localhost');
 }
 
 // Database configuration
