@@ -15,74 +15,101 @@ use Illuminate\View\View;
 class FollowUpController extends Controller
 {
     /**
-     * Display follow-ups with filtering by status and date.
+     * Display follow-ups with automatic daily filtering and Fast-Entry spreadsheet data.
      */
     public function index(Request $request): View
     {
         $user = Auth::user();
+        $today = now()->toDateString();
+        $tomorrow = now()->addDay()->toDateString();
 
-        // 1. Self-healing auto-sync: Ensure any application having a follow_up_date is synchronized with follow_ups table
-        try {
-            $appsWithFollowUp = Application::withoutGlobalScopes()
-                ->whereNotNull('follow_up_date')
-                ->with(['service', 'customer', 'followUps'])
-                ->get();
+        // 1. Determine active date / filter mode:
+        // By DEFAULT, if no date and no mode is passed, automatically filter by TODAY's date!
+        $mode = $request->get('mode'); // 'overdue', 'tomorrow', 'all', or null
+        $selectedDate = $request->get('date');
 
-            foreach ($appsWithFollowUp as $app) {
-                $existing = $app->followUps->first();
-                $serviceName = $app->service?->main_service_name ?? 'Service';
-                $subServiceName = $app->sub_service ?? '';
-                $reason = $subServiceName ? "{$serviceName} - {$subServiceName}" : "Service Follow-up ({$serviceName})";
-                $appDate = $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : null;
-
-                if (!$existing && $appDate) {
-                    FollowUp::create([
-                        'tenant_id' => $app->tenant_id,
-                        'branch_id' => $app->branch_id,
-                        'customer_id' => $app->customer_id,
-                        'application_id' => $app->id,
-                        'assigned_employee_id' => $app->assigned_employee_id,
-                        'follow_up_date' => $appDate,
-                        'reason' => $reason,
-                        'remarks' => $app->work_details ?: 'Fast Entry Desk Schedule',
-                        'status' => in_array($app->work_status, ['READY', 'DELIVERED', 'COMPLETED']) ? FollowUp::STATUS_COMPLETED : FollowUp::STATUS_PENDING,
-                        'created_by' => $app->created_by,
-                    ]);
-                } elseif ($existing && $appDate && $existing->follow_up_date?->format('Y-m-d') !== $appDate) {
-                    $existing->update([
-                        'follow_up_date' => $appDate,
-                        'assigned_employee_id' => $app->assigned_employee_id,
-                        'reason' => $reason,
-                    ]);
-                }
-            }
-        } catch (\Throwable $e) {
-            // Log notice and continue without breaking the view
-            report($e);
+        if (!$selectedDate && !$mode) {
+            $selectedDate = $today; // Automatically today!
         }
 
-        // 2. Query follow-ups
-        $query = FollowUp::with(['customer', 'application.service', 'assignedEmployee.user']);
+        // 2. Query Applications with follow_up_date
+        $query = Application::with(['customer', 'service.category', 'assignedEmployee.user', 'payments'])
+            ->whereNotNull('follow_up_date');
 
         if ($user->isEmployee()) {
             $query->where('assigned_employee_id', $user->employee?->id);
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('work_status', $request->status);
         }
 
-        if ($request->filled('date')) {
-            $query->whereDate('follow_up_date', $request->date);
+        // Filter according to mode or selected date
+        if ($mode === 'overdue') {
+            $query->whereDate('follow_up_date', '<', $today)
+                  ->whereNotIn('work_status', ['COMPLETED', 'DELIVERED', 'READY']);
+        } elseif ($mode === 'tomorrow') {
+            $query->whereDate('follow_up_date', $tomorrow);
+            $selectedDate = $tomorrow;
+        } elseif ($mode === 'all') {
+            // All scheduled follow-ups
+        } else {
+            // Strict match for the selected date (defaults automatically to today!)
+            $query->whereDate('follow_up_date', $selectedDate);
         }
 
-        $followUps = $query->orderBy('follow_up_date', 'asc')->paginate(15)->withQueryString();
+        $applications = $query->orderBy('follow_up_date', 'asc')->get();
+
+        // 3. Counts for quick switcher bar
+        $todayCountQuery = Application::whereNotNull('follow_up_date')->whereDate('follow_up_date', $today);
+        $tomorrowCountQuery = Application::whereNotNull('follow_up_date')->whereDate('follow_up_date', $tomorrow);
+        $overdueCountQuery = Application::whereNotNull('follow_up_date')
+            ->whereDate('follow_up_date', '<', $today)
+            ->whereNotIn('work_status', ['COMPLETED', 'DELIVERED', 'READY']);
+        $allCountQuery = Application::whereNotNull('follow_up_date');
+
+        if ($user->isEmployee()) {
+            $empId = $user->employee?->id;
+            $todayCountQuery->where('assigned_employee_id', $empId);
+            $tomorrowCountQuery->where('assigned_employee_id', $empId);
+            $overdueCountQuery->where('assigned_employee_id', $empId);
+            $allCountQuery->where('assigned_employee_id', $empId);
+        }
+
+        $todayCount = $todayCountQuery->count();
+        $tomorrowCount = $tomorrowCountQuery->count();
+        $overdueCount = $overdueCountQuery->count();
+        $allCount = $allCountQuery->count();
+
+        // 4. Auxiliary master data
+        $activeServices = \App\Models\Service::where('is_active', true)->with('category')->get();
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
         $customers = Customer::latest()->limit(50)->get();
 
-        $dueCount = FollowUp::where('status', FollowUp::STATUS_PENDING)->whereDate('follow_up_date', '<=', now()->toDateString())->count();
+        // 5. Aggregate metrics for the active view
+        $totalBilled = $applications->sum('rate');
+        $totalReceived = $applications->sum('received_amount');
+        $totalRemaining = max(0, $totalBilled - $totalReceived);
+        $totalCount = $applications->count();
 
-        return view('followups.index', compact('followUps', 'employees', 'customers', 'dueCount'));
+        return view('followups.index', compact(
+            'applications',
+            'activeServices',
+            'employees',
+            'customers',
+            'selectedDate',
+            'mode',
+            'today',
+            'tomorrow',
+            'todayCount',
+            'tomorrowCount',
+            'overdueCount',
+            'allCount',
+            'totalBilled',
+            'totalReceived',
+            'totalRemaining',
+            'totalCount'
+        ));
     }
 
     /**
