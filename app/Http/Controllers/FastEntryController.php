@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Application;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\FollowUp;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Services\ApplicationService;
@@ -233,6 +234,13 @@ class FastEntryController extends Controller
             'follow_up_date' => array_key_exists('follow_up_date', $validated) ? $validated['follow_up_date'] : $application->follow_up_date,
         ]);
 
+        $this->syncApplicationFollowUp(
+            $application,
+            $application->follow_up_date ? $application->follow_up_date->format('Y-m-d') : null,
+            $application->work_details,
+            $user->id
+        );
+
         $customer = $application->customer;
 
         return response()->json([
@@ -437,6 +445,14 @@ class FastEntryController extends Controller
                 return $app->load(['service', 'customer', 'assignedEmployee.user']);
             });
 
+            // Automatically synchronize with CRM Follow-ups
+            $this->syncApplicationFollowUp(
+                $application,
+                $validated['follow_up_date'] ?? null,
+                $validated['work_details'] ?? null,
+                $user->id
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => "Service Entry Recorded: {$service->main_service_name} for {$customer->name} (SR: {$application->application_number})",
@@ -466,6 +482,42 @@ class FastEntryController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
+        }
+    }
+
+    /**
+     * Synchronize application follow-up date with the CRM Follow-ups table.
+     */
+    protected function syncApplicationFollowUp(Application $application, ?string $followUpDate, ?string $remarks = null, ?int $userId = null): void
+    {
+        $cleanDate = !empty($followUpDate) ? date('Y-m-d', strtotime($followUpDate)) : null;
+
+        if ($cleanDate) {
+            $serviceName = $application->service?->main_service_name ?? 'Service';
+            $subServiceName = $application->sub_service ?? '';
+            $reason = $subServiceName ? "{$serviceName} - {$subServiceName}" : "Service Follow-up ({$serviceName})";
+
+            FollowUp::updateOrCreate(
+                [
+                    'application_id' => $application->id,
+                ],
+                [
+                    'tenant_id' => $application->tenant_id,
+                    'branch_id' => $application->branch_id,
+                    'customer_id' => $application->customer_id,
+                    'assigned_employee_id' => $application->assigned_employee_id,
+                    'follow_up_date' => $cleanDate,
+                    'reason' => $reason,
+                    'remarks' => $remarks ?: ($application->work_details ?: 'Fast Entry Desk Schedule'),
+                    'status' => in_array($application->work_status, ['READY', 'DELIVERED', 'COMPLETED']) ? FollowUp::STATUS_COMPLETED : FollowUp::STATUS_PENDING,
+                    'created_by' => $userId ?? Auth::id(),
+                ]
+            );
+        } else {
+            // If follow-up date was cleared, remove any pending follow-up for this application
+            FollowUp::where('application_id', $application->id)
+                ->where('status', FollowUp::STATUS_PENDING)
+                ->delete();
         }
     }
 }
