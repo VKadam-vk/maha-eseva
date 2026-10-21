@@ -87,7 +87,7 @@ class FollowUpController extends Controller
         $customers = Customer::latest()->limit(50)->get();
 
         // 5. Aggregate metrics for the active view
-        $totalBilled = $applications->sum('rate');
+        $totalBilled = $applications->sum(fn($a) => (float) ($a->total_amount ?? $a->rate ?? 0));
         $totalReceived = $applications->sum('received_amount');
         $totalRemaining = max(0, $totalBilled - $totalReceived);
         $totalCount = $applications->count();

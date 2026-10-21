@@ -77,8 +77,14 @@ class ApplicationController extends Controller
             $query->whereIn('service_id', $allowedServiceIds);
         }
 
-        $applications = $query->latest('application_date')->latest('id')->paginate(15)->withQueryString();
+        $totalCount = (clone $query)->count();
+        $totalBilled = (clone $query)->sum('total_amount');
+        $totalReceived = (clone $query)->sum('received_amount');
+        $totalRemaining = max(0, $totalBilled - $totalReceived);
+
+        $applications = $query->latest('id')->paginate(30)->withQueryString();
         $services = $user->allowedServices()->get();
+        $activeServices = Service::where('is_active', true)->with('category')->get();
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
 
@@ -99,7 +105,18 @@ class ApplicationController extends Controller
             Application::STATUS_CANCELLED,
         ];
 
-        return view('applications.index', compact('applications', 'services', 'employees', 'branches', 'statuses'));
+        return view('applications.index', compact(
+            'applications',
+            'services',
+            'activeServices',
+            'employees',
+            'branches',
+            'statuses',
+            'totalCount',
+            'totalBilled',
+            'totalReceived',
+            'totalRemaining'
+        ));
     }
 
     /**
