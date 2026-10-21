@@ -809,7 +809,7 @@
         <div class="pocket-card-header" style="background: #0f172a; display: flex; justify-content: space-between; align-items: center;">
             <div class="card-title">
                 <i class="fa-solid fa-table-cells" style="color: #38bdf8;"></i>
-                <span>CUSTOMER SERVICES (सलग Excel शीट: आधीच्या सेवा + खाली लगेच नवीन सेवा रो)</span>
+                <span>CUSTOMER SERVICES (सलग Excel शीट: सर्वात वर नवीन सेवा एन्ट्री रो + खाली सर्व सेवा - Newest on Top)</span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <span id="services-badge" class="pocket-badge-neutral" style="background: #1e293b; color: #38bdf8; border: 1px solid #334155;">
@@ -1208,7 +1208,7 @@ function renderCommittedServices(apps) {
     apps.forEach(app => {
         loadedApplications[app.id] = app;
         const tr = createCommittedRowElement(app);
-        tbody.insertBefore(tr, activeRow);
+        tbody.appendChild(tr);
     });
 }
 
@@ -1551,17 +1551,17 @@ function onSubServiceChange(serviceId) {
 
         if (workUrl && workUrl.trim() !== '') {
             topBtnWork.href = workUrl.trim();
-            topBtnWork.style.display = 'inline-flex';
         } else {
-            topBtnWork.style.display = 'none';
+            topBtnWork.href = `https://www.google.com/search?q=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' maharashtra official online portal apply')}`;
         }
+        topBtnWork.style.display = 'inline-flex';
 
         if (tutorialUrl && tutorialUrl.trim() !== '') {
             topBtnTutorial.href = tutorialUrl.trim();
-            topBtnTutorial.style.display = 'inline-flex';
         } else {
-            topBtnTutorial.style.display = 'none';
+            topBtnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' form fill up online maharashtra tutorial')}`;
         }
+        topBtnTutorial.style.display = 'inline-flex';
 
         if (docs && docs.trim() !== '') {
             obDocsText.innerText = docs;
@@ -1697,7 +1697,7 @@ function saveActiveServiceRow() {
             };
             loadedApplications[d.id] = newApp;
             const committedRow = createCommittedRowElement(newApp);
-            tbody.insertBefore(committedRow, activeRow);
+            activeRow.after(committedRow);
 
             // 2. Update Customer Summary Badges in Real-time
             if (currentLoadedCustomer) {
