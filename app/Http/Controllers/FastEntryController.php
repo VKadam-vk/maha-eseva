@@ -109,6 +109,8 @@ class FastEntryController extends Controller
                     'remaining' => (float) $app->remaining_amount,
                     'status' => $app->work_status,
                     'service_id' => $app->service_id,
+                    'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
+                    'main_service_name' => $app->service?->main_service_name ?? 'Service',
                     'work_details' => $app->work_details ?? '',
                     'follow_up_date' => $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : '',
                     'portal_link' => $app->service?->work_portal_link ?: $app->service?->service_portal_link,
@@ -199,7 +201,7 @@ class FastEntryController extends Controller
             'application_id' => ['required', 'exists:applications,id'],
             'rate' => ['required', 'numeric', 'min:0'],
             'received' => ['nullable', 'numeric', 'min:0'],
-            'work_status' => ['required', 'string'],
+            'work_status' => ['nullable', 'string'],
             'assigned_employee_id' => ['nullable', 'exists:employees,id'],
             'sub_service' => ['nullable', 'string', 'max:255'],
             'work_details' => ['nullable', 'string'],
@@ -213,7 +215,7 @@ class FastEntryController extends Controller
         $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
         $remaining = max(0, $rate - $received);
 
-        $workStatus = $validated['work_status'];
+        $workStatus = array_key_exists('work_status', $validated) ? trim($validated['work_status'] ?? '') : ($application->work_status ?: Application::STATUS_NEW);
         if ($workStatus === 'DONE') {
             $workStatus = Application::STATUS_READY;
         }
@@ -241,6 +243,8 @@ class FastEntryController extends Controller
                 'application_number' => $application->application_number,
                 'service_name' => $application->service?->main_service_name ?? 'Service',
                 'sub_service' => $application->sub_service,
+                'expected_days' => (int) ($application->service?->expected_processing_days ?? 7),
+                'main_service_name' => $application->service?->main_service_name ?? 'Service',
                 'rate' => number_format($application->total_amount, 2),
                 'received' => number_format($application->received_amount, 2),
                 'remaining' => number_format($application->remaining_amount, 2),
@@ -447,6 +451,8 @@ class FastEntryController extends Controller
                     'received' => number_format($application->received_amount, 2),
                     'remaining' => number_format($application->remaining_amount, 2),
                     'status' => $application->work_status,
+                    'expected_days' => (int) ($service->expected_processing_days ?? 7),
+                    'main_service_name' => $service->main_service_name,
                     'work_details' => $application->work_details ?? '',
                     'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
                     'portal_link' => $service->work_portal_link ?: $service->service_portal_link,

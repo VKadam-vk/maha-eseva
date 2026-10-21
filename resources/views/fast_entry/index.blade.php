@@ -568,14 +568,14 @@
 
     /* Modal Overlay & Card for Required Docs */
     .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(15, 23, 42, 0.65);
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(15, 23, 42, 0.75) !important;
         backdrop-filter: blur(4px);
-        z-index: 99999;
+        z-index: 9999999 !important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -583,11 +583,13 @@
     }
 
     .docs-modal-card {
+        position: relative !important;
+        z-index: 10000000 !important;
         background: #ffffff;
         width: 100%;
         max-width: 520px;
         border-radius: 12px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         border: 1px solid #cbd5e1;
         overflow: hidden;
         animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1096,53 +1098,15 @@
         </div>
 
         <div class="pocket-card-body" style="padding: 0;">
-            <!-- OPERATOR GUIDANCE BAR (When service is selected) -->
-            <div id="service-operator-bar" style="display: none; margin: 12px 16px; background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 8px; padding: 10px 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <span style="font-weight: 800; color: #3730a3; font-size: 13px;" id="ob-title">
-                            Service Details
-                        </span>
-                        <span class="badge" style="background: white; color: #4338ca; border: 1px solid #c7d2fe; font-size: 11.5px; font-weight: 700;" id="ob-days">
-                            ⏱️ Expected: 7 Days
-                        </span>
-                    </div>
-
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <a id="btn-work-link" href="#" target="_blank" class="btn btn-sm"
-                           style="background: #2563eb; color: white; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; display: none; font-size: 11.5px; text-decoration: none;"
-                           title="Open official government portal">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Now &rarr;
-                        </a>
-
-                        <a id="btn-tutorial-link" href="#" target="_blank" class="btn btn-sm"
-                           style="background: #dc2626; color: white; border: none; font-weight: 700; padding: 5px 12px; border-radius: 6px; display: none; font-size: 11.5px; text-decoration: none;"
-                           title="Watch tutorial">
-                            <i class="fa-brands fa-youtube"></i> Watch Tutorial &rarr;
-                        </a>
-                    </div>
-                </div>
-
-                <div id="ob-docs" style="font-size: 11.5px; color: #4338ca; margin-top: 6px; border-top: 1px dashed #c7d2fe; padding-top: 4px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-                    <div>
-                        <strong>📄 Required Docs:</strong> <span id="ob-docs-text" style="color: #1e293b; font-weight: 600;"></span>
-                    </div>
-                    <button type="button" class="btn btn-sm" onclick="copyDocsToActiveRow()" style="background: white; border: 1px solid #c7d2fe; color: #3730a3; font-size: 11px; padding: 2px 7px; font-weight: 600;">
-                        <i class="fa-solid fa-copy"></i> Copy to Details
-                    </button>
-                </div>
-            </div>
-
-            <!-- STATUS COMBOBOX DATALIST (Supports Typing + Predefined Options) -->
+            <!-- STATUS COMBOBOX DATALIST (Supports Typing + Service-Specific Options) -->
             <datalist id="status-datalist">
-                <option value="IN_PROGRESS">IN_PROGRESS (प्रक्रियेत)</option>
-                <option value="PENDING">PENDING (प्रलंबित)</option>
-                <option value="READY">READY (तयार)</option>
-                <option value="DELIVERED">DELIVERED (दिले)</option>
-                <option value="SUBMITTED">SUBMITTED (सादर केले)</option>
-                <option value="APPROVED">APPROVED (मंजूर)</option>
-                <option value="ON_HOLD">ON_HOLD (थांबवले)</option>
-                <option value="REJECTED">REJECTED (नाकारले)</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="PENDING">PENDING</option>
+                <option value="READY">READY</option>
+                <option value="DELIVERED">DELIVERED</option>
+                <option value="SUBMITTED">SUBMITTED</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
             </datalist>
 
             <!-- UNIFIED EXCEL TABLE (Commited Rows + Live Input Row) -->
@@ -1150,18 +1114,19 @@
                 <table class="pocket-excel-table">
                     <thead>
                         <tr>
-                            <th style="min-width: 125px;"># SR Number</th>
-                            <th style="min-width: 160px;">1. Main Service *</th>
-                            <th style="min-width: 210px;">2. Sub Service *</th>
-                            <th style="min-width: 95px;">Date</th>
-                            <th style="min-width: 95px;">3. Rate (₹) *</th>
-                            <th style="min-width: 100px; color: #86efac;">4. Received (₹)</th>
-                            <th style="min-width: 105px;">5. Remaining (₹)</th>
-                            <th style="min-width: 190px; color: #38bdf8;">6. Work Details (तपशील)</th>
-                            <th style="min-width: 130px;">7. Status</th>
-                            <th style="min-width: 145px;">8. Operator</th>
-                            <th style="min-width: 135px; color: #fbbf24;">9. Follow-Up Date</th>
-                            <th style="min-width: 230px; text-align: center;">Actions & Quick Links</th>
+                            <th style="min-width: 120px;"># SR Number</th>
+                            <th style="min-width: 150px;">1. Main Service *</th>
+                            <th style="min-width: 200px;">2. Sub Service *</th>
+                            <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
+                            <th style="min-width: 90px;">Date</th>
+                            <th style="min-width: 90px;">3. Rate (₹) *</th>
+                            <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
+                            <th style="min-width: 95px;">5. Remaining (₹)</th>
+                            <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
+                            <th style="min-width: 140px; color: #f59e0b;">7. Status</th>
+                            <th style="min-width: 140px;">8. Operator</th>
+                            <th style="min-width: 130px; color: #fbbf24;">9. Follow-Up Date</th>
+                            <th style="min-width: 220px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1194,11 +1159,19 @@
                                             style="font-weight: 600; flex: 1;">
                                         <option value="">-- Choose Sub Service --</option>
                                     </select>
-                                    <button type="button" id="btn-view-service-docs" class="btn-doc-eye" onclick="openDocsModal()"
-                                            title="View Required Documents (आवश्यक कागदपत्रे पहा)" style="display: none;">
+                                    <button type="button" id="btn-view-service-docs" class="btn-doc-eye" onclick="openDocsModal(event)"
+                                            title="View Required Documents (आवश्यक कागदपत्रे पहा)">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
                                 </div>
+                            </td>
+
+                            <!-- Expected Days Column -->
+                            <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
+                                <span id="se_expected_days_badge" class="badge"
+                                      style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; font-size: 11.5px; padding: 4px 8px; border-radius: 5px;">
+                                    -
+                                </span>
                             </td>
 
                             <!-- Date Column -->
@@ -1236,12 +1209,12 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 7. Status (Typeable Combobox + Dropdown List) -->
+                            <!-- 7. Status (Initially Blank + Service-Specific Combobox) -->
                             <td style="padding: 4px 6px;">
                                 <input type="text" id="se_status" list="status-datalist" class="excel-input font-bold status-combobox"
-                                       value="IN_PROGRESS"
-                                       placeholder="Status..."
-                                       title="Type custom status or pick from dropdown"
+                                       value=""
+                                       placeholder="Type or pick status..."
+                                       title="Pick from dropdown or type custom status for this service"
                                        oninput="applyStatusInputStyle(this)"
                                        onchange="recordCustomStatus(this.value); applyStatusInputStyle(this);"
                                        onkeydown="handleRowKeyDown(event)"
@@ -1611,73 +1584,92 @@ function escapeHtml(str) {
 }
 
 // ==========================================
-// STATUS COMBOBOX & PERSISTENCE MANAGEMENT
+// STATUS COMBOBOX & PER-SERVICE PERSISTENCE
 // ==========================================
-const DEFAULT_STATUS_LIST = [
-    'IN_PROGRESS',
-    'PENDING',
-    'READY',
-    'DELIVERED',
-    'SUBMITTED',
-    'APPROVED',
-    'ON_HOLD',
-    'REJECTED'
-];
+const DEFAULT_SERVICE_STATUSES = {
+    'DEFAULT': ['IN_PROGRESS', 'PENDING', 'READY', 'DELIVERED', 'SUBMITTED', 'APPROVED', 'REJECTED'],
+    'PAN CARD': ['IN_PROGRESS', 'PENDING', 'DOCS_RECEIVED', 'NSDL_SUBMITTED', 'ACK_GENERATED', 'UNDER_VERIFICATION', 'PAN_ALLOTTED', 'READY', 'DELIVERED', 'REJECTED'],
+    'VOTER ID': ['IN_PROGRESS', 'PENDING', 'FORM_6_SUBMITTED', 'BLO_VERIFICATION', 'ACCEPTED', 'EPIC_GENERATED', 'READY', 'DELIVERED', 'REJECTED'],
+    'SHOP ACT': ['IN_PROGRESS', 'PENDING', 'INTIMATION_FILED', 'APPLICATION_SUBMITTED', 'FEE_PAID', 'CERTIFICATE_GENERATED', 'READY', 'DELIVERED', 'REJECTED'],
+    'RATION CARD': ['IN_PROGRESS', 'PENDING', 'DOCS_UPLOADED', 'TAHSIL_SUBMISSION', 'INSPECTION_PENDING', 'APPROVED', 'READY', 'DELIVERED', 'REJECTED'],
+    'AADHAAR': ['IN_PROGRESS', 'PENDING', 'UPDATE_APPOINTMENT', 'ENROLLMENT_DONE', 'UNDER_PROCESS', 'GENERATED', 'READY', 'DELIVERED'],
+    'DRIVING LICENSE': ['IN_PROGRESS', 'PENDING', 'LEARNER_APPLIED', 'SLOT_BOOKED', 'TEST_PASSED', 'DL_APPROVED', 'SMART_CARD_PRINTED', 'READY', 'DELIVERED'],
+    'INCOME CERTIFICATE': ['IN_PROGRESS', 'PENDING', 'TALATHI_REPORT', 'CIRCLE_OFFICER_APPROVED', 'TAHSILDAR_SIGN_PENDING', 'APPROVED', 'READY', 'DELIVERED'],
+    'CASTE CERTIFICATE': ['IN_PROGRESS', 'PENDING', 'DOCS_SCRUTINY', 'SDO_SUBMISSION', 'VERIFICATION_PENDING', 'APPROVED', 'READY', 'DELIVERED']
+};
 
-function initCustomStatuses() {
-    let custom = [];
+function getSavedStatusesForService(serviceName) {
+    const key = (serviceName || 'DEFAULT').trim().toUpperCase();
+    let storedMap = {};
     try {
-        const stored = localStorage.getItem('maha_eseva_custom_statuses');
-        if (stored) {
-            custom = JSON.parse(stored);
-        }
+        const stored = localStorage.getItem('maha_eseva_service_statuses');
+        if (stored) storedMap = JSON.parse(stored);
     } catch(e) {}
 
-    refreshStatusDatalist(custom);
+    const defaultList = DEFAULT_SERVICE_STATUSES[key] || DEFAULT_SERVICE_STATUSES['DEFAULT'];
+    const customList = storedMap[key] || [];
 
-    // Apply color styling to Active Row status input
+    return Array.from(new Set([...defaultList, ...customList]));
+}
+
+function initCustomStatuses() {
+    updateStatusDatalistForService('DEFAULT');
+    // Initially blank status input
     const seStatus = document.getElementById('se_status');
     if (seStatus) {
+        seStatus.value = '';
         applyStatusInputStyle(seStatus);
     }
 }
 
 function recordCustomStatus(val) {
+    const mainService = document.getElementById('se_main_service')?.value || 'DEFAULT';
+    recordCustomStatusForService(mainService, val);
+}
+
+function recordCustomStatusForService(serviceName, val) {
     if (!val) return;
     const clean = val.trim().toUpperCase();
     if (!clean) return;
 
-    let custom = [];
+    const key = (serviceName || 'DEFAULT').trim().toUpperCase();
+    let storedMap = {};
     try {
-        const stored = localStorage.getItem('maha_eseva_custom_statuses');
-        if (stored) custom = JSON.parse(stored);
+        const stored = localStorage.getItem('maha_eseva_service_statuses');
+        if (stored) storedMap = JSON.parse(stored);
     } catch(e) {}
 
-    const allCombined = [...DEFAULT_STATUS_LIST, ...custom];
-    if (!allCombined.includes(clean)) {
-        custom.push(clean);
+    if (!storedMap[key]) storedMap[key] = [];
+    if (!storedMap[key].includes(clean)) {
+        storedMap[key].push(clean);
         try {
-            localStorage.setItem('maha_eseva_custom_statuses', JSON.stringify(custom));
+            localStorage.setItem('maha_eseva_service_statuses', JSON.stringify(storedMap));
         } catch(e) {}
-        refreshStatusDatalist(custom);
+    }
+    updateStatusDatalistForService(key);
+}
+
+function updateStatusDatalistForService(serviceName) {
+    const key = (serviceName || 'DEFAULT').trim().toUpperCase();
+    const list = getSavedStatusesForService(key);
+    const datalist = document.getElementById('status-datalist');
+    if (datalist) {
+        datalist.innerHTML = list.map(st => `<option value="${escapeHtml(st)}"></option>`).join('');
     }
 }
 
-function refreshStatusDatalist(customList = null) {
-    if (!customList) {
-        try {
-            const stored = localStorage.getItem('maha_eseva_custom_statuses');
-            customList = stored ? JSON.parse(stored) : [];
-        } catch(e) {
-            customList = [];
-        }
+function ensureServiceStatusDatalist(serviceName) {
+    const key = (serviceName || 'DEFAULT').trim().toUpperCase();
+    const cleanId = 'status-datalist-' + key.replace(/[^A-Z0-9]/g, '_');
+    let datalist = document.getElementById(cleanId);
+    if (!datalist) {
+        datalist = document.createElement('datalist');
+        datalist.id = cleanId;
+        document.body.appendChild(datalist);
     }
-
-    const datalist = document.getElementById('status-datalist');
-    if (!datalist) return;
-
-    const merged = Array.from(new Set([...DEFAULT_STATUS_LIST, ...customList]));
-    datalist.innerHTML = merged.map(st => `<option value="${escapeHtml(st)}"></option>`).join('');
+    const list = getSavedStatusesForService(key);
+    datalist.innerHTML = list.map(st => `<option value="${escapeHtml(st)}"></option>`).join('');
+    return cleanId;
 }
 
 function applyStatusInputStyle(el) {
@@ -1685,7 +1677,11 @@ function applyStatusInputStyle(el) {
     const val = (el.value || '').trim().toUpperCase();
     el.setAttribute('data-status', val);
 
-    if (val.includes('READY') || val.includes('DONE') || val.includes('APPROVED') || val.includes('DELIVERED')) {
+    if (val === '') {
+        el.style.background = '#ffffff';
+        el.style.color = '#334155';
+        el.style.borderColor = '#cbd5e1';
+    } else if (val.includes('READY') || val.includes('DONE') || val.includes('APPROVED') || val.includes('DELIVERED')) {
         el.style.background = '#dcfce7';
         el.style.color = '#166534';
         el.style.borderColor = '#86efac';
@@ -1697,14 +1693,10 @@ function applyStatusInputStyle(el) {
         el.style.background = '#fef3c7';
         el.style.color = '#b45309';
         el.style.borderColor = '#fde68a';
-    } else if (val) {
+    } else {
         el.style.background = '#f3e8ff';
         el.style.color = '#6b21a8';
         el.style.borderColor = '#d8b4fe';
-    } else {
-        el.style.background = '#f1f5f9';
-        el.style.color = '#334155';
-        el.style.borderColor = 'transparent';
     }
 }
 
@@ -1718,15 +1710,26 @@ function applyStatusSelectStyle(el) {
 // ==========================================
 let currentModalDocs = [];
 
-function openDocsModal() {
-    const serviceId = document.getElementById('se_service_id').value;
-    if (!serviceId) {
-        alert('कृपया आधी Main Service आणि Sub Service निवडा!');
-        return;
+function openDocsModal(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
 
-    const srv = allServices.find(s => s.id == serviceId);
-    if (!srv) return;
+    const serviceId = document.getElementById('se_service_id')?.value;
+    const mainService = document.getElementById('se_main_service')?.value;
+
+    let srv = null;
+    if (serviceId) {
+        srv = allServices.find(s => s.id == serviceId);
+    }
+    if (!srv && mainService) {
+        srv = allServices.find(s => s.main_service_name === mainService);
+    }
+    if (!srv) {
+        alert('कृपया आधी Main Service किंवा Sub Service निवडा!');
+        return;
+    }
     openDocsModalWithService(srv);
 }
 
@@ -1900,7 +1903,9 @@ function getCommittedRowInnerHtml(app) {
     const recNum = typeof app.received === 'number' ? app.received : (parseFloat(app.received) || 0);
     const remNum = Math.max(0, rateNum - recNum);
     const remColor = remNum > 0 ? '#dc2626' : '#166534';
-    const currentStatus = (app.status || 'PENDING').toUpperCase();
+    const currentStatus = (app.status || '').toUpperCase();
+    const serviceName = (app.main_service_name || app.service_name || 'DEFAULT').trim().toUpperCase();
+    const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
         <td class="font-mono font-bold" style="color: #0284c7; white-space: nowrap;">
@@ -1923,6 +1928,11 @@ function getCommittedRowInnerHtml(app) {
                     <i class="fa-solid fa-eye"></i>
                 </button>
             </div>
+        </td>
+        <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
+            <span class="badge" style="background: #f1f5f9; color: #0369a1; border: 1px solid #cbd5e1; font-weight: 700; font-size: 11px; padding: 4px 7px; border-radius: 5px;">
+                ⏱️ ${app.expected_days ? app.expected_days + ' Days' : '-'}
+            </span>
         </td>
         <td class="font-mono" style="font-size: 12px; color: #64748b; white-space: nowrap;">
             ${escapeHtml(app.application_date || 'Today')}
@@ -1966,12 +1976,13 @@ function getCommittedRowInnerHtml(app) {
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
         <td style="padding: 4px 6px;">
-            <input type="text" id="crow_status_${app.id}" list="status-datalist" class="excel-status-input font-bold"
+            <input type="text" id="crow_status_${app.id}" list="${datalistId}" class="excel-status-input font-bold"
                    value="${escapeHtml(currentStatus)}"
                    placeholder="Status..."
-                   title="Click to pick from list, or type custom status"
+                   title="Pick from dropdown or type custom status for this service"
+                   onfocus="ensureServiceStatusDatalist('${escapeHtml(serviceName)}')"
                    oninput="applyStatusInputStyle(this)"
-                   onchange="recordCustomStatus(this.value); applyStatusInputStyle(this); autoSaveCommittedRow(${app.id})"
+                   onchange="recordCustomStatusForService('${escapeHtml(serviceName)}', this.value); applyStatusInputStyle(this); autoSaveCommittedRow(${app.id})"
                    onkeydown="handleCommittedKey(event, ${app.id})">
         </td>
         <td style="padding: 4px 6px;">
@@ -2149,6 +2160,14 @@ function onMainServiceChange(mainName) {
     const subSelect = document.getElementById('se_sub_service_select');
     subSelect.innerHTML = '<option value="">-- Choose Sub Service --</option>';
 
+    // Update status datalist specifically for this main service!
+    updateStatusDatalistForService(mainName || 'DEFAULT');
+    const seStatus = document.getElementById('se_status');
+    if (seStatus) {
+        seStatus.value = '';
+        applyStatusInputStyle(seStatus);
+    }
+
     if (!mainName) {
         subSelect.disabled = true;
         resetActiveRowFields();
@@ -2195,53 +2214,18 @@ function onSubServiceChange(serviceId) {
     document.getElementById('se_received').value = price;
     calculateRemaining();
 
+    const days = parseInt(srv.expected_processing_days) || 7;
+    const expBadge = document.getElementById('se_expected_days_badge');
+    if (expBadge) {
+        expBadge.innerText = days + ' Days';
+    }
+
     const docs = Array.isArray(srv.required_documents_json) ? srv.required_documents_json.join(', ') : '';
     document.getElementById('se_docs_list').value = docs;
 
-    const days = parseInt(srv.expected_processing_days) || 7;
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + days);
     document.getElementById('se_followup').value = targetDate.toISOString().split('T')[0];
-
-    // Show Guidance Bar
-    const opBar = document.getElementById('service-operator-bar');
-    const obTitle = document.getElementById('ob-title');
-    const obDays = document.getElementById('ob-days');
-    const obDocs = document.getElementById('ob-docs');
-    const obDocsText = document.getElementById('ob-docs-text');
-    const topBtnWork = document.getElementById('btn-work-link');
-    const topBtnTutorial = document.getElementById('btn-tutorial-link');
-
-    if (opBar) {
-        obTitle.innerText = `${srv.main_service_name} ➔ ${srv.sub_service_name}`;
-        obDays.innerText = `⏱️ Expected: ${days} Days`;
-
-        const workUrl = srv.work_portal_link || srv.service_portal_link;
-        const tutorialUrl = srv.video_instruction_link;
-
-        if (workUrl && workUrl.trim() !== '') {
-            topBtnWork.href = workUrl.trim();
-        } else {
-            topBtnWork.href = `https://www.google.com/search?q=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' maharashtra official online portal apply')}`;
-        }
-        topBtnWork.style.display = 'inline-flex';
-
-        if (tutorialUrl && tutorialUrl.trim() !== '') {
-            topBtnTutorial.href = tutorialUrl.trim();
-        } else {
-            topBtnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' form fill up online maharashtra tutorial')}`;
-        }
-        topBtnTutorial.style.display = 'inline-flex';
-
-        if (docs && docs.trim() !== '') {
-            obDocsText.innerText = docs;
-            obDocs.style.display = 'flex';
-        } else {
-            obDocs.style.display = 'none';
-        }
-
-        opBar.style.display = 'block';
-    }
 
     // Update Row-level Apply Now & Watch Tutorial buttons
     const rowBtnApply = document.getElementById('row-btn-apply');
@@ -2284,9 +2268,10 @@ function calculateRemaining() {
 }
 
 function resetActiveRowFields() {
-    // Hide eye button and row action buttons
-    const eyeBtn = document.getElementById('btn-view-service-docs');
-    if (eyeBtn) eyeBtn.style.display = 'none';
+    const expBadge = document.getElementById('se_expected_days_badge');
+    if (expBadge) {
+        expBadge.innerText = '-';
+    }
 
     const rowBtnApply = document.getElementById('row-btn-apply');
     if (rowBtnApply) rowBtnApply.style.display = 'none';
@@ -2303,9 +2288,6 @@ function resetActiveRowFields() {
     document.getElementById('se_work_details').style.height = '34px';
     document.getElementById('se_docs_list').value = '';
     document.getElementById('se_followup').value = '';
-
-    const opBar = document.getElementById('service-operator-bar');
-    if (opBar) opBar.style.display = 'none';
 }
 
 function copyDocsToActiveRow() {
