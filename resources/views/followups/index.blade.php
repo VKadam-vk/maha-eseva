@@ -486,7 +486,6 @@
                     <span style="color: #16a34a; font-weight: 700;">
                         <i class="fa-solid fa-circle-check"></i> आजच्या तारखेच्या सेवा (Today: {{ \Carbon\Carbon::parse($today)->format('d M Y') }})
                     </span>
-                    &bull; पुढील तारखांचे आपोआप त्या-त्या दिवशी दिसतील
                 @elseif($selectedDate === $tomorrow)
                     <span style="color: #0284c7; font-weight: 700;">
                         <i class="fa-regular fa-clock"></i> उद्याच्या तारखेच्या सेवा (Tomorrow: {{ \Carbon\Carbon::parse($tomorrow)->format('d M Y') }})
@@ -499,7 +498,7 @@
             </p>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
             <!-- Quick Date Pills (Today, Tomorrow, Overdue, All) -->
             <div class="date-pills-group">
                 <!-- Today Pill -->
@@ -637,7 +636,7 @@
                 <tbody id="followup-sheet-tbody">
                     @forelse($applications as $app)
                         @php
-                            $rate = (float) ($app->rate ?? 0);
+                            $rate = (float) ($app->total_amount ?? $app->rate ?? 0);
                             $received = (float) ($app->received_amount ?? 0);
                             $rem = max(0, $rate - $received);
                             $cust = $app->customer;
