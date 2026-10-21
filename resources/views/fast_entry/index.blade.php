@@ -567,32 +567,51 @@
     }
 
     /* Modal Overlay & Card for Required Docs */
-    .modal-overlay {
+    #docs-modal-overlay,
+    .modal-overlay#docs-modal-overlay {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        background: rgba(15, 23, 42, 0.75) !important;
-        backdrop-filter: blur(4px);
-        z-index: 9999999 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
+        background: rgba(15, 23, 42, 0.82) !important;
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
+        z-index: 99999999 !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: none !important;
+    }
+
+    #docs-modal-overlay.open,
+    .modal-overlay#docs-modal-overlay.open {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     .docs-modal-card {
         position: relative !important;
-        z-index: 10000000 !important;
-        background: #ffffff;
-        width: 100%;
-        max-width: 520px;
-        border-radius: 12px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        border: 1px solid #cbd5e1;
-        overflow: hidden;
-        animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 100000000 !important;
+        background: #ffffff !important;
+        width: 100% !important;
+        max-width: 560px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6) !important;
+        border: 1.5px solid #cbd5e1 !important;
+        overflow: hidden !important;
+        animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .btn-doc-eye i,
+    .btn-doc-eye-small i {
+        pointer-events: none;
     }
 
     @keyframes modalScaleIn {
@@ -1272,11 +1291,11 @@
         <!-- Header -->
         <div class="docs-modal-header">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(2, 132, 199, 0.2); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
                     <i class="fa-solid fa-file-shield"></i>
                 </div>
                 <div>
-                    <h3 id="modal-service-title" style="margin: 0; font-size: 14.5px; font-weight: 700; color: #ffffff;">Required Documents</h3>
+                    <h3 id="modal-service-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Required Documents</h3>
                     <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">आवश्यक कागदपत्रे व पात्रता तपशील</p>
                 </div>
             </div>
@@ -1287,8 +1306,17 @@
 
         <!-- Body -->
         <div class="docs-modal-body">
+            <!-- Service Switcher Selector -->
+            <div style="margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
+                <label for="modal-service-switcher" style="font-size: 11.5px; font-weight: 700; color: #334155; white-space: nowrap; margin: 0;">
+                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> सेवा बदला / निवडा:
+                </label>
+                <select id="modal-service-switcher" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600; flex: 1; border-color: #cbd5e1; background: #ffffff;" onchange="onModalServiceSwitch(this.value)">
+                </select>
+            </div>
+
             <!-- Badges Bar (Expected Days & Fee) -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 8px;">
                 <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0369a1;">
                     <i class="fa-regular fa-clock"></i>
                     <span id="modal-service-days">⏱️ Expected: 7 Days</span>
@@ -1312,13 +1340,18 @@
 
             <!-- Quick Action Buttons -->
             <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+                <button type="button" id="modal-btn-apply-row" onclick="applyModalServiceToActiveRow()" class="btn btn-sm"
+                        style="background: #0284c7; color: #ffffff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 6px; padding: 5px 12px;"
+                        title="Select this service directly in active entry row">
+                    <i class="fa-solid fa-check-circle"></i> Apply to Row
+                </button>
                 <button type="button" id="modal-btn-copy-docs" onclick="copyModalDocsToDetails()" class="btn btn-sm btn-secondary"
                         style="font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
                         title="Copy documents list to service work details">
                     <i class="fa-solid fa-copy"></i> Copy to Details
                 </button>
                 <a id="modal-btn-portal" href="#" target="_blank" class="btn btn-sm"
-                   style="background: #0284c7; color: #ffffff; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 5px 10px;">
+                   style="background: #0369a1; color: #ffffff; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 5px 10px;">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Online
                 </a>
                 <a id="modal-btn-tutorial" href="#" target="_blank" class="btn btn-sm"
@@ -1709,6 +1742,7 @@ function applyStatusSelectStyle(el) {
 // REQUIRED DOCUMENTS POPUP MODAL
 // ==========================================
 let currentModalDocs = [];
+let currentSelectedModalService = null;
 
 function openDocsModal(e) {
     if (e) {
@@ -1726,8 +1760,12 @@ function openDocsModal(e) {
     if (!srv && mainService) {
         srv = allServices.find(s => s.main_service_name === mainService);
     }
+    // If no service chosen yet, default to first available service so modal always opens!
+    if (!srv && allServices && allServices.length > 0) {
+        srv = allServices[0];
+    }
     if (!srv) {
-        alert('कृपया आधी Main Service किंवा Sub Service निवडा!');
+        alert('कोणतीही सेवा उपलब्ध नाही.');
         return;
     }
     openDocsModalWithService(srv);
@@ -1743,6 +1781,9 @@ function openDocsModalForApp(appId) {
     if (!srv) {
         srv = allServices.find(s => s.main_service_name === app.service_name);
     }
+    if (!srv && allServices && allServices.length > 0) {
+        srv = allServices[0];
+    }
     if (!srv) {
         alert('या सेवेची तपशीलवार माहिती उपलब्ध नाही.');
         return;
@@ -1750,7 +1791,35 @@ function openDocsModalForApp(appId) {
     openDocsModalWithService(srv);
 }
 
+function onModalServiceSwitch(serviceId) {
+    const srv = allServices.find(s => s.id == serviceId);
+    if (srv) {
+        openDocsModalWithService(srv);
+    }
+}
+
+function applyModalServiceToActiveRow() {
+    if (!currentSelectedModalService) return;
+    const srv = currentSelectedModalService;
+    const mainSel = document.getElementById('se_main_service');
+    if (mainSel) {
+        mainSel.value = srv.main_service_name;
+        onMainServiceChange(srv.main_service_name);
+        setTimeout(() => {
+            const subSel = document.getElementById('se_sub_service_select');
+            if (subSel) {
+                subSel.value = srv.id;
+                onSubServiceChange(srv.id);
+            }
+        }, 60);
+    }
+    closeDocsModal();
+    showAlert('Service Selected', `${srv.main_service_name} ➔ ${srv.sub_service_name} निवडली आहे!`);
+}
+
 function openDocsModalWithService(srv) {
+    currentSelectedModalService = srv;
+
     const modalTitle = document.getElementById('modal-service-title');
     const modalSubTitle = document.getElementById('modal-sub-service-title');
     const modalDays = document.getElementById('modal-service-days');
@@ -1758,6 +1827,7 @@ function openDocsModalWithService(srv) {
     const docsContainer = document.getElementById('modal-docs-container');
     const btnPortal = document.getElementById('modal-btn-portal');
     const btnTutorial = document.getElementById('modal-btn-tutorial');
+    const switcher = document.getElementById('modal-service-switcher');
 
     const mainName = srv.main_service_name || 'Service';
     const subName = srv.sub_service_name || '';
@@ -1768,6 +1838,17 @@ function openDocsModalWithService(srv) {
     if (modalSubTitle) modalSubTitle.innerText = 'आवश्यक कागदपत्रे व पात्रता तपशील (Required Documents)';
     if (modalDays) modalDays.innerText = `⏱️ Expected: ${days} Days (${days} दिवस)`;
     if (modalRate) modalRate.innerText = `₹ ${price.toFixed(0)}`;
+
+    // Populate service switcher dropdown
+    if (switcher) {
+        if (switcher.children.length === 0 && allServices && allServices.length > 0) {
+            switcher.innerHTML = allServices.map(s => {
+                const label = `${s.main_service_name} ➔ ${s.sub_service_name || 'Standard'}`;
+                return `<option value="${s.id}">${escapeHtml(label)}</option>`;
+            }).join('');
+        }
+        switcher.value = srv.id;
+    }
 
     // Parse Required Docs
     let docsArr = [];
@@ -1824,7 +1905,12 @@ function openDocsModalWithService(srv) {
     }
 
     const overlay = document.getElementById('docs-modal-overlay');
-    if (overlay) overlay.style.display = 'flex';
+    if (overlay) {
+        overlay.classList.add('open');
+        overlay.style.setProperty('display', 'flex', 'important');
+        overlay.style.setProperty('opacity', '1', 'important');
+        overlay.style.setProperty('visibility', 'visible', 'important');
+    }
 }
 
 function closeDocsModal(e) {
@@ -1832,7 +1918,10 @@ function closeDocsModal(e) {
         return;
     }
     const overlay = document.getElementById('docs-modal-overlay');
-    if (overlay) overlay.style.display = 'none';
+    if (overlay) {
+        overlay.classList.remove('open');
+        overlay.style.setProperty('display', 'none', 'important');
+    }
 }
 
 function copyModalDocsToDetails() {
@@ -2423,7 +2512,7 @@ function saveActiveServiceRow() {
 
             const stInput = document.getElementById('se_status');
             if (stInput) {
-                stInput.value = 'IN_PROGRESS';
+                stInput.value = '';
                 applyStatusInputStyle(stInput);
             }
 
@@ -2479,7 +2568,7 @@ function resetEntireDesk() {
 
     const seStatus = document.getElementById('se_status');
     if (seStatus) {
-        seStatus.value = 'IN_PROGRESS';
+        seStatus.value = '';
         applyStatusInputStyle(seStatus);
     }
 
@@ -2511,8 +2600,9 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const overlay = document.getElementById('docs-modal-overlay');
-        if (overlay && overlay.style.display !== 'none') {
-            overlay.style.display = 'none';
+        if (overlay) {
+            overlay.classList.remove('open');
+            overlay.style.setProperty('display', 'none', 'important');
         }
     }
 });
