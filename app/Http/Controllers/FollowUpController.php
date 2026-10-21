@@ -131,10 +131,21 @@ class FollowUpController extends Controller
             'remarks' => ['nullable', 'string'],
         ]);
 
+        $newRemarks = !empty($validated['remarks'])
+            ? ($followUp->remarks ? $followUp->remarks . "\n[Update: " . $validated['remarks'] . "]" : $validated['remarks'])
+            : $followUp->remarks;
+
         $followUp->update([
             'status' => $validated['status'],
-            'remarks' => $validated['remarks'] ? $followUp->remarks . "\n[Update: " . $validated['remarks'] . "]" : $followUp->remarks,
+            'remarks' => $newRemarks,
         ]);
+
+        // If follow-up was completed and it has an application, keep work_status in sync if needed
+        if ($validated['status'] === FollowUp::STATUS_COMPLETED && $followUp->application) {
+            if ($followUp->application->work_status === 'PENDING') {
+                $followUp->application->update(['work_status' => 'IN_PROGRESS']);
+            }
+        }
 
         return back()->with('success', "Follow-up marked as {$validated['status']}.");
     }
