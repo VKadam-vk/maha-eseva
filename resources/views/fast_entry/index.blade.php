@@ -1228,16 +1228,23 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 7. Status (Initially Blank + Service-Specific Combobox) -->
+                            <!-- 7. Status (Direct Clickable Select Dropdown) -->
                             <td style="padding: 4px 6px;">
-                                <input type="text" id="se_status" list="status-datalist" class="excel-input font-bold status-combobox"
-                                       value=""
-                                       placeholder="Type or pick status..."
-                                       title="Pick from dropdown or type custom status for this service"
-                                       oninput="applyStatusInputStyle(this)"
-                                       onchange="recordCustomStatus(this.value); applyStatusInputStyle(this);"
-                                       onkeydown="handleRowKeyDown(event)"
-                                       style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                <select id="se_status" class="excel-select font-bold status-select"
+                                        data-prev="IN_PROGRESS"
+                                        onchange="onActiveStatusSelectChange(this)"
+                                        onkeydown="handleRowKeyDown(event)"
+                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                    <option value="IN_PROGRESS" selected>IN_PROGRESS (काम चालू आहे)</option>
+                                    <option value="PENDING">PENDING (प्रलंबित)</option>
+                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS (कागदपत्रे बाकी)</option>
+                                    <option value="SUBMITTED">SUBMITTED (पोर्टलवर भरले)</option>
+                                    <option value="READY">READY (तयार आहे)</option>
+                                    <option value="DELIVERED">DELIVERED (ग्राहकास दिले)</option>
+                                    <option value="COMPLETED">COMPLETED (पूर्ण झाले)</option>
+                                    <option value="REJECTED">REJECTED (नाकारले)</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>
+                                </select>
                             </td>
 
                             <!-- 8. Operator -->
@@ -1738,6 +1745,81 @@ function applyStatusSelectStyle(el) {
     applyStatusInputStyle(el);
 }
 
+function renderStatusOptionsHtml(currentStatus, serviceName) {
+    const cleanCur = (currentStatus || 'PENDING').trim().toUpperCase();
+    const serviceStatuses = getSavedStatusesForService(serviceName) || [];
+    const defaults = [
+        'PENDING',
+        'IN_PROGRESS',
+        'WAITING_FOR_DOCS',
+        'SUBMITTED',
+        'READY',
+        'DELIVERED',
+        'COMPLETED',
+        'REJECTED'
+    ];
+    const allStatuses = Array.from(new Set([cleanCur, ...serviceStatuses, ...defaults])).filter(Boolean);
+
+    let html = '';
+    allStatuses.forEach(st => {
+        const isSel = (st === cleanCur) ? 'selected' : '';
+        html += `<option value="${escapeHtml(st)}" ${isSel}>${escapeHtml(st)}</option>`;
+    });
+    html += `<option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>`;
+    return html;
+}
+
+function onCommittedStatusSelectChange(selectEl, appId, serviceName) {
+    if (!selectEl) return;
+    if (selectEl.value === '__NEW_CUSTOM__') {
+        const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+        if (custom && custom.trim()) {
+            const clean = custom.trim().toUpperCase();
+            let opt = Array.from(selectEl.options).find(o => o.value === clean);
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = clean;
+                opt.textContent = clean;
+                selectEl.insertBefore(opt, selectEl.options[selectEl.options.length - 1]);
+            }
+            selectEl.value = clean;
+            recordCustomStatusForService(serviceName, clean);
+        } else {
+            selectEl.value = selectEl.dataset.prev || 'PENDING';
+            applyStatusInputStyle(selectEl);
+            return;
+        }
+    }
+    selectEl.dataset.prev = selectEl.value;
+    applyStatusInputStyle(selectEl);
+    autoSaveCommittedRow(appId);
+}
+
+function onActiveStatusSelectChange(selectEl) {
+    if (!selectEl) return;
+    if (selectEl.value === '__NEW_CUSTOM__') {
+        const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+        if (custom && custom.trim()) {
+            const clean = custom.trim().toUpperCase();
+            let opt = Array.from(selectEl.options).find(o => o.value === clean);
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = clean;
+                opt.textContent = clean;
+                selectEl.insertBefore(opt, selectEl.options[selectEl.options.length - 1]);
+            }
+            selectEl.value = clean;
+            recordCustomStatus(clean);
+        } else {
+            selectEl.value = selectEl.dataset.prev || 'IN_PROGRESS';
+            applyStatusInputStyle(selectEl);
+            return;
+        }
+    }
+    selectEl.dataset.prev = selectEl.value;
+    applyStatusInputStyle(selectEl);
+}
+
 // ==========================================
 // REQUIRED DOCUMENTS POPUP MODAL
 // ==========================================
@@ -2065,14 +2147,11 @@ function getCommittedRowInnerHtml(app) {
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
         <td style="padding: 4px 6px;">
-            <input type="text" id="crow_status_${app.id}" list="${datalistId}" class="excel-status-input font-bold"
-                   value="${escapeHtml(currentStatus)}"
-                   placeholder="Status..."
-                   title="Pick from dropdown or type custom status for this service"
-                   onfocus="ensureServiceStatusDatalist('${escapeHtml(serviceName)}')"
-                   oninput="applyStatusInputStyle(this)"
-                   onchange="recordCustomStatusForService('${escapeHtml(serviceName)}', this.value); applyStatusInputStyle(this); autoSaveCommittedRow(${app.id})"
-                   onkeydown="handleCommittedKey(event, ${app.id})">
+            <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select"
+                    data-prev="${escapeHtml(currentStatus)}"
+                    onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
+                ${renderStatusOptionsHtml(currentStatus, serviceName)}
+            </select>
         </td>
         <td style="padding: 4px 6px;">
             <select id="crow_operator_${app.id}" class="excel-operator-select"

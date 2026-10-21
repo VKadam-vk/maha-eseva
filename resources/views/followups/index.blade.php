@@ -755,13 +755,33 @@
 
                             <!-- 10. Status (Sticky Right) -->
                             <td class="sticky-status-td" style="padding: 4px 6px;">
-                                <input type="text" list="status-datalist" class="excel-input font-bold status-combobox"
-                                       id="status_{{ $app->id }}"
-                                       value="{{ $app->work_status ?? 'PENDING' }}"
-                                       placeholder="Status..."
-                                       title="Click to pick or type status"
-                                       oninput="applyStatusInputStyle(this)"
-                                       onchange="saveRowField({{ $app->id }}, 'work_status', this.value)">
+                                <select class="excel-select font-bold status-select"
+                                        id="status_{{ $app->id }}"
+                                        data-prev="{{ $app->work_status ?? 'PENDING' }}"
+                                        onchange="onStatusSelectChange(this, {{ $app->id }})">
+                                    @php
+                                        $curSt = strtoupper(trim($app->work_status ?? 'PENDING'));
+                                        $knownStatuses = [
+                                            'PENDING' => 'PENDING (प्रलंबित)',
+                                            'IN_PROGRESS' => 'IN_PROGRESS (काम चालू आहे)',
+                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS (कागदपत्रे बाकी)',
+                                            'SUBMITTED' => 'SUBMITTED (पोर्टलवर भरले)',
+                                            'READY' => 'READY (तयार आहे)',
+                                            'DELIVERED' => 'DELIVERED (ग्राहकास दिले)',
+                                            'COMPLETED' => 'COMPLETED (पूर्ण झाले)',
+                                            'REJECTED' => 'REJECTED (नाकारले)',
+                                        ];
+                                    @endphp
+                                    @if(!array_key_exists($curSt, $knownStatuses) && !empty($curSt))
+                                        <option value="{{ $curSt }}" selected>{{ $curSt }}</option>
+                                    @endif
+                                    @foreach($knownStatuses as $stKey => $stLabel)
+                                        <option value="{{ $stKey }}" {{ $curSt === $stKey ? 'selected' : '' }}>
+                                            {{ $stLabel }}
+                                        </option>
+                                    @endforeach
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>
+                                </select>
                             </td>
 
                             <!-- 11. Actions (Sticky Right) -->
@@ -917,8 +937,8 @@
     window.MASTER_SERVICES = @json($activeServices);
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Apply status colors to all status comboboxes
-        document.querySelectorAll('.status-combobox').forEach(el => applyStatusInputStyle(el));
+        // Apply status colors to all status selectors
+        document.querySelectorAll('.status-select, .status-combobox').forEach(el => applyStatusInputStyle(el));
 
         // Auto-expand all work details
         document.querySelectorAll('.excel-work-details').forEach(el => autoExpandWorkDetails(el));
@@ -931,27 +951,55 @@
         el.style.height = Math.max(28, el.scrollHeight) + 'px';
     }
 
-    // Dynamic styling for status input
-    function applyStatusInputStyle(input) {
-        if (!input) return;
-        const val = (input.value || '').toUpperCase().trim();
+    // Dynamic styling for status select/input
+    function applyStatusInputStyle(el) {
+        if (!el) return;
+        const val = (el.value || '').toUpperCase().trim();
         let bg = '#f1f5f9', color = '#475569', border = '#cbd5e1';
 
-        if (val.includes('PENDING') || val.includes('WAITING')) {
+        if (val.includes('PENDING') || val.includes('WAITING') || val.includes('NEW')) {
             bg = '#fef3c7'; color = '#92400e'; border = '#fcd34d';
-        } else if (val.includes('PROGRESS') || val.includes('PROCESS')) {
+        } else if (val.includes('PROGRESS') || val.includes('PROCESS') || val.includes('SUBMIT')) {
             bg = '#e0f2fe'; color = '#0369a1'; border = '#7dd3fc';
         } else if (val.includes('READY')) {
             bg = '#ede9fe'; color = '#6d28d9'; border = '#c4b5fd';
-        } else if (val.includes('DELIVERED') || val.includes('COMPLETED') || val.includes('SUCCESS')) {
+        } else if (val.includes('DELIVERED') || val.includes('COMPLETED') || val.includes('SUCCESS') || val.includes('APPROVED')) {
             bg = '#dcfce7'; color = '#166534'; border = '#86efac';
         } else if (val.includes('REJECT') || val.includes('CANCEL')) {
             bg = '#fee2e2'; color = '#991b1b'; border = '#fca5a5';
+        } else {
+            bg = '#f3e8ff'; color = '#6b21a8'; border = '#d8b4fe';
         }
 
-        input.style.backgroundColor = bg;
-        input.style.color = color;
-        input.style.borderColor = border;
+        el.style.backgroundColor = bg;
+        el.style.color = color;
+        el.style.borderColor = border;
+    }
+
+    // Handle single-click status change and custom status addition
+    function onStatusSelectChange(selectEl, appId) {
+        if (!selectEl) return;
+        if (selectEl.value === '__NEW_CUSTOM__') {
+            const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+            if (custom && custom.trim()) {
+                const clean = custom.trim().toUpperCase();
+                let opt = Array.from(selectEl.options).find(o => o.value === clean);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = clean;
+                    opt.textContent = clean;
+                    selectEl.insertBefore(opt, selectEl.options[selectEl.options.length - 1]);
+                }
+                selectEl.value = clean;
+            } else {
+                selectEl.value = selectEl.dataset.prev || 'PENDING';
+                applyStatusInputStyle(selectEl);
+                return;
+            }
+        }
+        selectEl.dataset.prev = selectEl.value;
+        applyStatusInputStyle(selectEl);
+        saveRowField(appId, 'work_status', selectEl.value);
     }
 
     // Real-time calculation of remaining balance for a row
