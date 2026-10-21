@@ -109,6 +109,10 @@ class FastEntryController extends Controller
                     'remaining' => (float) $app->remaining_amount,
                     'status' => $app->work_status,
                     'service_id' => $app->service_id,
+                    'work_details' => $app->work_details ?? '',
+                    'follow_up_date' => $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : '',
+                    'portal_link' => $app->service?->work_portal_link ?: $app->service?->service_portal_link,
+                    'tutorial_link' => $app->service?->video_instruction_link,
                     'assigned_employee_id' => $app->assigned_employee_id,
                     'operator' => $app->assignedEmployee?->user?->name ?? 'Counter Desk',
                     'show_url' => route('applications.show', $app->id),
@@ -198,6 +202,8 @@ class FastEntryController extends Controller
             'work_status' => ['required', 'string'],
             'assigned_employee_id' => ['nullable', 'exists:employees,id'],
             'sub_service' => ['nullable', 'string', 'max:255'],
+            'work_details' => ['nullable', 'string'],
+            'follow_up_date' => ['nullable', 'date'],
         ]);
 
         $user = Auth::user();
@@ -221,6 +227,8 @@ class FastEntryController extends Controller
             'work_status' => $workStatus,
             'assigned_employee_id' => $validated['assigned_employee_id'] ?? null,
             'sub_service' => $validated['sub_service'] ?? $application->sub_service,
+            'work_details' => array_key_exists('work_details', $validated) ? $validated['work_details'] : $application->work_details,
+            'follow_up_date' => array_key_exists('follow_up_date', $validated) ? $validated['follow_up_date'] : $application->follow_up_date,
         ]);
 
         $customer = $application->customer;
@@ -238,6 +246,8 @@ class FastEntryController extends Controller
                 'remaining' => number_format($application->remaining_amount, 2),
                 'status' => $application->work_status,
                 'assigned_employee_id' => $application->assigned_employee_id,
+                'work_details' => $application->work_details ?? '',
+                'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
                 'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
                 'customer_total_outstanding' => (float) $customer?->total_outstanding,
             ],
@@ -436,6 +446,11 @@ class FastEntryController extends Controller
                     'rate' => number_format($application->total_amount, 2),
                     'received' => number_format($application->received_amount, 2),
                     'remaining' => number_format($application->remaining_amount, 2),
+                    'status' => $application->work_status,
+                    'work_details' => $application->work_details ?? '',
+                    'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
+                    'portal_link' => $service->work_portal_link ?: $service->service_portal_link,
+                    'tutorial_link' => $service->video_instruction_link,
                     'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
                     'show_url' => route('applications.show', $application->id),
                 ],

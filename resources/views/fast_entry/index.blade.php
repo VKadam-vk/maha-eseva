@@ -679,6 +679,142 @@
         box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25);
     }
 
+    /* Work Details auto-expanding and resizable textarea */
+    .pocket-excel-table .excel-work-details {
+        width: 100%;
+        min-width: 160px;
+        max-width: 320px;
+        min-height: 34px;
+        height: 34px;
+        resize: both;
+        font-size: 12px;
+        font-family: inherit;
+        font-weight: 500;
+        color: #1e293b;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 5px 8px;
+        line-height: 1.35;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .pocket-excel-table .excel-work-details:hover {
+        border-color: #94a3b8;
+    }
+
+    .pocket-excel-table .excel-work-details:focus {
+        border-color: #0284c7;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+    }
+
+    /* Date Input */
+    .pocket-excel-table .excel-date-input {
+        width: 100%;
+        min-width: 120px;
+        height: 34px;
+        font-size: 11.5px;
+        font-family: var(--font-mono, monospace);
+        font-weight: 600;
+        color: #334155;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 4px 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .pocket-excel-table .excel-date-input:hover {
+        border-color: #94a3b8;
+    }
+
+    .pocket-excel-table .excel-date-input:focus {
+        border-color: #0284c7;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+    }
+
+    /* Row Action Buttons (Apply, Tutorial, View) */
+    .btn-row-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px 9px;
+        border-radius: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        line-height: 1;
+        border: 1px solid transparent;
+    }
+
+    .btn-row-apply {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0369a1;
+    }
+
+    .btn-row-apply:hover {
+        background: #0369a1;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-row-tutorial {
+        background: #dc2626;
+        color: #ffffff;
+        border-color: #b91c1c;
+    }
+
+    .btn-row-tutorial:hover {
+        background: #b91c1c;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-row-view {
+        background: #f1f5f9;
+        color: #334155;
+        border-color: #cbd5e1;
+    }
+
+    .btn-row-view:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    .btn-doc-eye-small {
+        width: 26px;
+        height: 28px;
+        flex-shrink: 0;
+        background: #e0f2fe;
+        color: #0284c7;
+        border: 1px solid #bae6fd;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 11px;
+        transition: all 0.15s ease;
+    }
+
+    .btn-doc-eye-small:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+    }
+
     .btn-save-excel-row {
         height: 38px;
         background: #ea580c;
@@ -1014,16 +1150,18 @@
                 <table class="pocket-excel-table">
                     <thead>
                         <tr>
-                            <th style="min-width: 140px;"># SR Number</th>
-                            <th style="min-width: 200px;">1. Main Service *</th>
-                            <th style="min-width: 230px;">2. Sub Service *</th>
-                            <th style="min-width: 110px;">Date</th>
-                            <th style="min-width: 110px;">3. Rate (₹) *</th>
-                            <th style="min-width: 110px; color: #86efac;">4. Received (₹)</th>
-                            <th style="min-width: 115px;">5. Remaining (₹)</th>
-                            <th style="min-width: 130px;">6. Status</th>
-                            <th style="min-width: 160px;">7. Operator *</th>
-                            <th style="min-width: 130px; text-align: center;">Action</th>
+                            <th style="min-width: 125px;"># SR Number</th>
+                            <th style="min-width: 160px;">1. Main Service *</th>
+                            <th style="min-width: 210px;">2. Sub Service *</th>
+                            <th style="min-width: 95px;">Date</th>
+                            <th style="min-width: 95px;">3. Rate (₹) *</th>
+                            <th style="min-width: 100px; color: #86efac;">4. Received (₹)</th>
+                            <th style="min-width: 105px;">5. Remaining (₹)</th>
+                            <th style="min-width: 190px; color: #38bdf8;">6. Work Details (तपशील)</th>
+                            <th style="min-width: 130px;">7. Status</th>
+                            <th style="min-width: 145px;">8. Operator</th>
+                            <th style="min-width: 135px; color: #fbbf24;">9. Follow-Up Date</th>
+                            <th style="min-width: 230px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1088,7 +1226,17 @@
                                        style="font-weight: 800; font-size: 13.5px; background: #f8fafc; color: #0f172a;">
                             </td>
 
-                            <!-- 6. Status (Typeable Combobox + Dropdown List) -->
+                            <!-- 6. Work Details (Auto-expandable & Resizable) -->
+                            <td style="padding: 4px 6px;">
+                                <textarea id="se_work_details" class="excel-work-details"
+                                          placeholder="Work details, notes, ack no..."
+                                          rows="1"
+                                          title="Work Details: Citizen notes, application numbers, or document status"
+                                          oninput="autoExpandWorkDetails(this)"
+                                          onkeydown="handleRowKeyDown(event)"></textarea>
+                            </td>
+
+                            <!-- 7. Status (Typeable Combobox + Dropdown List) -->
                             <td style="padding: 4px 6px;">
                                 <input type="text" id="se_status" list="status-datalist" class="excel-input font-bold status-combobox"
                                        value="IN_PROGRESS"
@@ -1100,7 +1248,7 @@
                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
                             </td>
 
-                            <!-- 7. Operator -->
+                            <!-- 8. Operator -->
                             <td>
                                 <select id="se_operator" class="excel-select" onkeydown="handleRowKeyDown(event)" style="font-weight: 600; font-size: 12.5px;">
                                     <option value="">-- Operator --</option>
@@ -1110,11 +1258,26 @@
                                 </select>
                             </td>
 
-                            <!-- Action Column: Save (Enter) -->
-                            <td style="text-align: center;">
-                                <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()">
-                                    <i class="fa-solid fa-check"></i> Save (Enter)
-                                </button>
+                            <!-- 9. Follow-Up Date -->
+                            <td style="padding: 4px 6px;">
+                                <input type="date" id="se_followup" class="excel-date-input"
+                                       title="Expected Follow-up Date (फॉलो-अप तारीख)"
+                                       onkeydown="handleRowKeyDown(event)">
+                            </td>
+
+                            <!-- 10. Actions & Quick Links: Save + Apply + Tutorial -->
+                            <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+                                    <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
+                                        <i class="fa-solid fa-check"></i> Save
+                                    </button>
+                                    <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal" style="display: none;">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                    </a>
+                                    <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
+                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -1125,9 +1288,7 @@
             <input type="hidden" id="se_customer_id" value="">
             <input type="hidden" id="se_service_id" value="">
             <input type="hidden" id="se_sub_service" value="">
-            <input type="hidden" id="se_work_details" value="">
             <input type="hidden" id="se_docs_list" value="">
-            <input type="hidden" id="se_followup" value="">
         </div>
     </div>
 </div>
@@ -1566,7 +1727,27 @@ function openDocsModal() {
 
     const srv = allServices.find(s => s.id == serviceId);
     if (!srv) return;
+    openDocsModalWithService(srv);
+}
 
+function openDocsModalForApp(appId) {
+    const app = loadedApplications[appId];
+    if (!app) return;
+    let srv = allServices.find(s => s.id == app.service_id);
+    if (!srv) {
+        srv = allServices.find(s => s.main_service_name === app.service_name && s.sub_service_name === app.sub_service);
+    }
+    if (!srv) {
+        srv = allServices.find(s => s.main_service_name === app.service_name);
+    }
+    if (!srv) {
+        alert('या सेवेची तपशीलवार माहिती उपलब्ध नाही.');
+        return;
+    }
+    openDocsModalWithService(srv);
+}
+
+function openDocsModalWithService(srv) {
     const modalTitle = document.getElementById('modal-service-title');
     const modalSubTitle = document.getElementById('modal-sub-service-title');
     const modalDays = document.getElementById('modal-service-days');
@@ -1657,11 +1838,43 @@ function copyModalDocsToDetails() {
         const detailsInput = document.getElementById('se_work_details');
         if (detailsInput) {
             detailsInput.value = text;
+            autoExpandWorkDetails(detailsInput);
         }
-        showAlert('Docs Copied', 'आवश्यक कागदपत्रांची यादी सेवेच्या तपशीलात जोडली!');
+        showAlert('Docs Copied', 'आवश्यक कागदपत्रांची यादी सेवेच्या तपशीलात (Work Details) जोडली!');
     } else {
         alert('कॉपी करण्यासाठी कागदपत्रे उपलब्ध नाहीत.');
     }
+}
+
+function autoExpandWorkDetails(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 34), 180) + 'px';
+    el.title = el.value;
+}
+
+function getAppPortalLink(app) {
+    if (app.portal_link && app.portal_link.trim() !== '') {
+        return app.portal_link.trim();
+    }
+    const srv = allServices.find(s => s.id == app.service_id || (s.main_service_name === app.service_name && s.sub_service_name === app.sub_service));
+    if (srv && (srv.work_portal_link || srv.service_portal_link)) {
+        return (srv.work_portal_link || srv.service_portal_link).trim();
+    }
+    const q = (app.service_name || '') + ' ' + (app.sub_service || '') + ' maharashtra official online portal apply';
+    return `https://www.google.com/search?q=${encodeURIComponent(q.trim())}`;
+}
+
+function getAppTutorialLink(app) {
+    if (app.tutorial_link && app.tutorial_link.trim() !== '') {
+        return app.tutorial_link.trim();
+    }
+    const srv = allServices.find(s => s.id == app.service_id || (s.main_service_name === app.service_name && s.sub_service_name === app.sub_service));
+    if (srv && srv.video_instruction_link) {
+        return srv.video_instruction_link.trim();
+    }
+    const q = (app.service_name || '') + ' ' + (app.sub_service || '') + ' form fill up online maharashtra tutorial';
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(q.trim())}`;
 }
 
 function createCommittedRowElement(app) {
@@ -1670,10 +1883,13 @@ function createCommittedRowElement(app) {
     tr.id = 'committed-row-' + app.id;
     tr.innerHTML = getCommittedRowInnerHtml(app);
 
-    // Apply colored status combobox styling
+    // Apply colored status combobox styling & auto-expand work details
     setTimeout(() => {
         const input = tr.querySelector(`#crow_status_${app.id}`);
         if (input) applyStatusInputStyle(input);
+
+        const wd = tr.querySelector(`#crow_work_details_${app.id}`);
+        if (wd) autoExpandWorkDetails(wd);
     }, 0);
 
     return tr;
@@ -1696,12 +1912,17 @@ function getCommittedRowInnerHtml(app) {
             ${escapeHtml(app.service_name)}
         </td>
         <td style="padding: 4px 6px;">
-            <input type="text" id="crow_sub_${app.id}" class="excel-cell-input"
-                   value="${escapeHtml(app.sub_service || '')}"
-                   placeholder="Sub service"
-                   title="Click to edit sub-service"
-                   onchange="autoSaveCommittedRow(${app.id})"
-                   onkeydown="handleCommittedKey(event, ${app.id})">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="text" id="crow_sub_${app.id}" class="excel-cell-input" style="flex: 1;"
+                       value="${escapeHtml(app.sub_service || '')}"
+                       placeholder="Sub service"
+                       title="Click to edit sub-service"
+                       onchange="autoSaveCommittedRow(${app.id})"
+                       onkeydown="handleCommittedKey(event, ${app.id})">
+                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents (आवश्यक कागदपत्रे)">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
         </td>
         <td class="font-mono" style="font-size: 12px; color: #64748b; white-space: nowrap;">
             ${escapeHtml(app.application_date || 'Today')}
@@ -1736,6 +1957,15 @@ function getCommittedRowInnerHtml(app) {
             </span>
         </td>
         <td style="padding: 4px 6px;">
+            <textarea id="crow_work_details_${app.id}" class="excel-work-details"
+                      placeholder="Work details / citizen notes..."
+                      rows="1"
+                      title="${escapeHtml(app.work_details || '')}"
+                      oninput="autoExpandWorkDetails(this)"
+                      onchange="autoSaveCommittedRow(${app.id})"
+                      onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
+        </td>
+        <td style="padding: 4px 6px;">
             <input type="text" id="crow_status_${app.id}" list="status-datalist" class="excel-status-input font-bold"
                    value="${escapeHtml(currentStatus)}"
                    placeholder="Status..."
@@ -1751,15 +1981,28 @@ function getCommittedRowInnerHtml(app) {
                 ${getEmployeeOptionsHtml(app.assigned_employee_id)}
             </select>
         </td>
-        <td style="text-align: center; white-space: nowrap; padding: 6px 10px;">
-            <a href="${app.show_url || '#'}" target="_blank" class="btn btn-sm btn-secondary"
-               style="font-size: 11.5px; padding: 4px 10px; font-weight: 600; text-decoration: none; border-radius: 6px;"
-               title="View application details">
-                <i class="fa-solid fa-receipt"></i> View
-            </a>
-            <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
-                <i class="fa-solid fa-check"></i> Saved
-            </span>
+        <td style="padding: 4px 6px;">
+            <input type="date" id="crow_followup_${app.id}" class="excel-date-input"
+                   value="${escapeHtml(app.follow_up_date || '')}"
+                   title="Expected Follow-up Date (फॉलो-अप तारीख)"
+                   onchange="autoSaveCommittedRow(${app.id})">
+        </td>
+        <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+                <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                </a>
+                <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video">
+                    <i class="fa-brands fa-youtube"></i> Tutorial
+                </a>
+                <a href="${app.show_url || '#'}" target="_blank" class="btn-row-action btn-row-view"
+                   title="View application details">
+                    <i class="fa-solid fa-receipt"></i> View
+                </a>
+                <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
+                    <i class="fa-solid fa-check"></i>
+                </span>
+            </div>
         </td>
     `;
 }
@@ -1792,6 +2035,8 @@ function autoSaveCommittedRow(appId) {
     const statusInput = document.getElementById(`crow_status_${appId}`);
     const operatorSelect = document.getElementById(`crow_operator_${appId}`);
     const subInput = document.getElementById(`crow_sub_${appId}`);
+    const workDetailsInput = document.getElementById(`crow_work_details_${appId}`);
+    const followupInput = document.getElementById(`crow_followup_${appId}`);
 
     if (!rateInput) return;
 
@@ -1800,6 +2045,8 @@ function autoSaveCommittedRow(appId) {
     const status = statusInput ? (statusInput.value.trim().toUpperCase() || 'PENDING') : 'PENDING';
     const operator = operatorSelect ? operatorSelect.value : null;
     const subService = subInput ? subInput.value.trim() : '';
+    const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
+    const followupDate = followupInput ? (followupInput.value || null) : null;
 
     if (!rate || parseFloat(rate) < 0) {
         rateInput.style.borderColor = '#dc2626';
@@ -1817,6 +2064,8 @@ function autoSaveCommittedRow(appId) {
         work_status: status,
         assigned_employee_id: operator || null,
         sub_service: subService || null,
+        work_details: workDetails,
+        follow_up_date: followupDate,
     };
 
     fetch('{{ route("fast_entry.update_service_row") }}', {
@@ -1841,6 +2090,8 @@ function autoSaveCommittedRow(appId) {
                     status: d.status,
                     operator: d.operator,
                     sub_service: d.sub_service,
+                    work_details: d.work_details,
+                    follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
             }
@@ -1992,6 +2243,31 @@ function onSubServiceChange(serviceId) {
         opBar.style.display = 'block';
     }
 
+    // Update Row-level Apply Now & Watch Tutorial buttons
+    const rowBtnApply = document.getElementById('row-btn-apply');
+    const rowBtnTutorial = document.getElementById('row-btn-tutorial');
+
+    const workUrl = srv.work_portal_link || srv.service_portal_link;
+    const tutorialUrl = srv.video_instruction_link;
+
+    if (rowBtnApply) {
+        if (workUrl && workUrl.trim() !== '') {
+            rowBtnApply.href = workUrl.trim();
+        } else {
+            rowBtnApply.href = `https://www.google.com/search?q=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' maharashtra official online portal apply')}`;
+        }
+        rowBtnApply.style.display = 'inline-flex';
+    }
+
+    if (rowBtnTutorial) {
+        if (tutorialUrl && tutorialUrl.trim() !== '') {
+            rowBtnTutorial.href = tutorialUrl.trim();
+        } else {
+            rowBtnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' form fill up online maharashtra tutorial')}`;
+        }
+        rowBtnTutorial.style.display = 'inline-flex';
+    }
+
     // Auto-focus on Received amount so user can hit Enter or adjust!
     document.getElementById('se_received').focus();
     document.getElementById('se_received').select();
@@ -2008,9 +2284,15 @@ function calculateRemaining() {
 }
 
 function resetActiveRowFields() {
-    // Hide eye button
+    // Hide eye button and row action buttons
     const eyeBtn = document.getElementById('btn-view-service-docs');
     if (eyeBtn) eyeBtn.style.display = 'none';
+
+    const rowBtnApply = document.getElementById('row-btn-apply');
+    if (rowBtnApply) rowBtnApply.style.display = 'none';
+
+    const rowBtnTutorial = document.getElementById('row-btn-tutorial');
+    if (rowBtnTutorial) rowBtnTutorial.style.display = 'none';
 
     document.getElementById('se_service_id').value = '';
     document.getElementById('se_sub_service').value = '';
@@ -2018,6 +2300,7 @@ function resetActiveRowFields() {
     document.getElementById('se_received').value = '';
     document.getElementById('se_remaining').value = '';
     document.getElementById('se_work_details').value = '';
+    document.getElementById('se_work_details').style.height = '34px';
     document.getElementById('se_docs_list').value = '';
     document.getElementById('se_followup').value = '';
 
@@ -2028,8 +2311,10 @@ function resetActiveRowFields() {
 function copyDocsToActiveRow() {
     const docsText = document.getElementById('ob-docs-text').innerText;
     if (docsText) {
-        document.getElementById('se_work_details').value = docsText;
-        showAlert('Docs Copied', 'Documents checklist added to service details.');
+        const detailsInput = document.getElementById('se_work_details');
+        detailsInput.value = docsText;
+        autoExpandWorkDetails(detailsInput);
+        showAlert('Docs Copied', 'Documents checklist added to service work details.');
     }
 }
 
@@ -2110,6 +2395,7 @@ function saveActiveServiceRow() {
             const newApp = {
                 id: d.id,
                 application_number: d.application_number,
+                service_id: serviceId,
                 service_name: d.service_name,
                 sub_service: d.sub_service,
                 application_date: 'Today',
@@ -2117,6 +2403,10 @@ function saveActiveServiceRow() {
                 received: d.received.replace(/,/g, ''),
                 remaining: d.remaining.replace(/,/g, ''),
                 status: payload.work_status || 'READY',
+                work_details: d.work_details || payload.work_details || '',
+                follow_up_date: d.follow_up_date || payload.follow_up_date || '',
+                portal_link: d.portal_link,
+                tutorial_link: d.tutorial_link,
                 assigned_employee_id: payload.assigned_employee_id,
                 operator: d.operator,
                 show_url: d.show_url || '#'
