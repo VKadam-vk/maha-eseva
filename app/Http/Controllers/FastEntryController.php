@@ -40,6 +40,211 @@ class FastEntryController extends Controller
     }
 
     /**
+     * Fast Quick-Go: Search by mobile/name. If customer does NOT exist, directly auto-save to CRM!
+     */
+    public function quickGo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'customer_name' => ['nullable', 'string', 'max:255'],
+            'mobile' => ['required', 'string', 'min:10', 'max:20'],
+        ]);
+
+        $user = Auth::user();
+        $tenantId = (int) ($user->tenant_id ?? session('current_tenant_id') ?? \App\Models\Tenant::first()?->id ?? 1);
+        $branchId = $user->branch_id ?? \App\Models\Branch::where('tenant_id', $tenantId)->first()?->id ?? 1;
+        $cleanedMobile = preg_replace('/[^0-9]/', '', $validated['mobile']);
+
+        if (strlen($cleanedMobile) < 10) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter a valid 10-digit mobile number.',
+            ], 422);
+        }
+
+        // 1. Search existing customer by mobile
+        $existing = $this->customerService->findByMobile($tenantId, $cleanedMobile);
+
+        if ($existing) {
+            // If name is entered and different, update name
+            $newName = trim($validated['customer_name'] ?? '');
+            if (!empty($newName) && $existing->name !== $newName) {
+                $existing->name = $newName;
+                $existing->save();
+            }
+
+            $customer = $existing;
+            $isNew = false;
+        } else {
+            // 2. Direct Auto-Save to Customers CRM
+            $custName = trim($validated['customer_name'] ?? '');
+            if (empty($custName)) {
+                $custName = 'Citizen ' . substr($cleanedMobile, -4);
+            }
+
+            $customer = $this->customerService->createCustomer([
+                'branch_id' => $branchId,
+                'name' => $custName,
+                'mobile' => $cleanedMobile,
+                'gender' => 'MALE',
+                'star_rating' => 5,
+            ], $user);
+
+            $isNew = true;
+        }
+
+        // Fetch customer's full applications & services history
+        $applications = Application::where('customer_id', $customer->id)
+            ->with(['service', 'assignedEmployee.user'])
+            ->latest('id')
+            ->get()
+            ->map(function ($app) {
+                return [
+                    'id' => $app->id,
+                    'application_number' => $app->application_number,
+                    'service_name' => $app->service?->main_service_name ?? 'Government Service',
+                    'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
+                    'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : $app->created_at->format('d-m-Y'),
+                    'rate' => (float) $app->total_amount,
+                    'received' => (float) $app->received_amount,
+                    'remaining' => (float) $app->remaining_amount,
+                    'status' => $app->work_status,
+                    'service_id' => $app->service_id,
+                    'assigned_employee_id' => $app->assigned_employee_id,
+                    'operator' => $app->assignedEmployee?->user?->name ?? 'Counter Desk',
+                    'show_url' => route('applications.show', $app->id),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'is_new' => $isNew,
+            'message' => $isNew
+                ? "New Customer Auto-Saved to CRM: {$customer->customer_code} ({$customer->name})"
+                : "Existing Customer Loaded: {$customer->customer_code} ({$customer->name})",
+            'customer' => [
+                'id' => $customer->id,
+                'customer_code' => $customer->customer_code,
+                'name' => $customer->name,
+                'mobile' => $customer->mobile,
+                'gender' => $customer->gender ?? 'MALE',
+                'birth_date' => $customer->birth_date ? $customer->birth_date->format('Y-m-d') : '',
+                'alternate_mobile' => $customer->alternate_mobile ?: '',
+                'occupation' => $customer->occupation ?: '',
+                'email' => $customer->email ?: '',
+                'star_rating' => (int) ($customer->star_rating ?? 5),
+                'total_services' => $applications->count(),
+                'total_billed' => (float) $customer->total_billed,
+                'total_paid' => (float) $customer->total_paid,
+                'total_outstanding' => (float) $customer->total_outstanding,
+                'profile_url' => route('customers.show', $customer->id),
+            ],
+            'applications' => $applications,
+        ]);
+    }
+
+    /**
+     * Update customer optional details (gender, DOB, rating, email, occupation) from right panel.
+     */
+    public function updateCustomerDetails(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'exists:customers,id'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'gender' => ['nullable', 'in:MALE,FEMALE,OTHER'],
+            'birth_date' => ['nullable', 'date'],
+            'alternate_mobile' => ['nullable', 'string', 'max:20'],
+            'occupation' => ['nullable', 'string', 'max:100'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'star_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+        ]);
+
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $updates = [];
+        if (!empty($validated['name'])) $updates['name'] = trim($validated['name']);
+        if (isset($validated['gender'])) $updates['gender'] = $validated['gender'];
+        if (isset($validated['star_rating'])) $updates['star_rating'] = (int) $validated['star_rating'];
+        if (array_key_exists('birth_date', $validated)) $updates['birth_date'] = $validated['birth_date'];
+        if (array_key_exists('alternate_mobile', $validated)) $updates['alternate_mobile'] = $validated['alternate_mobile'];
+        if (array_key_exists('occupation', $validated)) $updates['occupation'] = $validated['occupation'];
+        if (array_key_exists('email', $validated)) $updates['email'] = $validated['email'];
+
+        $customer->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer profile updated successfully.',
+            'customer' => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'gender' => $customer->gender,
+                'birth_date' => $customer->birth_date ? $customer->birth_date->format('Y-m-d') : '',
+                'alternate_mobile' => $customer->alternate_mobile ?: '',
+                'occupation' => $customer->occupation ?: '',
+                'email' => $customer->email ?: '',
+                'star_rating' => (int) $customer->star_rating,
+            ]
+        ]);
+    }
+
+    /**
+     * Update existing service row (Rate, Received, Status, Operator, Sub Service) directly from table.
+     */
+    public function updateServiceRow(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'application_id' => ['required', 'exists:applications,id'],
+            'rate' => ['required', 'numeric', 'min:0'],
+            'received' => ['nullable', 'numeric', 'min:0'],
+            'work_status' => ['required', 'string'],
+            'assigned_employee_id' => ['nullable', 'exists:employees,id'],
+            'sub_service' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user = Auth::user();
+        $application = Application::findOrFail($validated['application_id']);
+
+        $rate = (float) $validated['rate'];
+        $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
+        $remaining = max(0, $rate - $received);
+
+        $workStatus = $validated['work_status'];
+        if ($workStatus === 'DONE') {
+            $workStatus = Application::STATUS_READY;
+        }
+
+        $application->update([
+            'total_amount' => $rate,
+            'base_amount' => $rate,
+            'received_amount' => $received,
+            'remaining_amount' => $remaining,
+            'payment_status' => $remaining <= 0 ? Application::PAYMENT_PAID : ($received > 0 ? Application::PAYMENT_PARTIAL : Application::PAYMENT_PENDING),
+            'work_status' => $workStatus,
+            'assigned_employee_id' => $validated['assigned_employee_id'] ?? null,
+            'sub_service' => $validated['sub_service'] ?? $application->sub_service,
+        ]);
+
+        $customer = $application->customer;
+
+        return response()->json([
+            'success' => true,
+            'message' => "Service Updated: {$application->application_number}",
+            'data' => [
+                'id' => $application->id,
+                'application_number' => $application->application_number,
+                'service_name' => $application->service?->main_service_name ?? 'Service',
+                'sub_service' => $application->sub_service,
+                'rate' => number_format($application->total_amount, 2),
+                'received' => number_format($application->received_amount, 2),
+                'remaining' => number_format($application->remaining_amount, 2),
+                'status' => $application->work_status,
+                'assigned_employee_id' => $application->assigned_employee_id,
+                'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
+                'customer_total_outstanding' => (float) $customer?->total_outstanding,
+            ],
+        ]);
+    }
+
+    /**
      * Search customers by name, mobile, or customer_code for New Entry selection.
      */
     public function searchCustomers(Request $request): JsonResponse
@@ -232,6 +437,7 @@ class FastEntryController extends Controller
                     'received' => number_format($application->received_amount, 2),
                     'remaining' => number_format($application->remaining_amount, 2),
                     'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
+                    'show_url' => route('applications.show', $application->id),
                 ],
             ]);
         } catch (\Exception $e) {

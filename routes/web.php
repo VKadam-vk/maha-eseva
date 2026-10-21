@@ -119,9 +119,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Fast Spreadsheet-Style Daily Customer Entry & New Service Entry
     Route::prefix('fast-entry')->name('fast_entry.')->group(function () {
         Route::get('/', [FastEntryController::class, 'index'])->name('index')->middleware('permission:customers.create');
+        Route::post('/quick-go', [FastEntryController::class, 'quickGo'])->name('quick_go')->middleware('permission:customers.create');
+        Route::post('/update-customer', [FastEntryController::class, 'updateCustomerDetails'])->name('update_customer')->middleware('permission:customers.edit');
         Route::post('/store-row', [FastEntryController::class, 'storeRow'])->name('store_row')->middleware('permission:customers.create');
         Route::get('/search-customers', [FastEntryController::class, 'searchCustomers'])->name('search_customers')->middleware('permission:customers.view');
         Route::post('/store-service-entry', [FastEntryController::class, 'storeServiceEntry'])->name('store_service_entry')->middleware('permission:customers.create');
+        Route::post('/update-service-row', [FastEntryController::class, 'updateServiceRow'])->name('update_service_row')->middleware('permission:applications.edit');
     });
 
     // Staff & Employee Management

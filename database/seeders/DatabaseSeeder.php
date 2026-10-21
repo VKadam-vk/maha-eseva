@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        if (User::where('email', 'admin@mahaeseva.com')->exists()) {
+        if (!app()->environment('testing') && User::where('email', 'admin@mahaeseva.com')->exists()) {
             return;
         }
 
@@ -305,7 +305,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'branch_id' => $branch2->id,
             'user_id' => $emp2User->id,
-            'employee_code' => 'EMP-0002',
+            'employee_code' => 'EMP-0003',
             'designation' => 'Counter Executive',
             'joining_date' => '2024-03-01',
             'salary' => 20000.00,
@@ -615,6 +615,46 @@ class DatabaseSeeder extends Seeder
                     'is_active' => true,
                 ]);
             }
+        }
+
+        // 9. Seed Demo Customer (Rajesh Patil) & Application
+        $demoCustomer = Customer::create([
+            'uuid' => (string) Str::uuid(),
+            'tenant_id' => $tenant->id,
+            'branch_id' => $mainBranch->id,
+            'category_id' => $catRegular->id,
+            'customer_code' => 'CUST-00001',
+            'name' => 'Rajesh Anant Patil',
+            'mobile' => '9822012345',
+            'email' => 'rajesh.patil@example.com',
+            'gender' => 'MALE',
+            'birth_date' => '1988-06-15',
+            'occupation' => 'FARMER / BUSINESS',
+            'star_rating' => 5,
+            'address' => 'At Post Vadgaon, Taluka Haveli, District Pune - 411041',
+        ]);
+
+        $panService = $createdServices['PAN-NEW-01'] ?? Service::where('tenant_id', $tenant->id)->first();
+        if ($panService) {
+            Application::create([
+                'uuid' => (string) Str::uuid(),
+                'tenant_id' => $tenant->id,
+                'branch_id' => $mainBranch->id,
+                'customer_id' => $demoCustomer->id,
+                'service_id' => $panService->id,
+                'assigned_employee_id' => $mainEmployee->id ?? null,
+                'application_number' => 'SR-' . date('Y') . '-00001',
+                'application_date' => now()->toDateString(),
+                'sub_service' => $panService->sub_service_name,
+                'work_status' => 'IN_PROGRESS',
+                'payment_status' => Application::PAYMENT_PAID,
+                'base_amount' => 200.00,
+                'total_amount' => 200.00,
+                'received_amount' => 200.00,
+                'remaining_amount' => 0.00,
+                'work_details' => 'New PAN Form 49A submitted with Aadhaar biometric e-KYC',
+                'documents_list' => 'Aadhaar Card, Passport Photo',
+            ]);
         }
     }
 }

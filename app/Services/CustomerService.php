@@ -45,8 +45,8 @@ class CustomerService
      */
     public function createCustomer(array $data, User $creator): Customer
     {
-        $tenantId = $creator->tenant_id;
-        $branchId = $data['branch_id'] ?? $creator->branch_id ?? $creator->tenant->branches()->first()?->id;
+        $tenantId = (int) ($creator->tenant_id ?? \App\Models\Tenant::first()?->id ?? 1);
+        $branchId = $data['branch_id'] ?? $creator->branch_id ?? \App\Models\Branch::where('tenant_id', $tenantId)->first()?->id ?? 1;
 
         // Check for duplicate by mobile
         $existing = $this->findByMobile($tenantId, $data['mobile']);
