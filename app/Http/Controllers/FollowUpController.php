@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\FollowUp;
@@ -19,6 +20,48 @@ class FollowUpController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
+
+        // 1. Self-healing auto-sync: Ensure any application having a follow_up_date is synchronized with follow_ups table
+        try {
+            $appsWithFollowUp = Application::withoutGlobalScopes()
+                ->whereNotNull('follow_up_date')
+                ->with(['service', 'customer', 'followUps'])
+                ->get();
+
+            foreach ($appsWithFollowUp as $app) {
+                $existing = $app->followUps->first();
+                $serviceName = $app->service?->main_service_name ?? 'Service';
+                $subServiceName = $app->sub_service ?? '';
+                $reason = $subServiceName ? "{$serviceName} - {$subServiceName}" : "Service Follow-up ({$serviceName})";
+                $appDate = $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : null;
+
+                if (!$existing && $appDate) {
+                    FollowUp::create([
+                        'tenant_id' => $app->tenant_id,
+                        'branch_id' => $app->branch_id,
+                        'customer_id' => $app->customer_id,
+                        'application_id' => $app->id,
+                        'assigned_employee_id' => $app->assigned_employee_id,
+                        'follow_up_date' => $appDate,
+                        'reason' => $reason,
+                        'remarks' => $app->work_details ?: 'Fast Entry Desk Schedule',
+                        'status' => in_array($app->work_status, ['READY', 'DELIVERED', 'COMPLETED']) ? FollowUp::STATUS_COMPLETED : FollowUp::STATUS_PENDING,
+                        'created_by' => $app->created_by,
+                    ]);
+                } elseif ($existing && $appDate && $existing->follow_up_date?->format('Y-m-d') !== $appDate) {
+                    $existing->update([
+                        'follow_up_date' => $appDate,
+                        'assigned_employee_id' => $app->assigned_employee_id,
+                        'reason' => $reason,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Log notice and continue without breaking the view
+            report($e);
+        }
+
+        // 2. Query follow-ups
         $query = FollowUp::with(['customer', 'application.service', 'assignedEmployee.user']);
 
         if ($user->isEmployee()) {

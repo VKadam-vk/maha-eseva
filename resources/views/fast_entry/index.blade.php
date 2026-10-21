@@ -2085,7 +2085,8 @@ function getCommittedRowInnerHtml(app) {
             <input type="date" id="crow_followup_${app.id}" class="excel-date-input"
                    value="${escapeHtml(app.follow_up_date || '')}"
                    title="Expected Follow-up Date (फॉलो-अप तारीख)"
-                   onchange="autoSaveCommittedRow(${app.id})">
+                   onchange="autoSaveCommittedRow(${app.id})"
+                   onblur="autoSaveCommittedRow(${app.id})">
         </td>
         <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
