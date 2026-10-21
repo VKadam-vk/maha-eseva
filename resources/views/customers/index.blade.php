@@ -72,7 +72,6 @@
                     <th>Customer Name</th>
                     <th>Mobile</th>
                     <th>Gender</th>
-                    <th>City / Pincode</th>
                     <th>Category</th>
                     <th>Applications</th>
                     <th>Total Spent</th>
@@ -112,7 +111,6 @@
                             @endif
                         </td>
                         <td><span class="badge badge-hold" style="font-size: 10px;">{{ $c->gender }}</span></td>
-                        <td>{{ $c->city ?? '-' }} {{ $c->pincode ? "({$c->pincode})" : '' }}</td>
                         <td>{{ $c->category?->name ?? 'Regular' }}</td>
                         <td><span class="badge badge-process">{{ $c->applications_count }} Apps</span></td>
                         <td><strong>₹{{ number_format($c->total_paid, 2) }}</strong></td>
@@ -129,7 +127,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                        <td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">
                             <i class="fa-solid fa-user-slash" style="font-size: 28px; margin-bottom: 8px; display: block;"></i>
                             No customers found matching your criteria.
                         </td>
