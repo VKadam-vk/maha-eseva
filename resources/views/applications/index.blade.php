@@ -632,6 +632,7 @@
                             $serv = $app->service;
                             $expDays = (int) ($serv?->expected_processing_days ?? 7);
                             $appDate = $app->created_at ? $app->created_at->format('d M') : ($app->application_date ? date('d M', strtotime($app->application_date)) : '-');
+                            $followDate = $app->follow_up_date ? \Carbon\Carbon::parse($app->follow_up_date)->format('Y-m-d') : '';
                             $opName = $app->assignedEmployee?->user?->name ?? ($app->assignedEmployee?->name ?? '');
                             $stVal = strtoupper(trim($app->work_status ?? 'PENDING'));
                             $mainName = trim($serv?->main_service_name ?? 'Service');
