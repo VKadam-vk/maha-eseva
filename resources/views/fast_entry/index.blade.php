@@ -566,10 +566,13 @@
         box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
     }
 
-    /* Modal Overlay & Card for Required Docs */
+    /* Modal Overlay & Card for Required Docs & New Customer Confirmation */
     #docs-modal-overlay,
-    .modal-overlay#docs-modal-overlay {
+    .modal-overlay#docs-modal-overlay,
+    #new-customer-confirm-modal,
+    .modal-overlay#new-customer-confirm-modal {
         position: fixed !important;
+        inset: 0 !important;
         top: 0 !important;
         left: 0 !important;
         right: 0 !important;
@@ -577,23 +580,26 @@
         width: 100vw !important;
         height: 100vh !important;
         background: rgba(15, 23, 42, 0.82) !important;
-        backdrop-filter: blur(5px) !important;
-        -webkit-backdrop-filter: blur(5px) !important;
-        z-index: 99999999 !important;
-        display: none;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        z-index: 999999999 !important;
+        display: none !important;
         align-items: center !important;
         justify-content: center !important;
         padding: 16px !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        transition: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: opacity 0.2s ease, visibility 0.2s ease !important;
     }
 
     #docs-modal-overlay.open,
-    .modal-overlay#docs-modal-overlay.open {
+    .modal-overlay#docs-modal-overlay.open,
+    #new-customer-confirm-modal.open,
+    .modal-overlay#new-customer-confirm-modal.open {
         display: flex !important;
         opacity: 1 !important;
         visibility: visible !important;
+        pointer-events: auto !important;
     }
 
     .docs-modal-card {
@@ -959,7 +965,7 @@
 
                     <!-- Action Buttons: Go & Reset -->
                     <div class="pocket-btn-group">
-                        <button type="submit" id="btn-go" class="btn-go">
+                        <button type="submit" id="btn-go" class="btn-go" onclick="executeQuickGo(event)">
                             <i class="fa-solid fa-arrow-right"></i> Go
                         </button>
                         <button type="button" id="btn-reset" class="btn-reset" onclick="resetEntireDesk()">
@@ -1375,7 +1381,7 @@
 </div>
 
 <!-- Modal: New Customer Confirmation Popup -->
-<div id="new-customer-confirm-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 99999999; display: none; align-items: center; justify-content: center; padding: 16px;">
+<div id="new-customer-confirm-modal" class="modal-overlay">
     <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 490px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -1541,13 +1547,17 @@ function showNewCustomerModal(mobile, name) {
     }
 
     if (modal) {
-        modal.style.display = 'flex';
+        modal.classList.add('open');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('z-index', '999999999', 'important');
         setTimeout(() => {
             if (nameInput) {
                 nameInput.focus();
                 nameInput.select();
             }
-        }, 80);
+        }, 100);
     }
 }
 
@@ -1572,7 +1582,12 @@ function confirmAndCreateCustomer() {
 
 function closeNewCustomerModal() {
     const modal = document.getElementById('new-customer-confirm-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('open');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('visibility', 'hidden', 'important');
+    }
 
     const btn = document.getElementById('btn-confirm-create-customer');
     if (btn) {
