@@ -1,6 +1,6 @@
 /**
- * Maha E-Seva ERP - Field Change History & Audit Trail Modal
- * Handles cell-level history icons and field-specific audit modal popups.
+ * Maha E-Seva ERP - Field Change History & Audit Trail Popover
+ * Handles cell-level history icons and field-specific audit popups anchored directly to the clicked cell.
  */
 
 (function () {
@@ -9,6 +9,8 @@
     let currentAppId = null;
     let currentField = 'all';
     let cachedData = {};
+    let activeTriggerBtn = null;
+    let repositionListener = null;
 
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
@@ -32,7 +34,7 @@
                         <div class="field-history-title-box">
                             <h4 class="field-history-title">
                                 <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i>
-                                <span id="fhist-app-title">Application History</span>
+                                <span id="fhist-app-title">Change History</span>
                             </h4>
                             <div class="field-history-subtitle" id="fhist-app-subtitle">
                                 Loading audit details...
@@ -53,7 +55,7 @@
 
                     <div class="field-history-footer">
                         <div class="field-history-footer-info" id="fhist-footer-info">
-                            0 change records found
+                            0 changes recorded
                         </div>
                         <button type="button" class="field-history-footer-close-btn" id="fhist-footer-close-btn">
                             Close
@@ -77,6 +79,78 @@
         return backdrop;
     }
 
+    function positionHistoryPopover(dialog, triggerBtn) {
+        if (!dialog) return;
+
+        if (!triggerBtn) {
+            // Fallback center
+            dialog.style.top = '50%';
+            dialog.style.left = '50%';
+            dialog.style.transform = 'translate(-50%, -50%)';
+            return;
+        }
+
+        dialog.style.transform = 'none';
+        const rect = triggerBtn.getBoundingClientRect();
+        const popWidth = Math.min(390, window.innerWidth - 20);
+        const popHeight = dialog.offsetHeight || 360;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        const spaceBelow = viewportHeight - rect.bottom - 10;
+        const spaceAbove = rect.top - 10;
+
+        let top;
+        // Prefer placing below the clicked button
+        if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+            // Place above button
+            const effHeight = Math.min(popHeight, spaceAbove);
+            top = rect.top - effHeight - 6;
+            if (top < 10) top = 10;
+            dialog.style.maxHeight = `${spaceAbove}px`;
+        } else {
+            // Place below button
+            top = rect.bottom + 6;
+            dialog.style.maxHeight = `${Math.max(200, spaceBelow)}px`;
+        }
+
+        // Horizontal alignment: Center slightly or align with button
+        let left = rect.left - (popWidth / 2) + (rect.width / 2);
+        if (left + popWidth > viewportWidth - 10) {
+            left = viewportWidth - popWidth - 10;
+        }
+        if (left < 10) left = 10;
+
+        dialog.style.top = `${Math.round(top)}px`;
+        dialog.style.left = `${Math.round(left)}px`;
+        dialog.style.width = `${popWidth}px`;
+    }
+
+    function bindPopoverReposition(dialog, triggerBtn) {
+        unbindPopoverReposition();
+        if (!triggerBtn) return;
+        repositionListener = () => {
+            if (dialog && triggerBtn) {
+                const rect = triggerBtn.getBoundingClientRect();
+                if (rect.bottom < 0 || rect.top > window.innerHeight) {
+                    closeFieldHistoryModal();
+                    return;
+                }
+                positionHistoryPopover(dialog, triggerBtn);
+            }
+        };
+        window.addEventListener('scroll', repositionListener, true);
+        window.addEventListener('resize', repositionListener);
+    }
+
+    function unbindPopoverReposition() {
+        if (repositionListener) {
+            window.removeEventListener('scroll', repositionListener, true);
+            window.removeEventListener('resize', repositionListener);
+            repositionListener = null;
+        }
+    }
+
     function openFieldHistory(appId, fieldName, event) {
         if (event) {
             event.preventDefault();
@@ -86,6 +160,8 @@
         if (!appId) return;
 
         currentAppId = appId;
+        activeTriggerBtn = event ? (event.currentTarget || (event.target ? event.target.closest('.btn-cell-history') : null)) : null;
+
         const aliases = {
             'status': 'work_status',
             'operator': 'assigned_employee_id',
@@ -97,14 +173,19 @@
         currentField = (fieldName && aliases[fieldName]) ? aliases[fieldName] : (fieldName || 'all');
 
         const backdrop = ensureModalElement();
+        const dialog = backdrop.querySelector('.field-history-dialog');
         backdrop.classList.add('active');
+
+        // Initial anchored position
+        positionHistoryPopover(dialog, activeTriggerBtn);
+        bindPopoverReposition(dialog, activeTriggerBtn);
 
         // Show loading state
         const body = document.getElementById('fhist-body');
         body.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #64748b; gap: 10px;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: #0284c7;"></i>
-                <span style="font-size: 13px; font-weight: 600;">Fetching change audit history...</span>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; color: #64748b; gap: 8px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #0284c7;"></i>
+                <span style="font-size: 12px; font-weight: 600;">Fetching change history...</span>
             </div>
         `;
 
@@ -128,11 +209,13 @@
             }
         })
         .catch(err => {
-            showError('Unable to load history. Please check your internet connection.');
+            showError('Unable to load history. Please try again.');
         });
     }
 
     function closeFieldHistoryModal() {
+        unbindPopoverReposition();
+        activeTriggerBtn = null;
         const backdrop = document.getElementById('field-history-modal-backdrop');
         if (backdrop) {
             backdrop.classList.remove('active');
@@ -152,17 +235,16 @@
         subtitleEl.innerHTML = `
             <span>Service: <strong>${escapeHtml(app.service_name)}</strong></span>
             ${app.sub_service ? `<span>(${escapeHtml(app.sub_service)})</span>` : ''}
-            <span>• Created: ${escapeHtml(app.created_at || 'Recently')}</span>
         `;
 
         // 2. Tab Bar
         const tabsEl = document.getElementById('fhist-tabs');
         const tabDefinitions = [
-            { key: 'all', label: 'All Changes', icon: 'fa-list-check' },
+            { key: 'all', label: 'All', icon: 'fa-list-check' },
             { key: 'work_status', label: 'Status', icon: 'fa-signal' },
             { key: 'assigned_employee_id', label: 'Operator', icon: 'fa-user-gear' },
-            { key: 'rate', label: 'Rate (₹)', icon: 'fa-indian-rupee-sign' },
-            { key: 'follow_up_date', label: 'Follow-Up Date', icon: 'fa-calendar-days' },
+            { key: 'rate', label: 'Rate', icon: 'fa-indian-rupee-sign' },
+            { key: 'follow_up_date', label: 'Follow-Up', icon: 'fa-calendar-days' },
             { key: 'sub_service', label: 'Sub Service', icon: 'fa-layer-group' },
         ];
 
@@ -188,6 +270,12 @@
 
         // 3. Render Timeline items for currentField
         renderTimelineCards(allHistories, app);
+
+        // Reposition accurately after DOM rendered
+        setTimeout(() => {
+            const dialog = document.querySelector('.field-history-dialog');
+            positionHistoryPopover(dialog, activeTriggerBtn);
+        }, 15);
     }
 
     function renderTimelineCards(allHistories, app) {
@@ -199,7 +287,7 @@
             filtered = allHistories.filter(h => h.field_name === currentField);
         }
 
-        footerInfo.textContent = `${filtered.length} change record${filtered.length === 1 ? '' : 's'} found`;
+        footerInfo.textContent = `${filtered.length} change record${filtered.length === 1 ? '' : 's'}`;
 
         if (filtered.length === 0) {
             let fieldFriendlyName = 'this field';
@@ -222,12 +310,12 @@
             }
 
             body.innerHTML = `
-                <div class="field-history-empty">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <h5>No Past Changes Recorded</h5>
-                    <p>
-                        No previous modifications found for <strong>${escapeHtml(fieldFriendlyName)}</strong>.
-                        ${currentVal ? `<br><span style="display:inline-block; margin-top:8px; font-weight:700; color:#1e293b; background:#e2e8f0; padding:3px 8px; border-radius:5px;">Current: ${escapeHtml(currentVal)}</span>` : ''}
+                <div class="field-history-empty" style="padding: 24px 14px;">
+                    <i class="fa-solid fa-clock-rotate-left" style="font-size: 26px;"></i>
+                    <h5 style="font-size: 13px;">No Past Changes Recorded</h5>
+                    <p style="font-size: 11.5px;">
+                        No previous modifications for <strong>${escapeHtml(fieldFriendlyName)}</strong>.
+                        ${currentVal ? `<br><span style="display:inline-block; margin-top:6px; font-weight:700; color:#1e293b; background:#e2e8f0; padding:2px 7px; border-radius:4px;">Current: ${escapeHtml(currentVal)}</span>` : ''}
                     </p>
                 </div>
             `;
@@ -238,45 +326,44 @@
         filtered.forEach(item => {
             const isCreation = item.field_name === 'created';
             html += `
-                <div class="history-item-card">
+                <div class="history-item-card" style="padding: 9px 11px;">
                     <div class="history-card-header">
                         <span class="history-field-pill field-${escapeHtml(item.field_name)}">
                             <i class="fa-solid ${getFieldIcon(item.field_name)}"></i>
                             ${escapeHtml(item.field_label || item.field_name)}
                         </span>
-                        <div class="history-time-meta">
+                        <div class="history-time-meta" style="font-size: 11px;">
                             <span class="history-user-tag" title="Changed by staff">
                                 <i class="fa-solid fa-user-circle"></i> ${escapeHtml(item.user_name)}
                             </span>
                             <span>•</span>
                             <span title="${escapeHtml(item.created_at)}">${escapeHtml(item.created_at)}</span>
-                            ${item.time_ago ? `<span style="color: #94a3b8; font-size: 10.5px;">(${escapeHtml(item.time_ago)})</span>` : ''}
                         </div>
                     </div>
 
                     ${isCreation ? `
-                        <div class="history-diff-grid" style="background: #f0fdf4; border-color: #86efac;">
+                        <div class="history-diff-grid" style="background: #f0fdf4; border-color: #86efac; padding: 6px 10px;">
                             <div class="history-val-box">
                                 <span class="history-val-title" style="color: #166534;">Registration Event</span>
-                                <div class="history-val-text" style="color: #166534; font-size: 13px;">
+                                <div class="history-val-text" style="color: #166534; font-size: 12px;">
                                     ${escapeHtml(item.new_display)}
                                 </div>
                             </div>
                         </div>
                     ` : `
-                        <div class="history-diff-grid">
+                        <div class="history-diff-grid" style="padding: 6px 10px;">
                             <div class="history-val-box history-val-old">
-                                <span class="history-val-title">Previous Value</span>
-                                <div class="history-val-text">
+                                <span class="history-val-title">Previous</span>
+                                <div class="history-val-text" style="font-size: 11.5px;">
                                     ${escapeHtml(item.old_display || item.old_value || '-')}
                                 </div>
                             </div>
                             <div class="history-diff-arrow">
-                                <i class="fa-solid fa-arrow-right"></i>
+                                <i class="fa-solid fa-arrow-right" style="font-size: 11px;"></i>
                             </div>
                             <div class="history-val-box history-val-new">
-                                <span class="history-val-title">Updated Value</span>
-                                <div class="history-val-text">
+                                <span class="history-val-title">Updated</span>
+                                <div class="history-val-text" style="font-size: 11.5px;">
                                     ${escapeHtml(item.new_display || item.new_value || '-')}
                                 </div>
                             </div>
@@ -284,7 +371,7 @@
                     `}
 
                     ${item.remarks ? `
-                        <div class="history-item-remarks">
+                        <div class="history-item-remarks" style="font-size: 11px;">
                             <i class="fa-solid fa-comment-dots" style="margin-right: 4px; color: #94a3b8;"></i>
                             ${escapeHtml(item.remarks)}
                         </div>
@@ -323,10 +410,10 @@
         const body = document.getElementById('fhist-body');
         if (body) {
             body.innerHTML = `
-                <div class="field-history-empty" style="color: #dc2626;">
+                <div class="field-history-empty" style="color: #dc2626; padding: 20px;">
                     <i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i>
-                    <h5 style="color: #991b1b;">Unable to load history</h5>
-                    <p style="color: #b91c1c;">${escapeHtml(msg)}</p>
+                    <h5 style="color: #991b1b; font-size: 13px;">Unable to load history</h5>
+                    <p style="color: #b91c1c; font-size: 11px;">${escapeHtml(msg)}</p>
                 </div>
             `;
         }
@@ -345,6 +432,10 @@
 
         if (currentAppId && cachedData[currentAppId]) {
             renderTimelineCards(cachedData[currentAppId].histories || [], cachedData[currentAppId].application || {});
+            setTimeout(() => {
+                const dialog = document.querySelector('.field-history-dialog');
+                positionHistoryPopover(dialog, activeTriggerBtn);
+            }, 10);
         }
     };
 

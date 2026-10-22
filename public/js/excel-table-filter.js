@@ -397,8 +397,13 @@
                 }
             });
 
-            // Focus search input
-            setTimeout(() => searchInput.focus(), 50);
+            // Focus search input and position accurately
+            this.positionDropdown(card, triggerBtn);
+            this.bindReposition(card, triggerBtn);
+            setTimeout(() => {
+                this.positionDropdown(card, triggerBtn);
+                searchInput.focus();
+            }, 30);
         }
 
         applyFromPopup(colKey, container, totalDistinctCount) {
@@ -420,34 +425,71 @@
         }
 
         positionDropdown(card, triggerBtn) {
+            if (!card || !triggerBtn) return;
             const rect = triggerBtn.getBoundingClientRect();
             const cardWidth = 280;
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // Default: position below trigger
-            let top = rect.bottom + 6;
-            let left = rect.left;
+            // Measure actual card height
+            const cardHeight = card.offsetHeight || 320;
 
-            // Check right edge
+            const spaceBelow = viewportHeight - rect.bottom - 10;
+            const spaceAbove = rect.top - 10;
+
+            let top;
+            // Always prefer opening below the button unless space below is very tight (< 160px) and space above is much larger
+            if (spaceBelow < 160 && spaceAbove > spaceBelow) {
+                // Open above button, with bottom of card anchored to top of button
+                const maxH = Math.min(cardHeight, spaceAbove);
+                top = rect.top - maxH - 4;
+                if (top < 10) top = 10;
+                card.style.maxHeight = `${spaceAbove}px`;
+            } else {
+                // Open directly below button
+                top = rect.bottom + 4;
+                card.style.maxHeight = `${Math.max(160, spaceBelow)}px`;
+            }
+
+            // Horizontal alignment: Align left edge of card with left edge of button
+            let left = rect.left;
+            // If it would overflow right edge of viewport, right-align with button
             if (left + cardWidth > viewportWidth - 10) {
-                left = viewportWidth - cardWidth - 12;
+                left = rect.right - cardWidth;
             }
             if (left < 10) left = 10;
 
-            // Check bottom edge
-            const cardEstimatedHeight = 340;
-            if (top + cardEstimatedHeight > viewportHeight - 10) {
-                // Flip upward
-                top = rect.top - cardEstimatedHeight - 6;
-                if (top < 10) top = 10;
-            }
+            card.style.top = `${Math.round(top)}px`;
+            card.style.left = `${Math.round(left)}px`;
+        }
 
-            card.style.top = `${top}px`;
-            card.style.left = `${left}px`;
+        bindReposition(card, triggerBtn) {
+            this.unbindReposition();
+            this.repositionHandler = () => {
+                if (this.activePopup && triggerBtn) {
+                    const rect = triggerBtn.getBoundingClientRect();
+                    // Close if trigger button scrolled completely offscreen
+                    if (rect.bottom < 0 || rect.top > window.innerHeight) {
+                        this.closeDropdown();
+                        return;
+                    }
+                    this.positionDropdown(card, triggerBtn);
+                }
+            };
+            window.addEventListener('scroll', this.repositionHandler, true);
+            window.addEventListener('resize', this.repositionHandler);
+        }
+
+        unbindReposition() {
+            if (this.repositionHandler) {
+                window.removeEventListener('scroll', this.repositionHandler, true);
+                window.removeEventListener('resize', this.repositionHandler);
+                this.repositionHandler = null;
+            }
         }
 
         closeDropdown() {
+            this.unbindReposition();
             if (this.activePopup) {
                 this.activePopup.remove();
                 this.activePopup = null;

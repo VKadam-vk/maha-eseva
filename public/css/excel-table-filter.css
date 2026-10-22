@@ -455,21 +455,16 @@
     min-width: 0;
 }
 
-/* 2. Field History Modal Popup */
+/* 2. Field History Anchored Popover Box */
 .field-history-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(4px);
-    z-index: 999999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: rgba(15, 23, 42, 0.15);
+    z-index: 999998;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    padding: 16px;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
 }
 
 .field-history-backdrop.active {
@@ -479,29 +474,35 @@
 }
 
 .field-history-dialog {
-    width: 100%;
-    max-width: 620px;
-    max-height: 88vh;
+    position: fixed;
+    z-index: 999999;
+    width: 380px;
+    max-width: calc(100vw - 20px);
+    max-height: 480px;
     background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.3), 0 4px 14px rgba(15, 23, 42, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transform: translateY(12px) scale(0.98);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid #cbd5e1;
+    transform: translateY(4px) scale(0.98);
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+    opacity: 0;
+    top: 50%;
+    left: 50%;
 }
 
 .field-history-backdrop.active .field-history-dialog {
     transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
 /* Modal Header */
 .field-history-header {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: #ffffff;
-    padding: 14px 20px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -511,11 +512,11 @@
 .field-history-title-box {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .field-history-title {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
     display: flex;
     align-items: center;
