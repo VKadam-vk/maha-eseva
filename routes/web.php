@@ -27,8 +27,14 @@ Route::get('/health', function () {
     return response('OK', 200);
 });
 
-// Redirect root to dashboard if logged in, or to login
-Route::get('/', function () {
+// Redirect root to dashboard if logged in, or to login (supports 200 OK for platform healthcheck probes)
+Route::match(['GET', 'HEAD'], '/', function (\Illuminate\Http\Request $request) {
+    if ($request->isMethod('HEAD') || 
+        str_contains(strtolower($request->userAgent() ?? ''), 'render') || 
+        str_contains(strtolower($request->userAgent() ?? ''), 'health') ||
+        $request->header('X-Health-Check')) {
+        return response('OK', 200);
+    }
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 

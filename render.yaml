@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: maha-eseva-erp
+    name: maha-eseva
     runtime: docker
     plan: free
     region: singapore
@@ -14,7 +14,7 @@ services:
       - key: APP_DEBUG
         value: "true"
       - key: APP_URL
-        value: https://maha-eseva-erp.onrender.com
+        value: https://maha-eseva.onrender.com
       - key: DB_CONNECTION
         value: sqlite
       - key: SESSION_DRIVER

@@ -42,6 +42,6 @@ RUN mkdir -p database storage/app/private storage/framework/cache storage/framew
 COPY docker-start.sh /usr/local/bin/docker-start.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-start.sh && chmod +x /usr/local/bin/docker-start.sh
 
-EXPOSE 80 8080
+EXPOSE 80 8080 10000
 
 CMD ["/usr/local/bin/docker-start.sh"]

@@ -45,10 +45,15 @@ php artisan view:clear || true
 
 # Configure Apache
 grep -q "ServerName localhost" /etc/apache2/apache2.conf || echo "ServerName localhost" >> /etc/apache2/apache2.conf
-echo "Listen $PORT" > /etc/apache2/ports.conf
+
+# Bind explicitly to 0.0.0.0 on PORT and also on port 80 for Render / Railway port checks
+echo "Listen 0.0.0.0:$PORT" > /etc/apache2/ports.conf
+if [ "$PORT" != "80" ]; then
+    echo "Listen 0.0.0.0:80" >> /etc/apache2/ports.conf
+fi
 
 cat <<EOF > /etc/apache2/sites-available/000-default.conf
-<VirtualHost *:$PORT>
+<VirtualHost *:* >
     ServerName localhost
     DocumentRoot /var/www/html/public
 
