@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Application;
 use App\Models\ApplicationCustomValue;
+use App\Models\ApplicationFieldHistory;
 use App\Models\ApplicationStatusHistory;
 use App\Models\Service;
 use App\Models\User;
@@ -131,6 +132,21 @@ class ApplicationService
                 'created_at' => now(),
             ]);
 
+            // Create initial field history record
+            ApplicationFieldHistory::create([
+                'tenant_id' => $tenantId,
+                'application_id' => $application->id,
+                'user_id' => $creator->id,
+                'field_name' => 'created',
+                'field_label' => 'Service Created',
+                'old_value' => null,
+                'new_value' => $application->application_number,
+                'old_display' => 'New Service Registration',
+                'new_display' => $service->main_service_name . ($application->sub_service ? " - {$application->sub_service}" : ""),
+                'remarks' => "Initial Rate: ₹" . number_format($totalAmount, 2),
+                'created_at' => now(),
+            ]);
+
             // If initial payment was made during creation, record payment
             if ($initialReceived > 0) {
                 app(BillingService::class)->recordPayment([
@@ -189,6 +205,18 @@ class ApplicationService
                 'user_agent' => Request::userAgent(),
                 'created_at' => now(),
             ]);
+
+            ApplicationFieldHistory::recordIfChanged(
+                $application,
+                'work_status',
+                'Status',
+                $oldStatus,
+                $newStatus,
+                null,
+                null,
+                $updater->id,
+                $remarks
+            );
 
             AuditService::log('APPLICATION_STATUS_CHANGED', $application, ['status' => $oldStatus], ['status' => $newStatus, 'remarks' => $remarks]);
 

@@ -755,6 +755,11 @@
                                             title="View Required Documents">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
+                                    <button type="button" class="btn-cell-history"
+                                            onclick="openFieldHistory({{ $app->id }}, 'sub_service', event)"
+                                            title="Sub Service Change History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </button>
                                 </div>
                             </td>
 
@@ -767,11 +772,18 @@
 
                             <!-- 4. Rate (₹) -->
                             <td>
-                                <input type="number" step="0.01" class="excel-input font-mono font-bold"
-                                       id="rate_{{ $app->id }}" value="{{ $rate }}"
-                                       style="text-align: right;"
-                                       oninput="calculateRowRemaining({{ $app->id }})"
-                                       onchange="saveRowField({{ $app->id }}, 'rate', this.value)">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <input type="number" step="0.01" class="excel-input font-mono font-bold"
+                                           id="rate_{{ $app->id }}" value="{{ $rate }}"
+                                           style="text-align: right; flex: 1;"
+                                           oninput="calculateRowRemaining({{ $app->id }})"
+                                           onchange="saveRowField({{ $app->id }}, 'rate', this.value)">
+                                    <button type="button" class="btn-cell-history"
+                                            onclick="openFieldHistory({{ $app->id }}, 'rate', event)"
+                                            title="Rate Change History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </button>
+                                </div>
                             </td>
 
                             <!-- 5. Received (₹) -->
@@ -801,54 +813,75 @@
 
                             <!-- 8. Operator -->
                             <td>
-                                <select class="excel-select font-semibold" id="operator_{{ $app->id }}"
-                                        onchange="saveRowField({{ $app->id }}, 'assigned_employee_id', this.value)">
-                                    <option value="">-- Staff --</option>
-                                    @foreach($employees as $emp)
-                                        <option value="{{ $emp->id }}" {{ $app->assigned_employee_id == $emp->id ? 'selected' : '' }}>
-                                            {{ $emp->user?->name ?? 'Staff #' . $emp->id }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <select class="excel-select font-semibold" id="operator_{{ $app->id }}" style="flex: 1;"
+                                            onchange="saveRowField({{ $app->id }}, 'assigned_employee_id', this.value)">
+                                        <option value="">-- Staff --</option>
+                                        @foreach($employees as $emp)
+                                            <option value="{{ $emp->id }}" {{ $app->assigned_employee_id == $emp->id ? 'selected' : '' }}>
+                                                {{ $emp->user?->name ?? 'Staff #' . $emp->id }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn-cell-history"
+                                            onclick="openFieldHistory({{ $app->id }}, 'assigned_employee_id', event)"
+                                            title="Operator Change History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </button>
+                                </div>
                             </td>
 
                             <!-- 9. Follow-Up Date -->
                             <td>
-                                <input type="date" class="excel-input" id="followup_{{ $app->id }}"
-                                       value="{{ $appDate }}"
-                                       style="font-size: 11.5px; font-weight: 600; color: #475569;"
-                                       onchange="saveRowField({{ $app->id }}, 'follow_up_date', this.value)">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <input type="date" class="excel-input" id="followup_{{ $app->id }}"
+                                           value="{{ $appDate }}"
+                                           style="font-size: 11.5px; font-weight: 600; color: #475569; flex: 1;"
+                                           onchange="saveRowField({{ $app->id }}, 'follow_up_date', this.value)">
+                                    <button type="button" class="btn-cell-history"
+                                            onclick="openFieldHistory({{ $app->id }}, 'follow_up_date', event)"
+                                            title="Follow-Up Date Change History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </button>
+                                </div>
                             </td>
 
                             <!-- 10. Status (Sticky Right) -->
                             <td class="sticky-status-td" style="padding: 4px 6px;">
-                                <select class="excel-select font-bold status-select"
-                                        id="status_{{ $app->id }}"
-                                        data-prev="{{ $app->work_status ?? 'PENDING' }}"
-                                        onchange="onStatusSelectChange(this, {{ $app->id }})">
-                                    @php
-                                        $curSt = strtoupper(trim($app->work_status ?? 'PENDING'));
-                                        $knownStatuses = [
-                                            'PENDING' => 'PENDING',
-                                            'IN_PROGRESS' => 'IN_PROGRESS',
-                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS',
-                                            'SUBMITTED' => 'SUBMITTED',
-                                            'READY' => 'READY',
-                                            'DELIVERED' => 'DELIVERED',
-                                            'COMPLETED' => 'COMPLETED',
-                                            'REJECTED' => 'REJECTED',
-                                        ];
-                                    @endphp
-                                    @if(!array_key_exists($curSt, $knownStatuses) && !empty($curSt))
-                                        <option value="{{ $curSt }}" selected>{{ $curSt }}</option>
-                                    @endif
-                                    @foreach($knownStatuses as $stKey => $stLabel)
-                                        <option value="{{ $stKey }}" {{ $curSt === $stKey ? 'selected' : '' }}>
-                                            {{ $stLabel }}
-                                        </option>
-                                    @endforeach
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
-                                </select>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <select class="excel-select font-bold status-select" style="flex: 1;"
+                                            id="status_{{ $app->id }}"
+                                            data-prev="{{ $app->work_status ?? 'PENDING' }}"
+                                            onchange="onStatusSelectChange(this, {{ $app->id }})">
+                                        @php
+                                            $curSt = strtoupper(trim($app->work_status ?? 'PENDING'));
+                                            $knownStatuses = [
+                                                'PENDING' => 'PENDING',
+                                                'IN_PROGRESS' => 'IN_PROGRESS',
+                                                'WAITING_FOR_DOCS' => 'WAITING FOR DOCS',
+                                                'SUBMITTED' => 'SUBMITTED',
+                                                'READY' => 'READY',
+                                                'DELIVERED' => 'DELIVERED',
+                                                'COMPLETED' => 'COMPLETED',
+                                                'REJECTED' => 'REJECTED',
+                                            ];
+                                        @endphp
+                                        @if(!array_key_exists($curSt, $knownStatuses) && !empty($curSt))
+                                            <option value="{{ $curSt }}" selected>{{ $curSt }}</option>
+                                        @endif
+                                        @foreach($knownStatuses as $stKey => $stLabel)
+                                            <option value="{{ $stKey }}" {{ $curSt === $stKey ? 'selected' : '' }}>
+                                                {{ $stLabel }}
+                                            </option>
+                                        @endforeach
+                                        <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                    </select>
+                                    <button type="button" class="btn-cell-history"
+                                            onclick="openFieldHistory({{ $app->id }}, 'work_status', event)"
+                                            title="Status Change History">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                    </button>
+                                </div>
                             </td>
 
                             <!-- 11. Actions (Sticky Right) -->

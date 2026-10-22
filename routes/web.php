@@ -97,6 +97,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/{application}', [ApplicationController::class, 'show'])->name('show')->middleware('permission:applications.view');
         Route::post('/{application}/status', [ApplicationController::class, 'updateStatus'])->name('status.update')->middleware('permission:applications.edit');
         Route::put('/{application}/details', [ApplicationController::class, 'updateDetails'])->name('details.update')->middleware('permission:applications.edit');
+        Route::get('/{application}/field-history', [ApplicationController::class, 'fieldHistory'])->name('field_history')->middleware('permission:applications.view');
     });
 
     // Private Document Vault

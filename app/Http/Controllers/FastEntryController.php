@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\ApplicationFieldHistory;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\FollowUp;
@@ -236,6 +237,18 @@ class FastEntryController extends Controller
             $workStatus = Application::STATUS_READY;
         }
 
+        $oldStatus = $application->work_status;
+        $oldAssigned = $application->assigned_employee_id;
+        $oldRate = (float) $application->total_amount;
+        $oldSubService = $application->sub_service;
+        $oldFollowup = $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : null;
+
+        $newRate = $rate;
+        $newStatus = $workStatus;
+        $newAssigned = $validated['assigned_employee_id'] ?? null;
+        $newSubService = array_key_exists('sub_service', $validated) ? $validated['sub_service'] : $application->sub_service;
+        $newFollowup = array_key_exists('follow_up_date', $validated) && !empty($validated['follow_up_date']) ? date('Y-m-d', strtotime($validated['follow_up_date'])) : null;
+
         $application->update([
             'total_amount' => $rate,
             'base_amount' => $rate,
@@ -243,11 +256,18 @@ class FastEntryController extends Controller
             'remaining_amount' => $remaining,
             'payment_status' => $remaining <= 0 ? Application::PAYMENT_PAID : ($received > 0 ? Application::PAYMENT_PARTIAL : Application::PAYMENT_PENDING),
             'work_status' => $workStatus,
-            'assigned_employee_id' => $validated['assigned_employee_id'] ?? null,
-            'sub_service' => $validated['sub_service'] ?? $application->sub_service,
+            'assigned_employee_id' => $newAssigned,
+            'sub_service' => $newSubService,
             'work_details' => array_key_exists('work_details', $validated) ? $validated['work_details'] : $application->work_details,
             'follow_up_date' => array_key_exists('follow_up_date', $validated) ? $validated['follow_up_date'] : $application->follow_up_date,
         ]);
+
+        // Record field-specific history for changed attributes
+        ApplicationFieldHistory::recordIfChanged($application, 'work_status', 'Status', $oldStatus, $newStatus, null, null, $user->id);
+        ApplicationFieldHistory::recordIfChanged($application, 'assigned_employee_id', 'Operator', $oldAssigned, $newAssigned, null, null, $user->id);
+        ApplicationFieldHistory::recordIfChanged($application, 'rate', 'Rate (₹)', $oldRate, $newRate, null, null, $user->id);
+        ApplicationFieldHistory::recordIfChanged($application, 'sub_service', 'Sub Service', $oldSubService, $newSubService, null, null, $user->id);
+        ApplicationFieldHistory::recordIfChanged($application, 'follow_up_date', 'Follow-Up Date', $oldFollowup, $newFollowup, null, null, $user->id);
 
         $this->syncApplicationFollowUp(
             $application,
@@ -467,6 +487,21 @@ class FastEntryController extends Controller
                 $validated['work_details'] ?? null,
                 $user->id
             );
+
+            // Record initial service creation in field histories
+            ApplicationFieldHistory::create([
+                'tenant_id' => $application->tenant_id,
+                'application_id' => $application->id,
+                'user_id' => $user->id,
+                'field_name' => 'created',
+                'field_label' => 'Service Created',
+                'old_value' => null,
+                'new_value' => $application->application_number,
+                'old_display' => 'New Service Registration',
+                'new_display' => $service->main_service_name . ($application->sub_service ? " - {$application->sub_service}" : ""),
+                'remarks' => "Initial Rate: ₹" . number_format($rate, 2) . ", Operator: " . ($application->assignedEmployee?->user?->name ?? 'Unassigned'),
+                'created_at' => now(),
+            ]);
 
             return response()->json([
                 'success' => true,

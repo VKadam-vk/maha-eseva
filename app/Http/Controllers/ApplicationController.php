@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Models\ApplicationFieldHistory;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Employee;
@@ -10,9 +11,11 @@ use App\Models\Payment;
 use App\Models\Service;
 use App\Services\ApplicationService;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ApplicationController extends Controller
@@ -254,8 +257,80 @@ class ApplicationController extends Controller
             'pending_remarks' => ['nullable', 'string'],
         ]);
 
+        $oldAssigned = $application->assigned_employee_id;
         $application->update($validated);
 
+        if (array_key_exists('assigned_employee_id', $validated)) {
+            ApplicationFieldHistory::recordIfChanged($application, 'assigned_employee_id', 'Operator', $oldAssigned, $validated['assigned_employee_id'], null, null, Auth::id());
+        }
+
         return back()->with('success', 'Application details updated.');
+    }
+
+    /**
+     * Retrieve audit change history for application fields.
+     */
+    public function fieldHistory(Request $request, Application $application): JsonResponse
+    {
+        $field = $request->query('field');
+
+        $query = ApplicationFieldHistory::where('application_id', $application->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
+
+        $aliases = [
+            'status' => 'work_status',
+            'operator' => 'assigned_employee_id',
+            'followup' => 'follow_up_date',
+            'followup_date' => 'follow_up_date',
+            'service' => 'sub_service',
+            'subservice' => 'sub_service',
+        ];
+        $targetField = ($field && isset($aliases[$field])) ? $aliases[$field] : $field;
+
+        if ($targetField && $targetField !== 'all') {
+            $query->where('field_name', $targetField);
+        }
+
+        $histories = $query->limit(60)->get();
+
+        $counts = ApplicationFieldHistory::where('application_id', $application->id)
+            ->select('field_name', DB::raw('count(*) as aggregate'))
+            ->groupBy('field_name')
+            ->pluck('aggregate', 'field_name');
+
+        return response()->json([
+            'success' => true,
+            'application' => [
+                'id' => $application->id,
+                'application_number' => $application->application_number,
+                'customer_name' => $application->customer?->name ?? 'Customer',
+                'service_name' => $application->service?->main_service_name ?? 'Service',
+                'sub_service' => $application->sub_service ?? '',
+                'current_status' => $application->work_status,
+                'current_operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
+                'current_rate' => number_format($application->total_amount, 2),
+                'current_followup' => $application->follow_up_date ? date('d M Y', strtotime($application->follow_up_date)) : 'Not Set',
+                'created_at' => $application->created_at ? $application->created_at->format('d M Y, h:i A') : '',
+            ],
+            'selected_field' => $targetField ?: 'all',
+            'counts' => $counts,
+            'histories' => $histories->map(function ($h) {
+                return [
+                    'id' => $h->id,
+                    'field_name' => $h->field_name,
+                    'field_label' => $h->field_label,
+                    'old_value' => $h->old_value,
+                    'new_value' => $h->new_value,
+                    'old_display' => $h->old_display ?? '-',
+                    'new_display' => $h->new_display ?? '-',
+                    'remarks' => $h->remarks,
+                    'user_name' => $h->user?->name ?? 'System',
+                    'created_at' => $h->created_at ? $h->created_at->format('d M Y, h:i A') : '',
+                    'time_ago' => $h->created_at ? $h->created_at->diffForHumans() : '',
+                ];
+            }),
+        ]);
     }
 }

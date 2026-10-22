@@ -185,6 +185,7 @@
     </div>
 
     <script src="{{ asset('js/excel-table-filter.js') }}"></script>
+    <script src="{{ asset('js/field-history-modal.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

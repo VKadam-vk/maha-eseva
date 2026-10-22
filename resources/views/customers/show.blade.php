@@ -1143,6 +1143,9 @@ function getCommittedRowInnerHtml(app) {
                 <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
                     <i class="fa-solid fa-eye"></i>
                 </button>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
             </div>
         </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
@@ -1154,12 +1157,17 @@ function getCommittedRowInnerHtml(app) {
             ${escapeHtml(app.application_date || 'Today')}
         </td>
         <td style="padding: 4px 6px;">
-            <input type="number" step="0.01" id="crow_rate_${app.id}" class="excel-cell-input font-mono font-bold"
-                   value="${rateNum}"
-                   title="Click to edit rate"
-                   oninput="calcCommittedRemaining(${app.id})"
-                   onchange="autoSaveCommittedRow(${app.id})"
-                   onkeydown="handleCommittedKey(event, ${app.id})">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="number" step="0.01" id="crow_rate_${app.id}" class="excel-cell-input font-mono font-bold" style="flex: 1;"
+                       value="${rateNum}"
+                       title="Click to edit rate"
+                       oninput="calcCommittedRemaining(${app.id})"
+                       onchange="autoSaveCommittedRow(${app.id})"
+                       onkeydown="handleCommittedKey(event, ${app.id})">
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'rate', event)" title="Rate Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
         </td>
         <td style="padding: 4px 6px;">
             <input type="number" step="0.01" id="crow_received_${app.id}" class="excel-cell-input font-mono font-bold"
@@ -1185,25 +1193,40 @@ function getCommittedRowInnerHtml(app) {
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
         <td style="padding: 4px 6px;">
-            <select id="crow_operator_${app.id}" class="excel-operator-select"
-                    title="Click to assign operator"
-                    onchange="autoSaveCommittedRow(${app.id})">
-                ${getEmployeeOptionsHtml(app.assigned_employee_id)}
-            </select>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <select id="crow_operator_${app.id}" class="excel-operator-select" style="flex: 1;"
+                        title="Click to assign operator"
+                        onchange="autoSaveCommittedRow(${app.id})">
+                    ${getEmployeeOptionsHtml(app.assigned_employee_id)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'assigned_employee_id', event)" title="Operator Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
         </td>
         <td style="padding: 4px 6px;">
-            <input type="date" id="crow_followup_${app.id}" class="excel-date-input"
-                   value="${escapeHtml(app.follow_up_date || '')}"
-                   title="Expected Follow-up Date"
-                   onchange="autoSaveCommittedRow(${app.id})"
-                   onblur="autoSaveCommittedRow(${app.id})">
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="date" id="crow_followup_${app.id}" class="excel-date-input" style="flex: 1;"
+                       value="${escapeHtml(app.follow_up_date || '')}"
+                       title="Expected Follow-up Date"
+                       onchange="autoSaveCommittedRow(${app.id})"
+                       onblur="autoSaveCommittedRow(${app.id})">
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'follow_up_date', event)" title="Follow-Up Date Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
         </td>
         <td class="sticky-status-td" style="padding: 4px 6px;">
-            <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select"
-                    data-prev="${escapeHtml(currentStatus)}"
-                    onchange="onCommittedStatusSelectChange(this, ${app.id})">
-                ${renderStatusOptionsHtml(currentStatus, serviceName)}
-            </select>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        data-prev="${escapeHtml(currentStatus)}"
+                        onchange="onCommittedStatusSelectChange(this, ${app.id})">
+                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
         </td>
         <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">

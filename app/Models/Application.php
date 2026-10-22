@@ -154,6 +154,11 @@ class Application extends Model
         return $this->hasMany(EmployeeTask::class);
     }
 
+    public function fieldHistories(): HasMany
+    {
+        return $this->hasMany(ApplicationFieldHistory::class)->orderBy('created_at', 'desc');
+    }
+
     public function recalculateFinancials(): void
     {
         $coreAmount = ($this->base_amount > 0) ? $this->base_amount : ($this->govt_fee + $this->service_charge);
