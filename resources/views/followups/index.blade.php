@@ -883,71 +883,39 @@
 
 <!-- REQUIRED DOCUMENTS POPUP MODAL -->
 <div id="docs-modal-overlay" class="modal-overlay" style="display: none;" onclick="closeDocsModal(event)">
-    <div class="docs-modal-card" onclick="event.stopPropagation()">
+    <div class="docs-modal-card" style="max-width: 500px;" onclick="event.stopPropagation()">
         <!-- Header -->
-        <div class="docs-modal-header">
+        <div class="docs-modal-header" style="background: #0f172a; color: #ffffff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 15px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
                     <i class="fa-solid fa-file-shield"></i>
                 </div>
                 <div>
-                    <h3 id="modal-service-title" style="margin: 0; font-size: 14.5px; font-weight: 700; color: #ffffff;">Required Documents</h3>
-                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Required Documents & Eligibility Details</p>
+                    <h3 id="modal-service-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Required Documents</h3>
+                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">Required Documents Checklist</p>
                 </div>
             </div>
-            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close">
+            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close" style="background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; line-height: 1;">
                 &times;
             </button>
         </div>
 
         <!-- Body -->
-        <div class="docs-modal-body">
-            <!-- Service Switcher Selector -->
-            <div style="margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
-                <label for="modal-service-switcher" style="font-size: 11.5px; font-weight: 700; color: #334155; white-space: nowrap; margin: 0;">
-                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Switch / Select Service:
-                </label>
-                <select id="modal-service-switcher" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600; flex: 1; border-color: #cbd5e1; background: #ffffff;" onchange="onModalServiceSwitch(this.value)">
-                </select>
-            </div>
-
-            <!-- Badges Bar (Expected Days & Fee) -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 8px;">
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0369a1;">
-                    <i class="fa-regular fa-clock"></i>
-                    <span id="modal-service-days">⏱️ Expected: 7 Days</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #166534;">
-                    <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span id="modal-service-rate">₹ 0</span>
-                </div>
-            </div>
-
-            <!-- Required Documents List -->
-            <div style="margin-bottom: 14px;">
-                <h4 style="margin: 0 0 8px 0; font-size: 12.5px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-clipboard-check" style="color: #16a34a;"></i>
-                    Required Documents Checklist:
-                </h4>
-                <div id="modal-docs-container" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; min-height: 80px;">
-                    <!-- Injected via JavaScript -->
-                </div>
+        <div class="docs-modal-body" style="padding: 16px 18px; max-height: 60vh; overflow-y: auto;">
+            <!-- Documents Checklist Container -->
+            <div id="modal-docs-container" class="docs-checklist-container">
+                <!-- Populated dynamically via JS -->
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="docs-modal-footer">
-            <div style="display: flex; gap: 8px;">
-                <a id="modal-btn-apply" href="#" target="_blank" class="btn btn-sm"
-                   style="background: #0284c7; color: #ffffff; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Portal Apply
-                </a>
-                <a id="modal-btn-tutorial" href="#" target="_blank" class="btn btn-sm"
-                   style="background: #dc2626; color: #ffffff; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                    <i class="fa-brands fa-youtube"></i> Tutorial
-                </a>
-            </div>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="closeDocsModal()" style="font-weight: 700; font-size: 11.5px;">
+        <div class="docs-modal-footer" style="padding: 12px 18px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="modal-btn-copy-docs" onclick="copyModalDocsToClipboard(this)" class="btn btn-sm"
+                    style="background: #16a34a; color: #ffffff; font-size: 12.5px; font-weight: 700; border: none; border-radius: 6px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;"
+                    title="Copy formatted checklist to paste on WhatsApp">
+                <i class="fa-brands fa-whatsapp" style="font-size: 15px;"></i> Copy for WhatsApp
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="closeDocsModal()" style="font-weight: 700; font-size: 12.5px; padding: 7px 16px; border-radius: 6px;">
                 Close
             </button>
         </div>
@@ -1134,28 +1102,15 @@
     /* ========================================================================= */
     /* REQUIRED DOCUMENTS POPUP MODAL LOGIC                                      */
     /* ========================================================================= */
+    let currentSelectedModalService = null;
+    let currentModalDocs = [];
+
     function openDocsModalForService(serviceId, serviceName, subServiceName, expectedDays, rate) {
         const modal = document.getElementById('docs-modal-overlay');
-        const switcher = document.getElementById('modal-service-switcher');
-
         if (!modal) return;
 
-        // Populate service switcher dropdown
-        if (switcher && switcher.options.length <= 1 && window.MASTER_SERVICES) {
-            switcher.innerHTML = '';
-            window.MASTER_SERVICES.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.main_service_name + (s.sub_service_name ? ' - ' + s.sub_service_name : '');
-                switcher.appendChild(opt);
-            });
-        }
-        if (switcher && serviceId) {
-            switcher.value = serviceId;
-        }
-
         const service = (window.MASTER_SERVICES && serviceId) ? window.MASTER_SERVICES.find(s => s.id == serviceId) : null;
-        renderModalServiceDetails(service, subServiceName, expectedDays, rate);
+        renderModalServiceDetails(service, serviceName, subServiceName);
 
         modal.classList.add('open');
         modal.style.setProperty('display', 'flex', 'important');
@@ -1164,91 +1119,108 @@
         modal.style.setProperty('z-index', '999999999', 'important');
     }
 
-    function renderModalServiceDetails(service, subServiceName, fallbackDays, fallbackRate) {
+    function renderModalServiceDetails(service, fallbackServiceName, subServiceName) {
+        currentSelectedModalService = service;
         const titleEl = document.getElementById('modal-service-title');
         const subTitleEl = document.getElementById('modal-sub-service-title');
-        const daysEl = document.getElementById('modal-service-days');
-        const rateEl = document.getElementById('modal-service-rate');
         const docsContainer = document.getElementById('modal-docs-container');
-        const btnApply = document.getElementById('modal-btn-apply');
-        const btnTutorial = document.getElementById('modal-btn-tutorial');
 
-        const sName = service ? service.main_service_name : 'Service Details';
+        const sName = service ? service.main_service_name : (fallbackServiceName || 'Service');
         const subName = subServiceName || (service ? service.sub_service_name : '');
-        const days = service ? (service.expected_processing_days || 7) : (fallbackDays || 7);
-        const rate = service ? (service.price || 0) : (fallbackRate || 0);
 
-        if (titleEl) titleEl.textContent = sName;
-        if (subTitleEl) subTitleEl.textContent = subName ? `${sName} - ${subName}` : 'Required Documents & Details';
-        if (daysEl) daysEl.innerHTML = `<i class="fa-regular fa-clock"></i> ⏱️ Expected: ${days} Days`;
-        if (rateEl) rateEl.innerHTML = `<i class="fa-solid fa-indian-rupee-sign"></i> ₹ ${parseFloat(rate).toFixed(2)}`;
-
-        // Links
-        const portalUrl = (service && (service.work_portal_link || service.service_portal_link || service.portal_link)) ? (service.work_portal_link || service.service_portal_link || service.portal_link) : '';
-        const tutorialUrl = (service && (service.video_instruction_link || service.youtube_tutorial_link)) ? (service.video_instruction_link || service.youtube_tutorial_link) : '';
-
-        if (btnApply) {
-            if (portalUrl && portalUrl.trim()) {
-                btnApply.href = portalUrl.trim();
-                btnApply.style.display = 'inline-flex';
-            } else {
-                btnApply.style.display = 'none';
-            }
-        }
-        if (btnTutorial) {
-            if (tutorialUrl && tutorialUrl.trim()) {
-                btnTutorial.href = tutorialUrl.trim();
-                btnTutorial.style.display = 'inline-flex';
-            } else {
-                btnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(sName + ' ' + subName + ' form apply online maharashtra tutorial')}`;
-                btnTutorial.style.display = 'inline-flex';
-            }
-        }
+        if (titleEl) titleEl.textContent = subName ? `${sName} - ${subName}` : sName;
+        if (subTitleEl) subTitleEl.textContent = 'Required Documents Checklist';
 
         // Render Docs
-        if (docsContainer) {
-            let docsHtml = '';
-            let docs = [];
-            const rawDocs = service ? (service.required_documents_json || service.required_documents) : null;
+        let docs = [];
+        const rawDocs = service ? (service.required_documents_json || service.required_documents) : null;
 
-            if (rawDocs) {
-                if (Array.isArray(rawDocs)) {
-                    docs = rawDocs;
-                } else if (typeof rawDocs === 'string') {
-                    try {
-                        const parsed = JSON.parse(rawDocs);
-                        if (Array.isArray(parsed)) docs = parsed;
-                    } catch (e) {
-                        docs = rawDocs.split(/[\n,]+/).map(d => d.trim()).filter(Boolean);
-                    }
+        if (rawDocs) {
+            if (Array.isArray(rawDocs)) {
+                docs = rawDocs;
+            } else if (typeof rawDocs === 'string') {
+                try {
+                    const parsed = JSON.parse(rawDocs);
+                    if (Array.isArray(parsed)) docs = parsed;
+                } catch (e) {
+                    docs = rawDocs.split(/[\n,]+/).map(d => d.trim()).filter(Boolean);
                 }
             }
+        }
+        currentModalDocs = docs;
 
+        if (docsContainer) {
             if (docs.length > 0) {
-                docsHtml = '<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">';
-                docs.forEach(doc => {
+                docsContainer.innerHTML = docs.map(doc => {
                     const docText = typeof doc === 'object' ? (doc.name || JSON.stringify(doc)) : doc;
-                    docsHtml += `<li style="font-size: 12.5px; font-weight: 600; color: #1e293b;">
-                        <i class="fa-solid fa-check" style="color: #16a34a; margin-right: 6px;"></i> ${docText}
-                    </li>`;
-                });
-                docsHtml += '</ul>';
+                    return `
+                        <div class="doc-check-item" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;">
+                            <i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 16px; margin-top: 2px;"></i>
+                            <span style="font-size: 13.5px; font-weight: 600; color: #1e293b; line-height: 1.4;">${docText}</span>
+                        </div>
+                    `;
+                }).join('');
             } else {
-                docsHtml = `<div style="text-align: center; padding: 14px; color: #64748b; font-size: 12px;">
-                    <i class="fa-regular fa-file-lines" style="font-size: 20px; color: #cbd5e1; display: block; margin-bottom: 6px;"></i>
-                    No specific documents required for this service.
-                </div>`;
+                docsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 24px 10px; color: #64748b;">
+                        <i class="fa-solid fa-file-circle-check" style="font-size: 32px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+                        <p style="margin: 0; font-size: 13.5px; font-weight: 600;">No specific documents required for this service.</p>
+                    </div>
+                `;
             }
-
-            docsContainer.innerHTML = docsHtml;
         }
     }
 
-    function onModalServiceSwitch(serviceId) {
-        if (!window.MASTER_SERVICES) return;
-        const service = window.MASTER_SERVICES.find(s => s.id == serviceId);
-        if (service) {
-            renderModalServiceDetails(service, service.sub_service_name || '', service.expected_processing_days, service.price);
+    function copyModalDocsToClipboard(btn) {
+        if (!currentModalDocs || currentModalDocs.length === 0) {
+            alert('No documents available to copy.');
+            return;
+        }
+
+        const titleEl = document.getElementById('modal-service-title');
+        const title = titleEl ? titleEl.textContent.trim() : 'Service';
+
+        let text = `📄 Required Documents Checklist\n`;
+        text += `Service: ${title}\n\n`;
+        currentModalDocs.forEach(doc => {
+            const docName = typeof doc === 'object' ? (doc.name || JSON.stringify(doc)) : doc;
+            text += `• ${docName}\n`;
+        });
+        text += `\nMaha E-Seva Kendra`;
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopy(text));
+        } else {
+            fallbackCopy(text);
+        }
+
+        function fallbackCopy(str) {
+            const ta = document.createElement('textarea');
+            ta.value = str;
+            ta.style.position = 'fixed';
+            ta.style.left = '-999999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                onSuccess();
+            } catch (err) {
+                alert('Failed to copy. Please copy manually.');
+            }
+            ta.remove();
+        }
+
+        function onSuccess() {
+            if (btn) {
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Copied to Clipboard!`;
+                btn.style.backgroundColor = '#059669';
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.style.backgroundColor = '#16a34a';
+                }, 2500);
+            }
         }
     }
 
