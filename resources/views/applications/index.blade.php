@@ -329,16 +329,39 @@
     }
 
     /* Required Documents Popup Modal */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(4px);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
+    #docs-modal-overlay,
+    .modal-overlay#docs-modal-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(15, 23, 42, 0.75) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        z-index: 999999999 !important;
+        display: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: opacity 0.2s ease, visibility 0.2s ease !important;
+    }
+
+    #docs-modal-overlay.open,
+    .modal-overlay#docs-modal-overlay.open {
+        display: flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    .btn-doc-eye i {
+        pointer-events: none;
     }
 
     .docs-modal-card {
@@ -1048,24 +1071,17 @@
     /* ========================================================================= */
     function openDocsModalForService(serviceId, serviceName, subServiceName, expectedDays, rate) {
         const modal = document.getElementById('docs-modal-overlay');
-        const titleEl = document.getElementById('modal-service-title');
-        const subTitleEl = document.getElementById('modal-sub-service-title');
-        const daysEl = document.getElementById('modal-service-days');
-        const rateEl = document.getElementById('modal-service-rate');
-        const docsContainer = document.getElementById('modal-docs-container');
         const switcher = document.getElementById('modal-service-switcher');
-        const btnApply = document.getElementById('modal-btn-apply');
-        const btnTutorial = document.getElementById('modal-btn-tutorial');
 
         if (!modal) return;
 
         // Populate service switcher dropdown
-        if (switcher && switcher.options.length <= 1) {
+        if (switcher && switcher.options.length <= 1 && window.MASTER_SERVICES) {
             switcher.innerHTML = '';
             window.MASTER_SERVICES.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
-                opt.textContent = s.main_service_name;
+                opt.textContent = s.main_service_name + (s.sub_service_name ? ' - ' + s.sub_service_name : '');
                 switcher.appendChild(opt);
             });
         }
@@ -1073,9 +1089,14 @@
             switcher.value = serviceId;
         }
 
-        const service = window.MASTER_SERVICES.find(s => s.id == serviceId);
+        const service = (window.MASTER_SERVICES && serviceId) ? window.MASTER_SERVICES.find(s => s.id == serviceId) : null;
         renderModalServiceDetails(service, subServiceName, expectedDays, rate);
-        modal.style.display = 'flex';
+
+        modal.classList.add('open');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('z-index', '999999999', 'important');
     }
 
     function renderModalServiceDetails(service, subServiceName, fallbackDays, fallbackRate) {
@@ -1088,29 +1109,34 @@
         const btnTutorial = document.getElementById('modal-btn-tutorial');
 
         const sName = service ? service.main_service_name : 'Service Details';
+        const subName = subServiceName || (service ? service.sub_service_name : '');
         const days = service ? (service.expected_processing_days || 7) : (fallbackDays || 7);
         const rate = service ? (service.price || 0) : (fallbackRate || 0);
 
         if (titleEl) titleEl.textContent = sName;
-        if (subTitleEl) subTitleEl.textContent = subServiceName ? `${sName} - ${subServiceName}` : 'Required Documents & Details';
+        if (subTitleEl) subTitleEl.textContent = subName ? `${sName} - ${subName}` : 'Required Documents & Details';
         if (daysEl) daysEl.innerHTML = `<i class="fa-regular fa-clock"></i> ⏱️ Expected: ${days} Days`;
         if (rateEl) rateEl.innerHTML = `<i class="fa-solid fa-indian-rupee-sign"></i> ₹ ${parseFloat(rate).toFixed(2)}`;
 
         // Links
+        const portalUrl = (service && (service.work_portal_link || service.service_portal_link || service.portal_link)) ? (service.work_portal_link || service.service_portal_link || service.portal_link) : '';
+        const tutorialUrl = (service && (service.video_instruction_link || service.youtube_tutorial_link)) ? (service.video_instruction_link || service.youtube_tutorial_link) : '';
+
         if (btnApply) {
-            if (service && service.portal_link) {
-                btnApply.href = service.portal_link;
+            if (portalUrl && portalUrl.trim()) {
+                btnApply.href = portalUrl.trim();
                 btnApply.style.display = 'inline-flex';
             } else {
                 btnApply.style.display = 'none';
             }
         }
         if (btnTutorial) {
-            if (service && service.youtube_tutorial_link) {
-                btnTutorial.href = service.youtube_tutorial_link;
+            if (tutorialUrl && tutorialUrl.trim()) {
+                btnTutorial.href = tutorialUrl.trim();
                 btnTutorial.style.display = 'inline-flex';
             } else {
-                btnTutorial.style.display = 'none';
+                btnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(sName + ' ' + subName + ' form apply online maharashtra tutorial')}`;
+                btnTutorial.style.display = 'inline-flex';
             }
         }
 
@@ -1118,16 +1144,17 @@
         if (docsContainer) {
             let docsHtml = '';
             let docs = [];
+            const rawDocs = service ? (service.required_documents_json || service.required_documents) : null;
 
-            if (service && service.required_documents) {
-                if (Array.isArray(service.required_documents)) {
-                    docs = service.required_documents;
-                } else if (typeof service.required_documents === 'string') {
+            if (rawDocs) {
+                if (Array.isArray(rawDocs)) {
+                    docs = rawDocs;
+                } else if (typeof rawDocs === 'string') {
                     try {
-                        const parsed = JSON.parse(service.required_documents);
+                        const parsed = JSON.parse(rawDocs);
                         if (Array.isArray(parsed)) docs = parsed;
                     } catch (e) {
-                        docs = service.required_documents.split(/[\n,]+/).map(d => d.trim()).filter(Boolean);
+                        docs = rawDocs.split(/[\n,]+/).map(d => d.trim()).filter(Boolean);
                     }
                 }
             }
@@ -1153,16 +1180,22 @@
     }
 
     function onModalServiceSwitch(serviceId) {
+        if (!window.MASTER_SERVICES) return;
         const service = window.MASTER_SERVICES.find(s => s.id == serviceId);
         if (service) {
-            renderModalServiceDetails(service, '', service.expected_processing_days, service.price);
+            renderModalServiceDetails(service, service.sub_service_name || '', service.expected_processing_days, service.price);
         }
     }
 
     function closeDocsModal(e) {
         if (!e || e.target === document.getElementById('docs-modal-overlay') || e.target.closest('.modal-close-btn') || e.target.classList.contains('btn-secondary')) {
             const modal = document.getElementById('docs-modal-overlay');
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.classList.remove('open');
+                modal.style.setProperty('display', 'none', 'important');
+                modal.style.setProperty('opacity', '0', 'important');
+                modal.style.setProperty('visibility', 'hidden', 'important');
+            }
         }
     }
 </script>
