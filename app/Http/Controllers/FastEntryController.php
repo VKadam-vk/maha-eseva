@@ -76,7 +76,21 @@ class FastEntryController extends Controller
             $customer = $existing;
             $isNew = false;
         } else {
-            // 2. Direct Auto-Save to Customers CRM
+            // If creation is not explicitly confirmed, return exists: false to prompt the user
+            $confirmCreate = $request->boolean('confirm_create');
+
+            if (!$confirmCreate) {
+                return response()->json([
+                    'success' => true,
+                    'exists' => false,
+                    'is_new' => false,
+                    'mobile' => $cleanedMobile,
+                    'customer_name' => trim($validated['customer_name'] ?? ''),
+                    'message' => "Customer with mobile {$cleanedMobile} is not registered.",
+                ]);
+            }
+
+            // 2. User confirmed creation: Save to Customers CRM
             $custName = trim($validated['customer_name'] ?? '');
             if (empty($custName)) {
                 $custName = 'Citizen ' . substr($cleanedMobile, -4);
@@ -124,9 +138,10 @@ class FastEntryController extends Controller
 
         return response()->json([
             'success' => true,
+            'exists' => true,
             'is_new' => $isNew,
             'message' => $isNew
-                ? "New Customer Auto-Saved to CRM: {$customer->customer_code} ({$customer->name})"
+                ? "New Customer Registered: {$customer->customer_code} ({$customer->name})"
                 : "Existing Customer Loaded: {$customer->customer_code} ({$customer->name})",
             'customer' => [
                 'id' => $customer->id,

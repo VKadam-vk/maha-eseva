@@ -969,7 +969,7 @@
 
                     <div class="pocket-hint-note">
                         <i class="fa-solid fa-circle-check" style="color: #0284c7;"></i> 
-                        Enter Name & Mobile, then click <strong>Go</strong>. Auto-saves directly to CRM!
+                        Enter Mobile & Name, then click <strong>Go</strong>. Loads existing or prompts to create new!
                     </div>
                 </form>
             </div>
@@ -1374,6 +1374,72 @@
     </div>
 </div>
 
+<!-- Modal: New Customer Confirmation Popup -->
+<div id="new-customer-confirm-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 99999999; display: none; align-items: center; justify-content: center; padding: 16px;">
+    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 490px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Customer Not Found</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; font-weight: 500;">Register New Customer Confirmation</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeNewCustomerModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px;">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 22px 24px;">
+            <!-- Notice Box with Mobile Number -->
+            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 14px;">
+                <div style="width: 42px; height: 42px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+                <div>
+                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Mobile Number</div>
+                    <div style="font-size: 17px; font-weight: 800; color: #0f172a; font-family: monospace;" id="confirm-modal-mobile-text">
+                        9876543210
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size: 13.5px; color: #334155; margin: 0 0 16px 0; line-height: 1.5;">
+                This mobile number is <strong>not registered</strong> in the customer database. Would you like to create a new customer profile?
+            </p>
+
+            <!-- Customer Name Input -->
+            <div style="margin-bottom: 20px;">
+                <label for="confirm-modal-name-input" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                    Customer Full Name
+                </label>
+                <input type="text" id="confirm-modal-name-input" class="form-control"
+                       placeholder="e.g. VINOD KADAM"
+                       style="height: 44px; font-size: 14px; font-weight: 700; text-transform: uppercase; border: 2px solid #cbd5e1; border-radius: 8px;"
+                       onkeydown="if(event.key === 'Enter'){ event.preventDefault(); confirmAndCreateCustomer(); }">
+                <small style="color: #64748b; font-size: 11.5px; margin-top: 4px; display: block;">
+                    Verify or type the customer's full name before registering.
+                </small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                <button type="button" class="btn btn-secondary" onclick="closeNewCustomerModal()" style="font-weight: 600; padding: 10px 18px; font-size: 13px; border-radius: 8px;">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+                <button type="button" id="btn-confirm-create-customer" onclick="confirmAndCreateCustomer()" class="btn btn-primary"
+                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 10px 22px; font-size: 13.5px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                    <i class="fa-solid fa-user-plus"></i> Create Customer Profile
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // ==========================================
@@ -1385,9 +1451,9 @@ const allServices = @json($services);
 const allEmployees = @json($employees);
 
 // ==========================================
-// 2. QUICK GO: SEARCH / AUTO-SAVE TO CRM
+// 2. QUICK GO: SEARCH / PROMPT TO CREATE IN CRM
 // ==========================================
-function executeQuickGo(e) {
+function executeQuickGo(e, confirmCreate = false) {
     if (e) e.preventDefault();
 
     const mobileInput = document.getElementById('fe_mobile');
@@ -1415,7 +1481,8 @@ function executeQuickGo(e) {
         },
         body: JSON.stringify({
             mobile: mobile,
-            customer_name: name
+            customer_name: name,
+            confirm_create: confirmCreate
         })
     })
     .then(res => res.json())
@@ -1424,6 +1491,14 @@ function executeQuickGo(e) {
         btnGo.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Go';
 
         if (res.success) {
+            // Case 1: Customer DOES NOT exist and creation was not yet confirmed
+            if (res.exists === false) {
+                showNewCustomerModal(res.mobile, res.customer_name);
+                return;
+            }
+
+            // Case 2: Customer exists or has just been confirmed and created
+            closeNewCustomerModal();
             currentLoadedCustomer = res.customer;
             populateCustomerUI(res.customer, res.is_new);
             renderCommittedServices(res.applications || []);
@@ -1443,9 +1518,92 @@ function executeQuickGo(e) {
     .catch(err => {
         btnGo.disabled = false;
         btnGo.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Go';
+        const createBtn = document.getElementById('btn-confirm-create-customer');
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+        }
         alert('Network error while processing customer.');
     });
 }
+
+function showNewCustomerModal(mobile, name) {
+    const modal = document.getElementById('new-customer-confirm-modal');
+    const mobileText = document.getElementById('confirm-modal-mobile-text');
+    const nameInput = document.getElementById('confirm-modal-name-input');
+    const createBtn = document.getElementById('btn-confirm-create-customer');
+
+    if (mobileText) mobileText.textContent = mobile;
+    if (nameInput) nameInput.value = name || document.getElementById('fe_name').value.trim() || '';
+    if (createBtn) {
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select();
+            }
+        }, 80);
+    }
+}
+
+function confirmAndCreateCustomer() {
+    const btn = document.getElementById('btn-confirm-create-customer');
+    const nameInput = document.getElementById('confirm-modal-name-input');
+    const custName = (nameInput ? nameInput.value.trim() : '');
+
+    // Sync name back to the main fast-entry name input
+    const feName = document.getElementById('fe_name');
+    if (feName && custName) {
+        feName.value = custName;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registering...';
+    }
+
+    executeQuickGo(null, true);
+}
+
+function closeNewCustomerModal() {
+    const modal = document.getElementById('new-customer-confirm-modal');
+    if (modal) modal.style.display = 'none';
+
+    const btn = document.getElementById('btn-confirm-create-customer');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+    }
+
+    const feMobile = document.getElementById('fe_mobile');
+    if (feMobile) feMobile.focus();
+}
+
+// Close modal on backdrop click or Escape key
+document.addEventListener('DOMContentLoaded', function() {
+    const newCustModal = document.getElementById('new-customer-confirm-modal');
+    if (newCustModal) {
+        newCustModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewCustomerModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('new-customer-confirm-modal');
+            if (modal && modal.style.display === 'flex') {
+                closeNewCustomerModal();
+            }
+        }
+    });
+});
 
 // Auto-lookup when 10 digits are typed in mobile field
 document.getElementById('fe_mobile').addEventListener('input', function() {
