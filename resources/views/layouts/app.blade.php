@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') | Maha E-Seva ERP</title>
     <link rel="stylesheet" href="{{ asset('css/erp-custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/excel-table-filter.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     @stack('styles')
 </head>
@@ -183,6 +184,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/excel-table-filter.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

@@ -1113,6 +1113,7 @@
                 <span>CUSTOMER SERVICES (New Service Entry Row on Top + All Services Below)</span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
+                <div id="fast-entry-filter-toolbar"></div>
                 <span id="services-badge" class="pocket-badge-neutral" style="background: #1e293b; color: #38bdf8; border: 1px solid #334155;">
                     0 Services
                 </span>
@@ -1136,21 +1137,56 @@
 
             <!-- UNIFIED EXCEL TABLE (Commited Rows + Live Input Row) -->
             <div class="excel-table-scroll-wrapper" style="border: none; border-radius: 0;">
-                <table class="pocket-excel-table">
+                <table id="fast-entry-table" class="pocket-excel-table">
                     <thead>
                         <tr>
                             <th style="min-width: 120px;"># SR Number</th>
-                            <th style="min-width: 150px;">1. Main Service *</th>
-                            <th style="min-width: 200px;">2. Sub Service *</th>
+                            <th style="min-width: 160px;">
+                                <div class="excel-th-inner">
+                                    <span>1. Main Service *</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="main_service" title="Filter by Main Service">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th style="min-width: 210px;">
+                                <div class="excel-th-inner">
+                                    <span>2. Sub Service *</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="sub_service" title="Filter by Sub Service">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
                             <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
                             <th style="min-width: 90px;">Date</th>
                             <th style="min-width: 90px;">3. Rate (₹) *</th>
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
                             <th style="min-width: 95px;">5. Remaining (₹)</th>
                             <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
-                            <th style="min-width: 140px; color: #f59e0b;">7. Status</th>
-                            <th style="min-width: 140px;">8. Operator</th>
-                            <th style="min-width: 130px; color: #fbbf24;">9. Follow-Up Date</th>
+                            <th style="min-width: 145px; color: #f59e0b;">
+                                <div class="excel-th-inner">
+                                    <span>7. Status</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th style="min-width: 145px;">
+                                <div class="excel-th-inner">
+                                    <span>8. Operator</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th style="min-width: 145px; color: #fbbf24;">
+                                <div class="excel-th-inner">
+                                    <span>9. Follow-Up Date</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
                             <th style="min-width: 220px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
@@ -1723,6 +1759,14 @@ document.addEventListener('keydown', function(e) {
 // ==========================================
 // 5. UNIFIED EXCEL TABLE: RENDER COMMITTED ROWS
 // ==========================================
+function getEmployeeName(empId, fallback = '') {
+    if (!empId) return (fallback || '').toUpperCase();
+    const emp = (window.allEmployees || []).find(e => e.id == empId);
+    if (!emp) return (fallback || '').toUpperCase();
+    const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || fallback || '');
+    return name.toUpperCase();
+}
+
 function getEmployeeOptionsHtml(selectedId) {
     let html = '<option value="">-- Unassigned --</option>';
     allEmployees.forEach(emp => {
@@ -1745,6 +1789,9 @@ function renderCommittedServices(apps) {
     document.getElementById('services-badge').innerText = `${apps.length} Services`;
 
     if (!apps || apps.length === 0) {
+        if (window.fastEntryFilter) {
+            window.fastEntryFilter.refresh();
+        }
         return;
     }
 
@@ -1753,6 +1800,10 @@ function renderCommittedServices(apps) {
         const tr = createCommittedRowElement(app);
         tbody.appendChild(tr);
     });
+
+    if (window.fastEntryFilter) {
+        window.fastEntryFilter.refresh();
+    }
 }
 
 function escapeHtml(str) {
@@ -2208,6 +2259,12 @@ function createCommittedRowElement(app) {
     const tr = document.createElement('tr');
     tr.className = 'committed-row';
     tr.id = 'committed-row-' + app.id;
+    tr.dataset.appId = app.id;
+    tr.dataset.main_service = (app.service_name || app.main_service_name || '').trim();
+    tr.dataset.sub_service = (app.sub_service || '').trim();
+    tr.dataset.status = (app.status || '').trim().toUpperCase();
+    tr.dataset.operator = getEmployeeName(app.assigned_employee_id, app.operator);
+    tr.dataset.followup_date = (app.follow_up_date || '').trim();
     tr.innerHTML = getCommittedRowInnerHtml(app);
 
     // Apply colored status combobox styling & auto-expand work details
@@ -2380,6 +2437,17 @@ function autoSaveCommittedRow(appId) {
     const subService = subInput ? subInput.value.trim() : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
+
+    const rowEl = document.getElementById(`committed-row-${appId}`);
+    if (rowEl) {
+        if (subService) rowEl.dataset.sub_service = subService;
+        if (status) rowEl.dataset.status = status;
+        if (operatorSelect) {
+            const opText = operatorSelect.selectedOptions[0]?.textContent?.trim() || '';
+            rowEl.dataset.operator = (opText.startsWith('--') ? '' : opText);
+        }
+        if (followupDate !== undefined) rowEl.dataset.followup_date = followupDate || '';
+    }
 
     if (!rate || parseFloat(rate) < 0) {
         rateInput.style.borderColor = '#dc2626';
@@ -2719,6 +2787,10 @@ function saveActiveServiceRow() {
             const committedRow = createCommittedRowElement(newApp);
             activeRow.after(committedRow);
 
+            if (window.fastEntryFilter) {
+                window.fastEntryFilter.refresh();
+            }
+
             // 2. Update Customer Summary Badges in Real-time
             if (currentLoadedCustomer) {
                 currentLoadedCustomer.total_services = (currentLoadedCustomer.total_services || 0) + 1;
@@ -2840,9 +2912,35 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Initialize Status Datalist & Colors on boot
+// Initialize Status Datalist & Excel Table Column Filter on boot
 document.addEventListener('DOMContentLoaded', function() {
     initCustomStatuses();
+
+    if (window.ExcelTableFilter) {
+        window.fastEntryFilter = new ExcelTableFilter({
+            table: '#fast-entry-table',
+            rowSelector: 'tbody tr.committed-row',
+            ignoreRowSelector: '#active-service-row',
+            clearBtnContainer: '#fast-entry-filter-toolbar',
+            columns: {
+                'main_service': { label: 'Main Service', type: 'text' },
+                'sub_service': { label: 'Sub Service', type: 'text' },
+                'status': { label: 'Status', type: 'text' },
+                'operator': { label: 'Operator', type: 'text' },
+                'followup_date': { label: 'Follow-Up Date', type: 'date' }
+            },
+            onFilterChange: function({ visibleCount, totalCount, activeFilterCount }) {
+                const badge = document.getElementById('services-badge');
+                if (badge) {
+                    if (activeFilterCount > 0) {
+                        badge.innerText = `${visibleCount} of ${totalCount} Services`;
+                    } else {
+                        badge.innerText = `${totalCount} Services`;
+                    }
+                }
+            }
+        });
+    }
 });
 initCustomStatuses();
 </script>

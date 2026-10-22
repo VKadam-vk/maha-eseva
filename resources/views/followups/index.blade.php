@@ -629,9 +629,10 @@
                         Scheduled Services for {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
                     @endif
                 </span>
-                <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
+                <span id="followup-count-badge" class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
                     {{ $totalCount }} Records
                 </span>
+                <div id="followup-filter-toolbar" style="display: inline-flex;"></div>
             </div>
 
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
@@ -640,19 +641,52 @@
         </div>
 
         <div class="sheet-table-wrap">
-            <table class="sheet-table">
+            <table id="followup-sheet-table" class="sheet-table">
                 <thead>
                     <tr>
                         <th style="min-width: 170px; width: 175px;">Customer (Name & Contact)</th>
-                        <th style="min-width: 190px; width: 200px;">Service & Sub Service</th>
+                        <th style="min-width: 230px; width: 240px;">
+                            <div class="excel-th-inner">
+                                <span>Service & Sub Service</span>
+                                <div style="display: inline-flex; align-items: center; gap: 4px;">
+                                    <button type="button" class="excel-col-filter-btn" data-col="main_service" title="Filter by Main Service" style="width: auto; padding: 0 5px; gap: 3px;">
+                                        <i class="fa-solid fa-filter" style="font-size: 9px;"></i> <span style="font-size: 9px; font-weight: 800;">MAIN</span>
+                                    </button>
+                                    <button type="button" class="excel-col-filter-btn" data-col="sub_service" title="Filter by Sub Service" style="width: auto; padding: 0 5px; gap: 3px;">
+                                        <i class="fa-solid fa-filter" style="font-size: 9px;"></i> <span style="font-size: 9px; font-weight: 800;">SUB</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </th>
                         <th style="text-align: center; min-width: 75px; width: 80px;">Days</th>
                         <th style="text-align: right; min-width: 80px; width: 85px;">Rate (₹)</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
                         <th style="min-width: 160px;">Work Details</th>
-                        <th style="min-width: 125px; width: 130px;">Operator</th>
-                        <th style="min-width: 115px; width: 120px;">Follow-Up</th>
-                        <th class="sticky-status-th" style="text-align: center;">Status</th>
+                        <th style="min-width: 135px; width: 140px;">
+                            <div class="excel-th-inner">
+                                <span>Operator</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th style="min-width: 130px; width: 135px;">
+                            <div class="excel-th-inner">
+                                <span>Follow-Up</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th class="sticky-status-th" style="text-align: center; min-width: 135px;">
+                            <div class="excel-th-inner">
+                                <span>Status</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
                         <th class="sticky-action-th">Action</th>
                     </tr>
                 </thead>
@@ -666,8 +700,18 @@
                             $serv = $app->service;
                             $expDays = (int) ($serv?->expected_processing_days ?? 7);
                             $appDate = $app->follow_up_date ? \Carbon\Carbon::parse($app->follow_up_date)->format('Y-m-d') : '';
+                            $opName = $app->assignedEmployee?->user?->name ?? ($app->assignedEmployee?->name ?? '');
+                            $stVal = strtoupper(trim($app->work_status ?? 'PENDING'));
+                            $mainName = trim($serv?->main_service_name ?? 'Service');
+                            $subName = trim($app->sub_service ?? '');
                         @endphp
-                        <tr id="row-app-{{ $app->id }}" data-app-id="{{ $app->id }}">
+                        <tr id="row-app-{{ $app->id }}"
+                            data-app-id="{{ $app->id }}"
+                            data-main_service="{{ $mainName }}"
+                            data-sub_service="{{ $subName }}"
+                            data-status="{{ $stVal }}"
+                            data-operator="{{ strtoupper(trim($opName)) }}"
+                            data-followup_date="{{ $appDate }}">
                             <!-- 1. Customer Name & Contact -->
                             <td style="padding: 6px 8px;">
                                 @if($cust)
@@ -933,6 +977,25 @@
 
         // Auto-expand all work details
         document.querySelectorAll('.excel-work-details').forEach(el => autoExpandWorkDetails(el));
+
+        // Initialize Excel Column Filter
+        if (window.ExcelTableFilter) {
+            window.followupFilter = new ExcelTableFilter({
+                table: '#followup-sheet-table',
+                rowSelector: '#followup-sheet-tbody tr[data-app-id]',
+                clearBtnContainer: '#followup-filter-toolbar',
+                columns: {
+                    'main_service': { label: 'Main Service', type: 'text' },
+                    'sub_service': { label: 'Sub Service', type: 'text' },
+                    'operator': { label: 'Operator', type: 'text' },
+                    'followup_date': { label: 'Follow-Up Date', type: 'date' },
+                    'status': { label: 'Status', type: 'text' }
+                },
+                onFilterChange: function({ visibleCount, totalCount, activeFilterCount }) {
+                    recalculateFollowupMetrics();
+                }
+            });
+        }
     });
 
     // Auto-expand textarea
@@ -1022,6 +1085,17 @@
         const followUpDate = document.getElementById(`followup_${appId}`)?.value || null;
         const statusVal = document.getElementById(`status_${appId}`)?.value || 'PENDING';
 
+        // Update dataset for instant filter evaluation
+        if (field === 'assigned_employee_id') {
+            const opSel = document.getElementById(`operator_${appId}`);
+            const opTxt = opSel?.selectedOptions[0]?.textContent?.trim() || '';
+            row.dataset.operator = (opTxt.startsWith('--') ? '' : opTxt).toUpperCase();
+        } else if (field === 'follow_up_date') {
+            row.dataset.followup_date = followUpDate || '';
+        } else if (field === 'work_status' || field === 'status') {
+            row.dataset.status = (statusVal || '').trim().toUpperCase();
+        }
+
         const payload = {
             application_id: appId,
             rate: rate,
@@ -1048,7 +1122,11 @@
                 row.style.transition = 'background-color 0.3s ease';
                 row.style.backgroundColor = '#ecfdf5';
                 setTimeout(() => { row.style.backgroundColor = ''; }, 600);
-                recalculateFollowupMetrics();
+                if (window.followupFilter) {
+                    window.followupFilter.refresh();
+                } else {
+                    recalculateFollowupMetrics();
+                }
             } else {
                 alert('Error updating row: ' + (res.message || 'Unknown error'));
             }
@@ -1074,7 +1152,11 @@
         let totalReceived = 0;
         let count = 0;
 
-        document.querySelectorAll('#followup-sheet-tbody tr[data-app-id]').forEach(row => {
+        const allRows = document.querySelectorAll('#followup-sheet-tbody tr[data-app-id]');
+        const totalOverall = allRows.length;
+
+        allRows.forEach(row => {
+            if (row.style.display === 'none') return;
             const appId = row.getAttribute('data-app-id');
             const rate = parseFloat(document.getElementById(`rate_${appId}`)?.value || 0);
             const recv = parseFloat(document.getElementById(`received_${appId}`)?.value || 0);
@@ -1089,6 +1171,7 @@
         const cardBilled = document.getElementById('card-total-billed');
         const cardReceived = document.getElementById('card-total-received');
         const cardRemaining = document.getElementById('card-total-remaining');
+        const countBadge = document.getElementById('followup-count-badge');
 
         if (cardCount) cardCount.textContent = count;
         if (cardBilled) cardBilled.textContent = '₹ ' + totalBilled.toLocaleString('en-IN', { minimumFractionDigits: 2 });
@@ -1096,6 +1179,11 @@
         if (cardRemaining) {
             cardRemaining.textContent = '₹ ' + remaining.toLocaleString('en-IN', { minimumFractionDigits: 2 });
             cardRemaining.style.color = remaining > 0 ? '#b91c1c' : '#166534';
+        }
+        if (countBadge) {
+            countBadge.textContent = (count < totalOverall)
+                ? `Showing ${count} of ${totalOverall}`
+                : `${totalOverall} Records`;
         }
     }
 

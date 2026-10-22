@@ -639,6 +639,7 @@
                 </span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
+                <div id="customer-show-filter-toolbar"></div>
                 <span id="services-badge" class="badge" style="background: #1e293b; color: #38bdf8; border: 1px solid #334155; font-weight: 800; font-size: 11.5px;">
                     {{ $customer->applications->count() }} Services
                 </span>
@@ -661,21 +662,56 @@
 
         <!-- TABLE SCROLL WRAPPER (Compact, Fits Screen Without Horizontal Scroll) -->
         <div class="excel-table-scroll-wrapper">
-            <table class="pocket-excel-table">
+            <table id="customer-services-table" class="pocket-excel-table">
                 <thead>
                     <tr>
                         <th style="min-width: 80px;"># SR Number</th>
-                        <th style="min-width: 140px;">1. Main Service *</th>
-                        <th style="min-width: 180px;">2. Sub Service *</th>
+                        <th style="min-width: 150px;">
+                            <div class="excel-th-inner">
+                                <span>1. Main Service *</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="main_service" title="Filter by Main Service">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th style="min-width: 190px;">
+                            <div class="excel-th-inner">
+                                <span>2. Sub Service *</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="sub_service" title="Filter by Sub Service">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
                         <th style="min-width: 85px; color: #38bdf8; text-align: center;">Exp. Days</th>
                         <th style="min-width: 80px;">Date</th>
                         <th style="min-width: 75px;">3. Rate (₹) *</th>
                         <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
                         <th style="min-width: 75px;">5. Remaining (₹)</th>
                         <th style="min-width: 140px; color: #38bdf8;">6. Work Details</th>
-                        <th style="min-width: 115px;">7. Operator</th>
-                        <th style="min-width: 110px; color: #fbbf24;">8. Follow-Up Date</th>
-                        <th class="sticky-status-th" style="min-width: 115px; color: #f59e0b; text-align: center;">9. Status</th>
+                        <th style="min-width: 125px;">
+                            <div class="excel-th-inner">
+                                <span>7. Operator</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th style="min-width: 125px; color: #fbbf24;">
+                            <div class="excel-th-inner">
+                                <span>8. Follow-Up Date</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
+                        <th class="sticky-status-th" style="min-width: 130px; color: #f59e0b; text-align: center;">
+                            <div class="excel-th-inner">
+                                <span>9. Status</span>
+                                <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
+                                    <i class="fa-solid fa-filter"></i>
+                                </button>
+                            </div>
+                        </th>
                         <th class="sticky-action-th" style="min-width: 120px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
@@ -1188,10 +1224,24 @@ function getCommittedRowInnerHtml(app) {
     `;
 }
 
+function getEmployeeName(empId, fallback = '') {
+    if (!empId) return (fallback || '').toUpperCase();
+    const emp = (window.allEmployees || []).find(e => e.id == empId);
+    if (!emp) return (fallback || '').toUpperCase();
+    const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || fallback || '');
+    return name.toUpperCase();
+}
+
 function createCommittedRowElement(app) {
     const tr = document.createElement('tr');
     tr.className = 'committed-row';
     tr.id = 'committed-row-' + app.id;
+    tr.dataset.appId = app.id;
+    tr.dataset.main_service = (app.service_name || app.main_service_name || '').trim();
+    tr.dataset.sub_service = (app.sub_service || '').trim();
+    tr.dataset.status = (app.status || '').trim().toUpperCase();
+    tr.dataset.operator = getEmployeeName(app.assigned_employee_id, app.operator);
+    tr.dataset.followup_date = (app.follow_up_date || '').trim();
     tr.innerHTML = getCommittedRowInnerHtml(app);
 
     setTimeout(() => {
@@ -1244,6 +1294,18 @@ function autoSaveCommittedRow(appId) {
     const subService = subInput ? subInput.value.trim() : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
+
+    const rowEl = document.getElementById(`committed-row-${appId}`);
+    if (rowEl) {
+        if (subService) rowEl.dataset.sub_service = subService;
+        if (status) rowEl.dataset.status = status;
+        if (operatorSelect) {
+            const opText = operatorSelect.selectedOptions[0]?.textContent?.trim() || '';
+            rowEl.dataset.operator = (opText.startsWith('--') ? '' : opText);
+        }
+        if (followupDate !== undefined) rowEl.dataset.followup_date = followupDate || '';
+        if (window.customerShowFilter) window.customerShowFilter.refresh();
+    }
 
     if (!rate || parseFloat(rate) < 0) {
         rateInput.style.borderColor = '#dc2626';
@@ -1514,6 +1576,10 @@ function saveActiveServiceRow() {
             const tr = createCommittedRowElement(newApp);
             const activeRow = document.getElementById('active-service-row');
             activeRow.parentNode.insertBefore(tr, activeRow.nextSibling);
+
+            if (window.customerShowFilter) {
+                window.customerShowFilter.refresh();
+            }
 
             // Reset active row
             document.getElementById('se_main_service').value = '';
@@ -1821,6 +1887,32 @@ document.addEventListener('DOMContentLoaded', function() {
     if (seStatus) {
         seStatus.value = '';
         applyStatusInputStyle(seStatus);
+    }
+
+    if (window.ExcelTableFilter) {
+        window.customerShowFilter = new ExcelTableFilter({
+            table: '#customer-services-table',
+            rowSelector: 'tbody tr.committed-row',
+            ignoreRowSelector: '#active-service-row',
+            clearBtnContainer: '#customer-show-filter-toolbar',
+            columns: {
+                'main_service': { label: 'Main Service', type: 'text' },
+                'sub_service': { label: 'Sub Service', type: 'text' },
+                'status': { label: 'Status', type: 'text' },
+                'operator': { label: 'Operator', type: 'text' },
+                'followup_date': { label: 'Follow-Up Date', type: 'date' }
+            },
+            onFilterChange: function({ visibleCount, totalCount, activeFilterCount }) {
+                const badge = document.getElementById('services-badge');
+                if (badge) {
+                    if (activeFilterCount > 0) {
+                        badge.innerText = `${visibleCount} of ${totalCount} Services`;
+                    } else {
+                        badge.innerText = `${totalCount} Services`;
+                    }
+                }
+            }
+        });
     }
 });
 </script>

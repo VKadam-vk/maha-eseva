@@ -1,0 +1,407 @@
+/* ==========================================================================
+   EXCEL TABLE COLUMN FILTER COMPONENT (Modern Spreadsheet Filter & Sort)
+   ========================================================================== */
+
+/* 1. Header Trigger Button */
+.excel-th-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+}
+
+.excel-col-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    flex-shrink: 0;
+    outline: none;
+}
+
+.excel-col-filter-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border-color: #38bdf8;
+    transform: scale(1.05);
+}
+
+/* Light background headers adaptation */
+.sheet-table thead th .excel-col-filter-btn,
+.erp-table thead th .excel-col-filter-btn {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+.sheet-table thead th .excel-col-filter-btn:hover,
+.erp-table thead th .excel-col-filter-btn:hover {
+    background: #e0f2fe;
+    color: #0284c7;
+    border-color: #0284c7;
+}
+
+/* Active Filter State (When column has active criteria) */
+.excel-col-filter-btn.filter-active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.35);
+    font-weight: bold;
+    animation: pulse-filter-btn 2s infinite ease-in-out;
+}
+
+@keyframes pulse-filter-btn {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.35); }
+    50% { box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.55); }
+}
+
+/* Clear All Filters Toolbar Button */
+.btn-clear-all-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    animation: fadeIn 0.2s ease;
+}
+
+.btn-clear-all-filters:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
+/* 2. Floating Excel Filter Dropdown Card */
+.excel-filter-dropdown-card {
+    position: fixed;
+    z-index: 999999;
+    width: 280px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: inherit;
+    animation: excelFilterPop 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes excelFilterPop {
+    0% { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Card Header */
+.excel-filter-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1e293b;
+}
+
+.excel-filter-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.excel-filter-title i {
+    color: #38bdf8;
+    font-size: 12px;
+}
+
+.excel-filter-close-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.excel-filter-close-btn:hover {
+    color: #ffffff;
+}
+
+/* Card Sort Action Strip */
+.excel-filter-sort-bar {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.excel-filter-sort-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    background: transparent;
+    border: none;
+    border-right: 1px solid #e2e8f0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.excel-filter-sort-btn:last-child {
+    border-right: none;
+}
+
+.excel-filter-sort-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.excel-filter-sort-btn i {
+    color: #0284c7;
+    font-size: 11px;
+}
+
+/* Card Search Bar */
+.excel-filter-search-box {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #ffffff;
+    position: relative;
+}
+
+.excel-filter-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 28px 6px 28px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    background: #f8fafc;
+    color: #0f172a;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.excel-filter-search-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.excel-filter-search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 11px;
+    pointer-events: none;
+}
+
+.excel-filter-search-clear {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    display: none;
+}
+
+.excel-filter-search-clear:hover {
+    color: #334155;
+}
+
+/* Card Checklist Container */
+.excel-filter-list-wrap {
+    max-height: 210px;
+    overflow-y: auto;
+    padding: 6px 8px;
+    background: #ffffff;
+}
+
+.excel-filter-list-wrap::-webkit-scrollbar {
+    width: 6px;
+}
+
+.excel-filter-list-wrap::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.excel-filter-list-wrap::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.excel-filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    color: #1e293b;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    margin-bottom: 1px;
+}
+
+.excel-filter-item:hover {
+    background: #f1f5f9;
+}
+
+.excel-filter-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.excel-filter-checkbox {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #0284c7;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.excel-filter-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.excel-filter-item.is-select-all .excel-filter-label {
+    font-weight: 700;
+    color: #0284c7;
+}
+
+.excel-filter-count-badge {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    font-family: var(--font-mono, monospace);
+}
+
+.excel-filter-empty-msg {
+    padding: 16px 8px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11.5px;
+    font-style: italic;
+}
+
+/* Card Footer Action Bar */
+.excel-filter-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    gap: 6px;
+}
+
+.excel-filter-footer-left {
+    display: flex;
+    align-items: center;
+}
+
+.excel-filter-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-filter-footer-clear {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.btn-filter-footer-clear:hover {
+    color: #dc2626;
+    text-decoration: underline;
+}
+
+.btn-filter-footer-cancel {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.btn-filter-footer-cancel:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.btn-filter-footer-apply {
+    background: #0284c7;
+    border: 1px solid #0284c7;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.3);
+    transition: all 0.12s;
+}
+
+.btn-filter-footer-apply:hover {
+    background: #0369a1;
+    border-color: #0369a1;
+}
