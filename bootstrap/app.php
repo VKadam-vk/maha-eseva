@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SecurityHeaders::class);
 
+        $middleware->validateCsrfTokens(except: [
+            'fast-entry/*',
+        ]);
+
         $middleware->alias([
             'tenant' => EnsureTenantAccess::class,
             'branch' => EnforceBranchAccess::class,

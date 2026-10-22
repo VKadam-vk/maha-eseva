@@ -1482,7 +1482,7 @@ function executeQuickGo(e, confirmCreate = false) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
             'Accept': 'application/json'
         },
         body: JSON.stringify({
@@ -1491,8 +1491,17 @@ function executeQuickGo(e, confirmCreate = false) {
             confirm_create: confirmCreate
         })
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (!res) return null;
+        if (res.status === 419) {
+            alert('Your session was refreshed. Reloading page...');
+            window.location.reload();
+            return null;
+        }
+        return res.json();
+    })
     .then(res => {
+        if (!res) return;
         btnGo.disabled = false;
         btnGo.innerHTML = '<i class="fa-solid fa-arrow-right"></i> Go';
 
