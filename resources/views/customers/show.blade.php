@@ -635,7 +635,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-table-cells" style="color: #38bdf8;"></i>
                 <span style="font-weight: 700; font-size: 13px; text-transform: uppercase;">
-                    CUSTOMER SERVICES & WORK DESK (सलग Excel शीट: नवीन सेवा एन्ट्री रो + खाली सर्व सेवा)
+                    CUSTOMER SERVICES & WORK DESK (New Service Entry Row + All Customer Services Below)
                 </span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -708,7 +708,7 @@
                                     <option value="">-- Choose Sub Service --</option>
                                 </select>
                                 <button type="button" id="btn-view-service-docs" class="btn-doc-eye" onclick="openDocsModal(event)"
-                                        title="View Required Documents (आवश्यक कागदपत्रे पहा)">
+                                        title="View Required Documents">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                             </div>
@@ -779,15 +779,15 @@
                                     onchange="onActiveStatusSelectChange(this)"
                                     onkeydown="handleActiveRowKey(event)"
                                     style="text-align: center;">
-                                <option value="IN_PROGRESS" selected>IN_PROGRESS (काम चालू आहे)</option>
-                                <option value="PENDING">PENDING (प्रलंबित)</option>
-                                <option value="WAITING_FOR_DOCS">WAITING FOR DOCS (कागदपत्रे बाकी)</option>
-                                <option value="SUBMITTED">SUBMITTED (पोर्टलवर भरले)</option>
-                                <option value="READY">READY (तयार आहे)</option>
-                                <option value="DELIVERED">DELIVERED (ग्राहकास दिले)</option>
-                                <option value="COMPLETED">COMPLETED (पूर्ण झाले)</option>
-                                <option value="REJECTED">REJECTED (नाकारले)</option>
-                                <option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>
+                                <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
+                                <option value="PENDING">PENDING</option>
+                                <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
+                                <option value="SUBMITTED">SUBMITTED</option>
+                                <option value="READY">READY</option>
+                                <option value="DELIVERED">DELIVERED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                             </select>
                         </td>
 
@@ -827,10 +827,10 @@
                 </div>
                 <div>
                     <h3 id="modal-service-title" style="margin: 0; font-size: 14.5px; font-weight: 700; color: #ffffff;">Required Documents</h3>
-                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">आवश्यक कागदपत्रे व पात्रता तपशील</p>
+                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Required Documents & Eligibility Details</p>
                 </div>
             </div>
-            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close (बंद करा)">
+            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close">
                 &times;
             </button>
         </div>
@@ -840,7 +840,7 @@
             <!-- Service Switcher Selector -->
             <div style="margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
                 <label for="modal-service-switcher" style="font-size: 11.5px; font-weight: 700; color: #334155; white-space: nowrap; margin: 0;">
-                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> सेवा बदला / निवडा:
+                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Switch / Select Service:
                 </label>
                 <select id="modal-service-switcher" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600; flex: 1; border-color: #cbd5e1; background: #ffffff;" onchange="onModalServiceSwitch(this.value)">
                 </select>
@@ -862,7 +862,7 @@
             <div style="margin-bottom: 16px;">
                 <label style="display: block; font-size: 11.5px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 8px;">
                     <i class="fa-solid fa-clipboard-check" style="color: #0284c7; margin-right: 4px;"></i>
-                    आवश्यक कागदपत्रे सूची (Required Documents Checklist)
+                    Required Documents Checklist
                 </label>
                 <div id="modal-docs-container" class="docs-checklist-container">
                     <!-- Populated dynamically via JS -->
@@ -1043,14 +1043,14 @@ function renderStatusOptionsHtml(currentStatus, serviceName) {
         const isSel = (st === cleanCur) ? 'selected' : '';
         html += `<option value="${escapeHtml(st)}" ${isSel}>${escapeHtml(st)}</option>`;
     });
-    html += `<option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>`;
+    html += `<option value="__NEW_CUSTOM__">➕ Custom Status...</option>`;
     return html;
 }
 
 function onCommittedStatusSelectChange(selectEl, appId) {
     if (!selectEl) return;
     if (selectEl.value === '__NEW_CUSTOM__') {
-        const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+        const custom = prompt('Enter custom status name:');
         if (custom && custom.trim()) {
             const clean = custom.trim().toUpperCase();
             let opt = Array.from(selectEl.options).find(o => o.value === clean);
@@ -1075,7 +1075,7 @@ function onCommittedStatusSelectChange(selectEl, appId) {
 function onActiveStatusSelectChange(selectEl) {
     if (!selectEl) return;
     if (selectEl.value === '__NEW_CUSTOM__') {
-        const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+        const custom = prompt('Enter custom status name:');
         if (custom && custom.trim()) {
             const clean = custom.trim().toUpperCase();
             let opt = Array.from(selectEl.options).find(o => o.value === clean);
@@ -1144,7 +1144,7 @@ function getCommittedRowInnerHtml(app) {
                        title="Click to edit sub-service"
                        onchange="autoSaveCommittedRow(${app.id})"
                        onkeydown="handleCommittedKey(event, ${app.id})">
-                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents (आवश्यक कागदपत्रे)">
+                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
                     <i class="fa-solid fa-eye"></i>
                 </button>
             </div>
@@ -1198,7 +1198,7 @@ function getCommittedRowInnerHtml(app) {
         <td style="padding: 4px 6px;">
             <input type="date" id="crow_followup_${app.id}" class="excel-date-input"
                    value="${escapeHtml(app.follow_up_date || '')}"
-                   title="Expected Follow-up Date (फॉलो-अप तारीख)"
+                   title="Expected Follow-up Date"
                    onchange="autoSaveCommittedRow(${app.id})"
                    onblur="autoSaveCommittedRow(${app.id})">
         </td>
@@ -1287,7 +1287,7 @@ function autoSaveCommittedRow(appId) {
 
     if (!rate || parseFloat(rate) < 0) {
         rateInput.style.borderColor = '#dc2626';
-        alert('कृपया वैध Rate टाका!');
+        alert('Please enter a valid rate!');
         rateInput.focus();
         return;
     }
@@ -1413,7 +1413,7 @@ function onSubServiceChange(serviceId) {
     const expBadge = document.getElementById('se_expected_days_badge');
     if (expBadge) {
         expBadge.innerText = days + ' Days';
-        expBadge.title = `Expected Processing: ${days} Days (${days} दिवस)`;
+        expBadge.title = `Expected Processing: ${days} Days`;
     }
 
     const rowBtnApply = document.getElementById('row-btn-apply');
@@ -1475,14 +1475,14 @@ function saveActiveServiceRow() {
     const serviceId = subSel ? subSel.value : '';
 
     if (!serviceId) {
-        alert('कृपया प्रथम सेवा (Service) निवडा!');
+        alert('Please select a service first!');
         document.getElementById('se_main_service').focus();
         return;
     }
 
     const rate = document.getElementById('se_rate').value;
     if (!rate || parseFloat(rate) < 0) {
-        alert('कृपया वैध Rate टाका!');
+        alert('Please enter a valid rate!');
         document.getElementById('se_rate').focus();
         return;
     }
@@ -1577,7 +1577,7 @@ function saveActiveServiceRow() {
         btnSave.disabled = false;
         btnSave.innerHTML = '<i class="fa-solid fa-check"></i> Save';
         console.error(err);
-        alert('सर्व्हिस सेव्ह करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+        alert('An error occurred while saving the service. Please try again.');
     });
 }
 
@@ -1644,7 +1644,7 @@ function openDocsModal(e) {
         srv = allServices[0];
     }
     if (!srv) {
-        alert('कोणतीही सेवा उपलब्ध नाही.');
+        alert('No services available.');
         return;
     }
     openDocsModalWithService(srv);
@@ -1664,7 +1664,7 @@ function openDocsModalForApp(appId) {
         srv = allServices[0];
     }
     if (!srv) {
-        alert('या सेवेची माहिती उपलब्ध नाही.');
+        alert('Information not available for this service.');
         return;
     }
     openDocsModalWithService(srv);
@@ -1713,8 +1713,8 @@ function openDocsModalWithService(srv) {
     const price = parseFloat(srv.price) || 0;
 
     if (modalTitle) modalTitle.innerText = `${mainName} ${subName ? '➔ ' + subName : ''}`;
-    if (modalSubTitle) modalSubTitle.innerText = 'आवश्यक कागदपत्रे व पात्रता तपशील (Required Documents)';
-    if (modalDays) modalDays.innerText = `⏱️ Expected: ${days} Days (${days} दिवस)`;
+    if (modalSubTitle) modalSubTitle.innerText = 'Required Documents & Eligibility Details';
+    if (modalDays) modalDays.innerText = `⏱️ Expected: ${days} Days`;
     if (modalRate) modalRate.innerText = `₹ ${price.toFixed(0)}`;
 
     if (switcher) {
@@ -1754,7 +1754,7 @@ function openDocsModalWithService(srv) {
             docsContainer.innerHTML = `
                 <div style="text-align: center; padding: 16px 10px; color: #64748b;">
                     <i class="fa-solid fa-file-circle-check" style="font-size: 26px; color: #94a3b8; margin-bottom: 6px;"></i>
-                    <p style="margin: 0; font-size: 12.5px; font-weight: 500;">या सेवेसाठी विशेष कागदपत्रांची यादी उपलब्ध नाही किंवा कागदपत्रे आवश्यक नाहीत.</p>
+                    <p style="margin: 0; font-size: 12.5px; font-weight: 500;">No specific documents required for this service.</p>
                 </div>
             `;
         }
@@ -1798,9 +1798,9 @@ function copyModalDocsToDetails() {
             detailsInput.value = text;
             autoExpandWorkDetails(detailsInput);
         }
-        alert('आवश्यक कागदपत्रांची यादी सेवेच्या तपशीलात (Work Details) जोडली!');
+        alert('Required documents list added to Work Details!');
     } else {
-        alert('कॉपी करण्यासाठी कागदपत्रे उपलब्ध नाहीत.');
+        alert('No documents available to copy.');
     }
 }
 

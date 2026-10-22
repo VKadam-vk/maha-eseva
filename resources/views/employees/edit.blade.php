@@ -6,7 +6,7 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">Edit Staff: {{ $employee->user->name }}</h1>
-        <p class="page-subtitle">कर्मचाऱ्याची माहिती, परवानग्या आणि सेवा प्रवेश नियंत्रण (Access & Services Permissions)</p>
+        <p class="page-subtitle">Staff profile information, system permissions, and services access control.</p>
     </div>
     <div style="display: flex; gap: 10px;">
         <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-secondary">
@@ -28,7 +28,7 @@
         <div class="access-section-card">
             <div class="access-section-header">
                 <div class="access-section-title">
-                    <i class="fa-solid fa-user-pen"></i> Staff Information & Credentials (कर्मचारी प्रोफाईल)
+                    <i class="fa-solid fa-user-pen"></i> Staff Information & Credentials
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <span class="badge badge-ready">{{ $employee->employee_code }}</span>
@@ -38,12 +38,12 @@
             <div style="padding: 24px;">
                 <div class="form-grid-2">
                     <div class="form-group">
-                        <label class="form-label required">Employee Full Name (कर्मचाऱ्याचे नाव)</label>
+                        <label class="form-label required">Employee Full Name</label>
                         <input type="text" name="name" class="form-control" required value="{{ old('name', $employee->user->name) }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required">Assigned Branch (नियुक्त शाखा)</label>
+                        <label class="form-label required">Assigned Branch</label>
                         <select name="branch_id" class="form-select" required>
                             @foreach($branches as $b)
                                 <option value="{{ $b->id }}" {{ old('branch_id', $employee->branch_id) == $b->id ? 'selected' : '' }}>
@@ -56,50 +56,50 @@
 
                 <div class="form-grid-3">
                     <div class="form-group">
-                        <label class="form-label required">Login Email Address (लॉगिन ईमेल)</label>
+                        <label class="form-label required">Login Email Address</label>
                         <input type="email" name="email" class="form-control" required value="{{ old('email', $employee->user->email) }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">New Password (नवीन पासवर्ड - बदल नको असल्यास रिकामा ठेवा)</label>
-                        <input type="password" name="password" class="form-control" placeholder="किमान ८ अक्षरे (पर्यायी)">
+                        <label class="form-label">New Password (Leave blank to keep unchanged)</label>
+                        <input type="password" name="password" class="form-control" placeholder="Minimum 8 characters (optional)">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required">Account Status (खाते स्थिती)</label>
+                        <label class="form-label required">Account Status</label>
                         <select name="status" class="form-select" required>
-                            <option value="ACTIVE" {{ old('status', $employee->status) === 'ACTIVE' ? 'selected' : '' }}>ACTIVE (सक्रिय)</option>
-                            <option value="INACTIVE" {{ old('status', $employee->status) === 'INACTIVE' ? 'selected' : '' }}>INACTIVE (निष्क्रिय)</option>
-                            <option value="ON_LEAVE" {{ old('status', $employee->status) === 'ON_LEAVE' ? 'selected' : '' }}>ON_LEAVE (रजेवर)</option>
+                            <option value="ACTIVE" {{ old('status', $employee->status) === 'ACTIVE' ? 'selected' : '' }}>ACTIVE</option>
+                            <option value="INACTIVE" {{ old('status', $employee->status) === 'INACTIVE' ? 'selected' : '' }}>INACTIVE</option>
+                            <option value="ON_LEAVE" {{ old('status', $employee->status) === 'ON_LEAVE' ? 'selected' : '' }}>ON_LEAVE</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-grid-3">
                     <div class="form-group">
-                        <label class="form-label required">Mobile Number (मोबाईल)</label>
+                        <label class="form-label required">Mobile Number</label>
                         <input type="tel" name="mobile" class="form-control" required value="{{ old('mobile', $employee->user->mobile) }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required">Designation / Role (हुद्दा)</label>
+                        <label class="form-label required">Designation / Role</label>
                         <input type="text" name="designation" class="form-control" required value="{{ old('designation', $employee->designation) }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Joining Date (रुजू दिनांक)</label>
+                        <label class="form-label">Joining Date</label>
                         <input type="date" name="joining_date" class="form-control" value="{{ old('joining_date', $employee->joining_date?->format('Y-m-d')) }}">
                     </div>
                 </div>
 
                 <div class="form-grid-3">
                     <div class="form-group">
-                        <label class="form-label">Monthly Salary (₹ मासिक वेतन)</label>
+                        <label class="form-label">Monthly Salary (₹)</label>
                         <input type="number" step="0.01" name="salary" class="form-control" value="{{ old('salary', $employee->salary) }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ID Proof Type (ओळख पुरावा)</label>
+                        <label class="form-label">ID Proof Type</label>
                         <select name="id_proof_type" class="form-select">
                             <option value="AADHAAR" {{ old('id_proof_type', $employee->id_proof_type) === 'AADHAAR' ? 'selected' : '' }}>Aadhaar Card</option>
                             <option value="PAN" {{ old('id_proof_type', $employee->id_proof_type) === 'PAN' ? 'selected' : '' }}>PAN Card</option>
@@ -108,35 +108,35 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ID Proof Number (ओळख क्रमांक)</label>
+                        <label class="form-label">ID Proof Number</label>
                         <input type="text" name="id_proof_number" class="form-control" value="{{ old('id_proof_number', $employee->id_proof_number) }}">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label">Address (पत्ता)</label>
+                    <label class="form-label">Address</label>
                     <textarea name="address" class="form-control" rows="2">{{ old('address', $employee->address) }}</textarea>
                 </div>
             </div>
         </div>
 
-        <!-- SECTION 2: Allowed E-Seva Services (सेवा प्रवेश नियंत्रण) -->
+        <!-- SECTION 2: Allowed E-Seva Services Access -->
         <div class="access-section-card">
             <div class="access-section-header">
                 <div>
                     <div class="access-section-title">
-                        <i class="fa-solid fa-list-check"></i> ई-सेवा प्रवेश परवानगी (Allowed E-Seva Services Access)
+                        <i class="fa-solid fa-list-check"></i> Allowed E-Seva Services Access
                     </div>
                     <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; margin-bottom: 0;">
-                        या ऑपरेटरला ज्या सेवांवर टिक (✓) असेल, तेवढ्याच सेवा त्याला फास्ट एन्ट्री, अर्ज नोंदणी आणि सेवा सूचीमध्ये दिसतील.
+                        Services selected here will be accessible to this operator in Fast Entry, Application Registration, and the Services directory.
                     </p>
                 </div>
 
                 <div class="access-toolbar">
-                    <label class="switch-control" title="कर्मचाऱ्याला केंद्रातील सर्व सेवा उपलब्ध करा">
+                    <label class="switch-control" title="Provide employee access to all center services">
                         <input type="checkbox" name="all_services" id="allServicesToggle" value="1" {{ $hasAllServices ? 'checked' : '' }}>
                         <span class="switch-slider"></span>
-                        <span style="font-size: 13px; font-weight: 600; color: #1e293b;">सर्व सेवा उपलब्ध करा (Full Access)</span>
+                        <span style="font-size: 13px; font-weight: 600; color: #1e293b;">Grant All Services (Full Access)</span>
                     </label>
 
                     <span style="color: #cbd5e1;">|</span>
@@ -148,7 +148,7 @@
                         <i class="fa-solid fa-xmark"></i> Deselect All
                     </button>
 
-                    <span class="badge badge-ready" id="servicesSelectedCountBadge">सर्व सेवा ॲक्टिव्ह</span>
+                    <span class="badge badge-ready" id="servicesSelectedCountBadge">All Services Active</span>
                 </div>
             </div>
 
@@ -158,7 +158,7 @@
                         <div class="service-cat-divider">
                             <i class="fa-solid fa-folder-open" style="color: var(--primary-500);"></i>
                             <span>{{ $categoryName }}</span>
-                            <span class="badge badge-process" style="font-size: 10px; margin-left: auto;">{{ $catServices->count() }} सेवा</span>
+                            <span class="badge badge-process" style="font-size: 10px; margin-left: auto;">{{ $catServices->count() }} Services</span>
                         </div>
 
                         @foreach($catServices as $service)
@@ -189,15 +189,15 @@
             </div>
         </div>
 
-        <!-- SECTION 3: System Module Permissions (सिस्टीम ॲक्सेस परवानग्या) -->
+        <!-- SECTION 3: System Module Permissions -->
         <div class="access-section-card">
             <div class="access-section-header">
                 <div>
                     <div class="access-section-title">
-                        <i class="fa-solid fa-shield-halved"></i> सिस्टीम ॲक्सेस परवानग्या (System Module Permissions)
+                        <i class="fa-solid fa-shield-halved"></i> System Module Permissions
                     </div>
                     <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; margin-bottom: 0;">
-                        कर्मचाऱ्याला सिस्टीममधील कोणकोणती फीचर्स (CRM, अर्ज, पेमेंट्स, कागदपत्रे) वापरण्याची परवानगी द्यायची आहे ते निवडा.
+                        Select which system features (CRM, Applications, Payments, Document Vault, Reports) this employee is permitted to access.
                     </p>
                 </div>
 
@@ -217,15 +217,15 @@
             <div class="perm-groups-container">
                 @php
                     $moduleLabels = [
-                        'customers' => ['icon' => 'fa-users', 'title' => 'ग्राहक व्यवस्थापन (Customers CRM)'],
-                        'applications' => ['icon' => 'fa-file-signature', 'title' => 'अर्ज व प्रक्रिया (Applications Workflow)'],
-                        'documents' => ['icon' => 'fa-folder-closed', 'title' => 'कागदपत्रे व्हॉल्ट (Private Document Vault)'],
-                        'payments' => ['icon' => 'fa-indian-rupee-sign', 'title' => 'बिलिंग व पेमेंट्स (Billing & Payments)'],
-                        'services' => ['icon' => 'fa-list-check', 'title' => 'सेवा व्यवस्थापन (Services Master)'],
-                        'reports' => ['icon' => 'fa-chart-line', 'title' => 'रिपोर्ट्स सेंटर (Reports & Analytics)'],
-                        'employees' => ['icon' => 'fa-user-tie', 'title' => 'कर्मचारी व्यवस्थापन (Staff & Tasks)'],
-                        'branches' => ['icon' => 'fa-code-branch', 'title' => 'शाखा माहिती (Branches)'],
-                        'settings' => ['icon' => 'fa-gear', 'title' => 'सिस्टीम सेटींग्ज (Settings)'],
+                        'customers' => ['icon' => 'fa-users', 'title' => 'Customers CRM'],
+                        'applications' => ['icon' => 'fa-file-signature', 'title' => 'Applications Workflow'],
+                        'documents' => ['icon' => 'fa-folder-closed', 'title' => 'Private Document Vault'],
+                        'payments' => ['icon' => 'fa-indian-rupee-sign', 'title' => 'Billing & Payments'],
+                        'services' => ['icon' => 'fa-list-check', 'title' => 'Services Master'],
+                        'reports' => ['icon' => 'fa-chart-line', 'title' => 'Reports & Analytics'],
+                        'employees' => ['icon' => 'fa-user-tie', 'title' => 'Staff & Tasks'],
+                        'branches' => ['icon' => 'fa-code-branch', 'title' => 'Branches'],
+                        'settings' => ['icon' => 'fa-gear', 'title' => 'System Settings'],
                     ];
                 @endphp
 
@@ -266,10 +266,10 @@
         <!-- Action Buttons -->
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding: 10px 0 30px;">
             <a href="{{ route('employees.index') }}" class="btn btn-secondary">
-                <i class="fa-solid fa-xmark"></i> रद्द करा (Cancel)
+                <i class="fa-solid fa-xmark"></i> Cancel
             </a>
             <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 15px;">
-                <i class="fa-solid fa-save"></i> बदल सेव्ह करा (Save Changes)
+                <i class="fa-solid fa-save"></i> Save Changes
             </button>
         </div>
 
@@ -305,10 +305,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (isAll) {
-            servicesCountBadge.textContent = 'सर्व सेवा उपलब्ध (All Allowed)';
+            servicesCountBadge.textContent = 'All Services Allowed';
             servicesCountBadge.className = 'badge badge-ready';
         } else {
-            servicesCountBadge.textContent = `${selectedCount} / ${serviceCheckboxes.length} सेवा निवडल्या`;
+            servicesCountBadge.textContent = `${selectedCount} / ${serviceCheckboxes.length} Selected`;
             servicesCountBadge.className = selectedCount > 0 ? 'badge badge-process' : 'badge badge-danger';
         }
     }

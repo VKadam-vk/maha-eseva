@@ -24,9 +24,9 @@
 
             @if(isset($mainServices) && count($mainServices) > 0)
             <div style="min-width: 220px;">
-                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Main Service Filter (मुख्य सेवा)</label>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Main Service Filter</label>
                 <select name="main_service" class="form-select">
-                    <option value="">All Main Services (सर्व सेवा)</option>
+                    <option value="">All Main Services</option>
                     @foreach($mainServices as $ms)
                         <option value="{{ $ms }}" {{ request('main_service') == $ms ? 'selected' : '' }}>{{ $ms }}</option>
                     @endforeach
@@ -48,8 +48,8 @@
         <table class="erp-table">
             <thead>
                 <tr>
-                    <th>Main Service (मुख्य सेवा)</th>
-                    <th>Sub-Service / Variant (उप-सेवा)</th>
+                    <th>Main Service</th>
+                    <th>Sub-Service / Variant</th>
                     <th>Govt Fee</th>
                     <th>Service Charge</th>
                     <th>Total Price</th>

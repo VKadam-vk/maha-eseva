@@ -131,7 +131,7 @@ class ServiceController extends Controller
         }
 
         return redirect()->route('services.index')
-            ->with('success', "मुख्य सेवा [{$mainServiceName}] अंतर्गत {$createdCount} उप-सेवा यशस्वीरित्या सेव्ह झाल्या!");
+            ->with('success', "Main service [{$mainServiceName}] with {$createdCount} sub-services saved successfully!");
     }
 
     /**
@@ -192,7 +192,7 @@ class ServiceController extends Controller
 
         AuditService::log('SERVICE_UPDATED', $service, $old, $service->toArray());
 
-        return redirect()->route('services.show', $service->id)->with('success', 'उप-सेवा माहिती यशस्वीरित्या अपडेट झाली!');
+        return redirect()->route('services.show', $service->id)->with('success', 'Sub-service updated successfully!');
     }
 
     /**
@@ -204,7 +204,7 @@ class ServiceController extends Controller
         $service->delete();
         AuditService::log('SERVICE_DELETED', $service, $old, null);
 
-        return redirect()->route('services.index')->with('success', 'सेवा यशस्वीरित्या हटवली.');
+        return redirect()->route('services.index')->with('success', 'Service deleted successfully.');
     }
 
     /**

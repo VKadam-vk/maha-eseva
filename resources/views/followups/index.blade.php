@@ -476,23 +476,23 @@
             <p>
                 @if($mode === 'overdue')
                     <span style="color: #dc2626; font-weight: 700;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> मागील प्रलंबित फॉलो-अप (Overdue Follow-ups)
+                        <i class="fa-solid fa-triangle-exclamation"></i> Overdue Follow-ups (Pending from past dates)
                     </span>
                 @elseif($mode === 'all')
                     <span style="color: #0284c7; font-weight: 700;">
-                        <i class="fa-solid fa-list-check"></i> सर्व आगामी शेड्यूल केलेले फॉलो-अप (All Scheduled)
+                        <i class="fa-solid fa-list-check"></i> All Scheduled Follow-ups
                     </span>
                 @elseif($selectedDate === $today)
                     <span style="color: #16a34a; font-weight: 700;">
-                        <i class="fa-solid fa-circle-check"></i> आजच्या तारखेच्या सेवा (Today: {{ \Carbon\Carbon::parse($today)->format('d M Y') }})
+                        <i class="fa-solid fa-circle-check"></i> Today's Follow-up Services ({{ \Carbon\Carbon::parse($today)->format('d M Y') }})
                     </span>
                 @elseif($selectedDate === $tomorrow)
                     <span style="color: #0284c7; font-weight: 700;">
-                        <i class="fa-regular fa-clock"></i> उद्याच्या तारखेच्या सेवा (Tomorrow: {{ \Carbon\Carbon::parse($tomorrow)->format('d M Y') }})
+                        <i class="fa-regular fa-clock"></i> Tomorrow's Follow-up Services ({{ \Carbon\Carbon::parse($tomorrow)->format('d M Y') }})
                     </span>
                 @else
                     <span style="color: #475569; font-weight: 700;">
-                        <i class="fa-solid fa-calendar-day"></i> तारीख: {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
+                        <i class="fa-solid fa-calendar-day"></i> Date: {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
                     </span>
                 @endif
             </p>
@@ -504,38 +504,38 @@
                 <!-- Today Pill -->
                 <a href="{{ route('followups.index', ['date' => $today]) }}"
                    class="date-pill-btn {{ (!$mode && $selectedDate === $today) ? 'active' : '' }}"
-                   title="फक्त आजचे फॉलो-अप (Today's Follow-ups)">
-                    <i class="fa-solid fa-bolt"></i> आज (Today)
+                   title="Today's Follow-ups">
+                    <i class="fa-solid fa-bolt"></i> Today
                     <span class="date-pill-badge">{{ $todayCount }}</span>
                 </a>
 
                 <!-- Tomorrow Pill -->
                 <a href="{{ route('followups.index', ['date' => $tomorrow]) }}"
                    class="date-pill-btn {{ (!$mode && $selectedDate === $tomorrow) ? 'active' : '' }}"
-                   title="फक्त उद्याचे फॉलो-अप (Tomorrow's Follow-ups)">
-                    <i class="fa-regular fa-calendar-plus"></i> उद्या (Tomorrow)
+                   title="Tomorrow's Follow-ups">
+                    <i class="fa-regular fa-calendar-plus"></i> Tomorrow
                     <span class="date-pill-badge">{{ $tomorrowCount }}</span>
                 </a>
 
                 <!-- Overdue Pill -->
                 <a href="{{ route('followups.index', ['mode' => 'overdue']) }}"
                    class="date-pill-btn {{ $mode === 'overdue' ? 'active' : '' }}"
-                   title="मागील प्रलंबित फॉलो-अप (Pending from past dates)">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: {{ $mode === 'overdue' ? '#fff' : '#e11d48' }};"></i> प्रलंबित (Overdue)
+                   title="Overdue (Pending from past dates)">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: {{ $mode === 'overdue' ? '#fff' : '#e11d48' }};"></i> Overdue
                     <span class="date-pill-badge" style="background: {{ $mode === 'overdue' ? 'rgba(255,255,255,0.3)' : '#fee2e2' }}; color: {{ $mode === 'overdue' ? '#fff' : '#b91c1c' }};">{{ $overdueCount }}</span>
                 </a>
 
                 <!-- All Pill -->
                 <a href="{{ route('followups.index', ['mode' => 'all']) }}"
                    class="date-pill-btn {{ $mode === 'all' ? 'active' : '' }}"
-                   title="सर्व शेड्यूल केलेले फॉलो-अप (All Scheduled)">
-                    <i class="fa-solid fa-list-ul"></i> सर्व (All)
+                   title="All Scheduled Follow-ups">
+                    <i class="fa-solid fa-list-ul"></i> All
                     <span class="date-pill-badge">{{ $allCount }}</span>
                 </a>
             </div>
 
             <!-- Custom Date Picker -->
-            <div class="date-picker-wrapper" title="दुसऱ्या कोणत्याही विशिष्ट तारखेचे फॉलो-अप पाहण्यासाठी तारीख निवडा">
+            <div class="date-picker-wrapper" title="Pick a specific date to view follow-ups">
                 <i class="fa-regular fa-calendar" style="color: #64748b; font-size: 13px;"></i>
                 <input type="date" value="{{ $selectedDate ?? $today }}"
                        onchange="window.location.href = '{{ route('followups.index') }}?date=' + this.value;">
@@ -550,7 +550,7 @@
                 <i class="fa-solid fa-layer-group"></i>
             </div>
             <div class="metric-info">
-                <span class="metric-label">एकूण सेवा (Scheduled)</span>
+                <span class="metric-label">Scheduled Services</span>
                 <span class="metric-value" id="card-total-count">{{ $totalCount }}</span>
             </div>
         </div>
@@ -595,15 +595,15 @@
                 <i class="fa-solid fa-table-list" style="color: #0284c7; font-size: 15px;"></i>
                 <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
                     @if($selectedDate === $today && !$mode)
-                        आजच्या तारखेच्या सेवांची यादी (Today's Follow-up Services)
+                        Today's Follow-up Services
                     @elseif($selectedDate === $tomorrow && !$mode)
-                        उद्याच्या तारखेच्या सेवांची यादी (Tomorrow's Follow-up Services)
+                        Tomorrow's Follow-up Services
                     @elseif($mode === 'overdue')
-                        प्रलंबित सेवांची यादी (Overdue Follow-up Services)
+                        Overdue Follow-up Services
                     @elseif($mode === 'all')
-                        सर्व आगामी सेवांची यादी (All Scheduled Services)
+                        All Scheduled Services
                     @else
-                        तारीख {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }} च्या सेवांची यादी
+                        Scheduled Services for {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
                     @endif
                 </span>
                 <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
@@ -612,7 +612,7 @@
             </div>
 
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
-                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> इनलाईन बदल केल्यास आपोआप सेव्ह होते (Auto-saves on change)
+                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
             </div>
         </div>
 
@@ -620,7 +620,7 @@
             <table class="sheet-table">
                 <thead>
                     <tr>
-                        <th style="min-width: 170px; width: 175px;">Customer (नाव व संपर्क)</th>
+                        <th style="min-width: 170px; width: 175px;">Customer (Name & Contact)</th>
                         <th style="min-width: 190px; width: 200px;">Service & Sub Service</th>
                         <th style="text-align: center; min-width: 75px; width: 80px;">Days</th>
                         <th style="text-align: right; min-width: 80px; width: 85px;">Rate (₹)</th>
@@ -685,7 +685,7 @@
                                     </div>
                                     <button type="button" class="btn-doc-eye"
                                             onclick="openDocsModalForService({{ $serv?->id ?? 'null' }}, '{{ addslashes($serv?->main_service_name ?? '') }}', '{{ addslashes($app->sub_service ?? '') }}', {{ $expDays }}, {{ $rate }})"
-                                            title="View Required Documents (आवश्यक कागदपत्रे पहा)">
+                                            title="View Required Documents">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
                                 </div>
@@ -762,14 +762,14 @@
                                     @php
                                         $curSt = strtoupper(trim($app->work_status ?? 'PENDING'));
                                         $knownStatuses = [
-                                            'PENDING' => 'PENDING (प्रलंबित)',
-                                            'IN_PROGRESS' => 'IN_PROGRESS (काम चालू आहे)',
-                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS (कागदपत्रे बाकी)',
-                                            'SUBMITTED' => 'SUBMITTED (पोर्टलवर भरले)',
-                                            'READY' => 'READY (तयार आहे)',
-                                            'DELIVERED' => 'DELIVERED (ग्राहकास दिले)',
-                                            'COMPLETED' => 'COMPLETED (पूर्ण झाले)',
-                                            'REJECTED' => 'REJECTED (नाकारले)',
+                                            'PENDING' => 'PENDING',
+                                            'IN_PROGRESS' => 'IN_PROGRESS',
+                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS',
+                                            'SUBMITTED' => 'SUBMITTED',
+                                            'READY' => 'READY',
+                                            'DELIVERED' => 'DELIVERED',
+                                            'COMPLETED' => 'COMPLETED',
+                                            'REJECTED' => 'REJECTED',
                                         ];
                                     @endphp
                                     @if(!array_key_exists($curSt, $knownStatuses) && !empty($curSt))
@@ -780,7 +780,7 @@
                                             {{ $stLabel }}
                                         </option>
                                     @endforeach
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                                 </select>
                             </td>
 
@@ -820,21 +820,21 @@
                                         <i class="fa-regular fa-calendar-xmark"></i>
                                     </div>
                                     <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">
-                                        या तारखेसाठी कोणताही फॉलो-अप शेड्यूल केलेला नाही
+                                        No Follow-up Scheduled For This Date
                                     </h4>
                                     <p style="margin: 6px 0 16px 0; font-size: 12.5px; color: #64748b;">
                                         @if($selectedDate === $today && !$mode)
-                                            आजच्या तारखेला ({{ \Carbon\Carbon::parse($today)->format('d M Y') }}) कोणतीही प्रलंबित सेवा नाही.
+                                            No pending follow-ups found for today ({{ \Carbon\Carbon::parse($today)->format('d M Y') }}).
                                         @else
-                                            निवडलेल्या तारखेला ({{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}) कोणतीही सेवा शेड्युल केलेली नाही.
+                                            No follow-up services scheduled for the selected date ({{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}).
                                         @endif
                                     </p>
                                     <div style="display: flex; justify-content: center; gap: 8px;">
                                         <a href="{{ route('followups.index', ['date' => $today]) }}" class="btn btn-sm btn-primary">
-                                            <i class="fa-solid fa-bolt"></i> आजचे फॉलो-अप पहा
+                                            <i class="fa-solid fa-bolt"></i> View Today's Follow-ups
                                         </a>
                                         <a href="{{ route('followups.index', ['date' => $tomorrow]) }}" class="btn btn-sm btn-secondary">
-                                            <i class="fa-regular fa-calendar-plus"></i> उद्याचे फॉलो-अप पहा
+                                            <i class="fa-regular fa-calendar-plus"></i> View Tomorrow's Follow-ups
                                         </a>
                                     </div>
                                 </div>
@@ -849,13 +849,13 @@
 
 <!-- Datalist for Status Combobox -->
 <datalist id="status-datalist">
-    <option value="PENDING">Pending (प्रलंबित)</option>
-    <option value="IN_PROGRESS">In Progress (काम चालू आहे)</option>
-    <option value="READY">Ready (कागदपत्र तयार आहे)</option>
-    <option value="DELIVERED">Delivered (ग्राहकास दिले)</option>
-    <option value="COMPLETED">Completed (पूर्ण झाले)</option>
+    <option value="PENDING">Pending</option>
+    <option value="IN_PROGRESS">In Progress</option>
+    <option value="READY">Ready</option>
+    <option value="DELIVERED">Delivered</option>
+    <option value="COMPLETED">Completed</option>
     <option value="WAITING_FOR_DOCS">Waiting for Documents</option>
-    <option value="REJECTED">Rejected (नाकारले)</option>
+    <option value="REJECTED">Rejected</option>
 </datalist>
 
 <!-- REQUIRED DOCUMENTS POPUP MODAL -->
@@ -869,10 +869,10 @@
                 </div>
                 <div>
                     <h3 id="modal-service-title" style="margin: 0; font-size: 14.5px; font-weight: 700; color: #ffffff;">Required Documents</h3>
-                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">आवश्यक कागदपत्रे व तपशील</p>
+                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Required Documents & Eligibility Details</p>
                 </div>
             </div>
-            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close (बंद करा)">
+            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close">
                 &times;
             </button>
         </div>
@@ -882,7 +882,7 @@
             <!-- Service Switcher Selector -->
             <div style="margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
                 <label for="modal-service-switcher" style="font-size: 11.5px; font-weight: 700; color: #334155; white-space: nowrap; margin: 0;">
-                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> सेवा बदला / निवडा:
+                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Switch / Select Service:
                 </label>
                 <select id="modal-service-switcher" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600; flex: 1; border-color: #cbd5e1; background: #ffffff;" onchange="onModalServiceSwitch(this.value)">
                 </select>
@@ -904,7 +904,7 @@
             <div style="margin-bottom: 14px;">
                 <h4 style="margin: 0 0 8px 0; font-size: 12.5px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-clipboard-check" style="color: #16a34a;"></i>
-                    लागणारी आवश्यक कागदपत्रे (Required Documents):
+                    Required Documents Checklist:
                 </h4>
                 <div id="modal-docs-container" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; min-height: 80px;">
                     <!-- Injected via JavaScript -->
@@ -980,7 +980,7 @@
     function onStatusSelectChange(selectEl, appId) {
         if (!selectEl) return;
         if (selectEl.value === '__NEW_CUSTOM__') {
-            const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+            const custom = prompt('Enter custom status name:');
             if (custom && custom.trim()) {
                 const clean = custom.trim().toUpperCase();
                 let opt = Array.from(selectEl.options).find(o => o.value === clean);
@@ -1157,7 +1157,7 @@
         const rate = service ? (service.price || 0) : (fallbackRate || 0);
 
         if (titleEl) titleEl.textContent = sName;
-        if (subTitleEl) subTitleEl.textContent = subServiceName ? `${sName} - ${subServiceName}` : 'आवश्यक कागदपत्रे व तपशील';
+        if (subTitleEl) subTitleEl.textContent = subServiceName ? `${sName} - ${subServiceName}` : 'Required Documents & Details';
         if (daysEl) daysEl.innerHTML = `<i class="fa-regular fa-clock"></i> ⏱️ Expected: ${days} Days`;
         if (rateEl) rateEl.innerHTML = `<i class="fa-solid fa-indian-rupee-sign"></i> ₹ ${parseFloat(rate).toFixed(2)}`;
 
@@ -1209,7 +1209,7 @@
             } else {
                 docsHtml = `<div style="text-align: center; padding: 14px; color: #64748b; font-size: 12px;">
                     <i class="fa-regular fa-file-lines" style="font-size: 20px; color: #cbd5e1; display: block; margin-bottom: 6px;"></i>
-                    या सेवेसाठी कोणतीही विशिष्ट कागदपत्रे नमूद केलेली नाहीत.
+                    No specific documents required for this service.
                 </div>`;
             }
 

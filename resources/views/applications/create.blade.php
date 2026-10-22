@@ -85,14 +85,14 @@
                 <!-- Operator Work & Tutorial Links Display -->
                 <div id="service-links-box" style="display: none; background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px;">
                     <div style="font-size: 12px; font-weight: 700; color: #1e40af; margin-bottom: 8px;">
-                        <i class="fa-solid fa-link"></i> ऑपरेटर लिंक्स (Work & Tutorial Links):
+                        <i class="fa-solid fa-link"></i> Operator Links (Work & Tutorial Links):
                     </div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <a id="btn-work-portal" href="#" target="_blank" class="btn btn-sm" style="display: none; background: #2563eb; color: white; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; box-shadow: 0 1px 3px rgba(37,99,235,0.25);">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Work Portal (सरकारी कामाचे पोर्टल)
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Work Portal
                         </a>
                         <a id="btn-tutorial-video" href="#" target="_blank" class="btn btn-sm" style="display: none; background: #dc2626; color: white; border: none; font-weight: 700; padding: 6px 14px; border-radius: 6px; box-shadow: 0 1px 3px rgba(220,38,38,0.25);">
-                            <i class="fa-brands fa-youtube"></i> Watch Tutorial (व्हिडिओ ट्युटोरियल)
+                            <i class="fa-brands fa-youtube"></i> Watch Tutorial
                         </a>
                     </div>
                 </div>

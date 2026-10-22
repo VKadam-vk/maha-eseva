@@ -584,7 +584,7 @@ class DatabaseSeeder extends Seeder
                 'service_portal_link' => 'https://mahakamgar.maharashtra.gov.in',
                 'custom_fields' => [
                     ['name' => 'Establishment Name (English)', 'key' => 'shop_name_en', 'type' => 'text', 'label' => 'Shop Name in English', 'required' => true],
-                    ['name' => 'Establishment Name (Marathi - देवनागरी)', 'key' => 'shop_name_mr', 'type' => 'text', 'label' => 'दुकानाचे नाव (मराठीत)', 'required' => true],
+                    ['name' => 'Establishment Name (Regional Script)', 'key' => 'shop_name_mr', 'type' => 'text', 'label' => 'Shop Name in Regional Script', 'required' => true],
                     ['name' => 'Nature of Business', 'key' => 'shop_nature', 'type' => 'text', 'label' => 'Nature of Business (e.g. Stationery & Xerox)', 'required' => true],
                     ['name' => 'Number of Employees', 'key' => 'num_employees', 'type' => 'number', 'label' => 'Total Employees Working', 'required' => true],
                 ],

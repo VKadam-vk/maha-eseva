@@ -410,7 +410,7 @@
                 Recent Services Desk
             </h1>
             <p>
-                सर्व अलीकडील सेवा नोंदी (Latest on top, older below) &bull; इनलाईन बदल आपोआप सेव्ह होतात
+                All recent service records (Latest on top, older below) &bull; Inline changes auto-save immediately
             </p>
         </div>
 
@@ -491,7 +491,7 @@
                 <i class="fa-solid fa-layer-group"></i>
             </div>
             <div class="metric-info">
-                <span class="metric-label">एकूण सेवा (Total Services)</span>
+                <span class="metric-label">Total Services</span>
                 <span class="metric-value" id="card-total-count">{{ $totalCount }}</span>
             </div>
         </div>
@@ -535,7 +535,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-table-list" style="color: #0284c7; font-size: 15px;"></i>
                 <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
-                    अलीकडील सेवांची यादी (Recent Services - Newest at Top)
+                    Recent Services (Newest at Top)
                 </span>
                 <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
                     Showing {{ $applications->count() }} of {{ $totalCount }}
@@ -543,7 +543,7 @@
             </div>
 
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
-                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> इनलाईन बदल केल्यास आपोआप सेव्ह होते (Auto-saves on change)
+                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
             </div>
         </div>
 
@@ -551,7 +551,7 @@
             <table class="sheet-table">
                 <thead>
                     <tr>
-                        <th style="min-width: 170px; width: 175px;">Customer (नाव व संपर्क)</th>
+                        <th style="min-width: 170px; width: 175px;">Customer (Name & Contact)</th>
                         <th style="min-width: 190px; width: 200px;">Service & Sub Service</th>
                         <th style="text-align: center; min-width: 70px; width: 75px;">Days</th>
                         <th style="text-align: center; min-width: 80px; width: 85px;">Date</th>
@@ -618,7 +618,7 @@
                                     </div>
                                     <button type="button" class="btn-doc-eye"
                                             onclick="openDocsModalForService({{ $serv?->id ?? 'null' }}, '{{ addslashes($serv?->main_service_name ?? '') }}', '{{ addslashes($app->sub_service ?? '') }}', {{ $expDays }}, {{ $rate }})"
-                                            title="View Required Documents (आवश्यक कागदपत्रे पहा)">
+                                            title="View Required Documents">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
                                 </div>
@@ -702,14 +702,14 @@
                                     @php
                                         $curSt = strtoupper(trim($app->work_status ?? 'PENDING'));
                                         $knownStatuses = [
-                                            'PENDING' => 'PENDING (प्रलंबित)',
-                                            'IN_PROGRESS' => 'IN_PROGRESS (काम चालू आहे)',
-                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS (कागदपत्रे बाकी)',
-                                            'SUBMITTED' => 'SUBMITTED (पोर्टलवर भरले)',
-                                            'READY' => 'READY (तयार आहे)',
-                                            'DELIVERED' => 'DELIVERED (ग्राहकास दिले)',
-                                            'COMPLETED' => 'COMPLETED (पूर्ण झाले)',
-                                            'REJECTED' => 'REJECTED (नाकारले)',
+                                            'PENDING' => 'PENDING',
+                                            'IN_PROGRESS' => 'IN_PROGRESS',
+                                            'WAITING_FOR_DOCS' => 'WAITING FOR DOCS',
+                                            'SUBMITTED' => 'SUBMITTED',
+                                            'READY' => 'READY',
+                                            'DELIVERED' => 'DELIVERED',
+                                            'COMPLETED' => 'COMPLETED',
+                                            'REJECTED' => 'REJECTED',
                                         ];
                                     @endphp
                                     @if(!array_key_exists($curSt, $knownStatuses) && !empty($curSt))
@@ -720,7 +720,7 @@
                                             {{ $stLabel }}
                                         </option>
                                     @endforeach
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status (नवीन)...</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                                 </select>
                             </td>
 
@@ -760,13 +760,13 @@
                                         <i class="fa-regular fa-folder-open"></i>
                                     </div>
                                     <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">
-                                        कोणतीही सर्व्हिस नोंद आढळली नाही
+                                        No Service Records Found
                                     </h4>
                                     <p style="margin: 6px 0 16px 0; font-size: 12.5px; color: #64748b;">
-                                        सर्च निकषांनुसार किंवा सिस्टीममध्ये अद्याप कोणतीही सर्व्हिस नोंद नाही.
+                                        No service entries found matching your search or filters.
                                     </p>
                                     <a href="{{ route('fast_entry.index') }}" class="btn btn-sm btn-primary">
-                                        <i class="fa-solid fa-plus"></i> नवीन Fast Entry करा
+                                        <i class="fa-solid fa-plus"></i> New Fast Entry
                                     </a>
                                 </div>
                             </td>
@@ -786,13 +786,13 @@
 
 <!-- Datalist for Status Combobox -->
 <datalist id="status-datalist">
-    <option value="PENDING">Pending (प्रलंबित)</option>
-    <option value="IN_PROGRESS">In Progress (काम चालू आहे)</option>
-    <option value="READY">Ready (कागदपत्र तयार आहे)</option>
-    <option value="DELIVERED">Delivered (ग्राहकास दिले)</option>
-    <option value="COMPLETED">Completed (पूर्ण झाले)</option>
+    <option value="PENDING">Pending</option>
+    <option value="IN_PROGRESS">In Progress</option>
+    <option value="READY">Ready</option>
+    <option value="DELIVERED">Delivered</option>
+    <option value="COMPLETED">Completed</option>
     <option value="WAITING_FOR_DOCS">Waiting for Documents</option>
-    <option value="REJECTED">Rejected (नाकारले)</option>
+    <option value="REJECTED">Rejected</option>
 </datalist>
 
 <!-- REQUIRED DOCUMENTS POPUP MODAL -->
@@ -806,10 +806,10 @@
                 </div>
                 <div>
                     <h3 id="modal-service-title" style="margin: 0; font-size: 14.5px; font-weight: 700; color: #ffffff;">Required Documents</h3>
-                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">आवश्यक कागदपत्रे व तपशील</p>
+                    <p id="modal-sub-service-title" style="margin: 2px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 500;">Required Documents & Eligibility Details</p>
                 </div>
             </div>
-            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close (बंद करा)">
+            <button type="button" class="modal-close-btn" onclick="closeDocsModal()" title="Close">
                 &times;
             </button>
         </div>
@@ -819,7 +819,7 @@
             <!-- Service Switcher Selector -->
             <div style="margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
                 <label for="modal-service-switcher" style="font-size: 11.5px; font-weight: 700; color: #334155; white-space: nowrap; margin: 0;">
-                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> सेवा बदला / निवडा:
+                    <i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Switch / Select Service:
                 </label>
                 <select id="modal-service-switcher" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600; flex: 1; border-color: #cbd5e1; background: #ffffff;" onchange="onModalServiceSwitch(this.value)">
                 </select>
@@ -841,7 +841,7 @@
             <div style="margin-bottom: 14px;">
                 <h4 style="margin: 0 0 8px 0; font-size: 12.5px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-clipboard-check" style="color: #16a34a;"></i>
-                    लागणारी आवश्यक कागदपत्रे (Required Documents):
+                    Required Documents Checklist:
                 </h4>
                 <div id="modal-docs-container" style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; min-height: 80px;">
                     <!-- Injected via JavaScript -->
@@ -917,7 +917,7 @@
     function onStatusSelectChange(selectEl, appId) {
         if (!selectEl) return;
         if (selectEl.value === '__NEW_CUSTOM__') {
-            const custom = prompt('नवीन स्टेटसचे नाव टाईप करा (Enter custom status name):');
+            const custom = prompt('Enter custom status name:');
             if (custom && custom.trim()) {
                 const clean = custom.trim().toUpperCase();
                 let opt = Array.from(selectEl.options).find(o => o.value === clean);
@@ -1092,7 +1092,7 @@
         const rate = service ? (service.price || 0) : (fallbackRate || 0);
 
         if (titleEl) titleEl.textContent = sName;
-        if (subTitleEl) subTitleEl.textContent = subServiceName ? `${sName} - ${subServiceName}` : 'आवश्यक कागदपत्रे व तपशील';
+        if (subTitleEl) subTitleEl.textContent = subServiceName ? `${sName} - ${subServiceName}` : 'Required Documents & Details';
         if (daysEl) daysEl.innerHTML = `<i class="fa-regular fa-clock"></i> ⏱️ Expected: ${days} Days`;
         if (rateEl) rateEl.innerHTML = `<i class="fa-solid fa-indian-rupee-sign"></i> ₹ ${parseFloat(rate).toFixed(2)}`;
 
@@ -1144,7 +1144,7 @@
             } else {
                 docsHtml = `<div style="text-align: center; padding: 14px; color: #64748b; font-size: 12px;">
                     <i class="fa-regular fa-file-lines" style="font-size: 20px; color: #cbd5e1; display: block; margin-bottom: 6px;"></i>
-                    या सेवेसाठी कोणतीही विशिष्ट कागदपत्रे नमूद केलेली नाहीत.
+                    No specific documents required for this service.
                 </div>`;
             }
 

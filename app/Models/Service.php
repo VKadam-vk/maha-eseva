@@ -50,7 +50,7 @@ class Service extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id')->withDefault([
-            'name' => 'General / सामान्य',
+            'name' => 'General',
         ]);
     }
 

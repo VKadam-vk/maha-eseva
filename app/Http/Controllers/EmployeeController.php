@@ -46,7 +46,7 @@ class EmployeeController extends Controller
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
         $permissions = Permission::all()->groupBy('module');
         $services = Service::where('is_active', true)->orderBy('main_service_name')->orderBy('sub_service_name')->get()->groupBy(function ($s) {
-            return $s->main_service_name ?: 'सर्वसाधारण सेवा';
+            return $s->main_service_name ?: 'General Services';
         });
 
         // Default recommended permissions for counter operator
@@ -164,7 +164,7 @@ class EmployeeController extends Controller
         $branches = $authUser->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
         $permissions = Permission::all()->groupBy('module');
         $services = Service::where('is_active', true)->orderBy('main_service_name')->orderBy('sub_service_name')->get()->groupBy(function ($s) {
-            return $s->main_service_name ?: 'सर्वसाधारण सेवा';
+            return $s->main_service_name ?: 'General Services';
         });
 
         $assignedPermissionIds = $employee->user->permissions()->pluck('permissions.id')->toArray();
