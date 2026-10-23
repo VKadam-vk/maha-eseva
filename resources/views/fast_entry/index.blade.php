@@ -1090,12 +1090,15 @@
                             </select>
                         </div>
 
-                        <!-- 8. OCCUPATION -->
-                        <div class="summary-item" title="Click to edit occupation">
-                            <span class="summary-label">Occupation</span>
-                            <input type="text" id="cd-inline-occ" class="inline-edit-input" placeholder="e.g. FARMER / SHOP"
-                                   onblur="autoSaveCustomerField('occupation', this.value)"
-                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                        <!-- 8. OCCUPATION (Click to choose or Add New) -->
+                        <div class="summary-item" title="Click to choose or add occupation (Auto-saves)">
+                            <span class="summary-label">
+                                <span>Occupation</span>
+                                <span class="save-indicator" id="ind-occ" style="display: none;">✓ Saved</span>
+                            </span>
+                            <select id="cd-inline-occ" class="inline-edit-select" onchange="onOccupationSelectChange(this)">
+                                <option value="">-- Select Occupation --</option>
+                            </select>
                         </div>
 
                         <!-- 9. BIRTH DATE -->
@@ -1711,7 +1714,7 @@ function populateCustomerUI(cust, isNew) {
     // Rating & Gender
     renderStarRating(cust.star_rating || 5);
     document.getElementById('cd-inline-gender').value = cust.gender || 'MALE';
-    document.getElementById('cd-inline-occ').value = cust.occupation || '';
+    renderOccupationOptions(cust.occupation || '');
     document.getElementById('cd-inline-dob').value = cust.birth_date || '';
     document.getElementById('cd-full-profile-link').href = cust.profile_url;
 
@@ -1756,6 +1759,12 @@ function autoSaveCustomerField(fieldName, fieldValue) {
                 document.getElementById('fe_name').value = fieldValue;
             } else if (fieldName === 'alternate_mobile') {
                 const ind = document.getElementById('ind-alt-mobile');
+                if (ind) {
+                    ind.style.display = 'inline';
+                    setTimeout(() => ind.style.display = 'none', 1500);
+                }
+            } else if (fieldName === 'occupation') {
+                const ind = document.getElementById('ind-occ');
                 if (ind) {
                     ind.style.display = 'inline';
                     setTimeout(() => ind.style.display = 'none', 1500);
@@ -1806,6 +1815,109 @@ document.addEventListener('keydown', function(e) {
         setAndAutoSaveRating(parseInt(e.key, 10));
     }
 });
+
+// ==========================================
+// 4b. OCCUPATION DROPDOWN & CUSTOM PERSISTENCE
+// ==========================================
+const DEFAULT_OCCUPATIONS = [
+    'FARMER',
+    'BUSINESS / SHOP',
+    'PRIVATE SERVICE',
+    'GOVERNMENT SERVICE',
+    'STUDENT',
+    'HOUSEWIFE',
+    'SELF EMPLOYED',
+    'DAILY WAGER / LABOUR',
+    'DRIVER',
+    'RETIRED',
+    'TEACHER',
+    'ADVOCATE',
+    'DOCTOR',
+    'OTHER'
+];
+const SERVER_OCCUPATIONS = @json($existingOccupations ?? []);
+
+function getSavedOccupations() {
+    let customList = [];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_occupations');
+        if (stored) customList = JSON.parse(stored);
+    } catch(e) {}
+    if (!Array.isArray(customList)) customList = [];
+
+    return Array.from(new Set([
+        ...DEFAULT_OCCUPATIONS,
+        ...(Array.isArray(SERVER_OCCUPATIONS) ? SERVER_OCCUPATIONS : []),
+        ...customList
+    ])).map(s => (s || '').trim().toUpperCase()).filter(Boolean);
+}
+
+function recordCustomOccupation(val) {
+    if (!val) return;
+    const clean = val.trim().toUpperCase();
+    if (!clean || clean === '__NEW_OCCUPATION__') return;
+
+    let customList = [];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_occupations');
+        if (stored) customList = JSON.parse(stored);
+    } catch(e) {}
+    if (!Array.isArray(customList)) customList = [];
+
+    if (!customList.includes(clean)) {
+        customList.push(clean);
+        try {
+            localStorage.setItem('maha_eseva_custom_occupations', JSON.stringify(customList));
+        } catch(e) {}
+    }
+}
+
+function renderOccupationOptions(selectedVal) {
+    const occSelect = document.getElementById('cd-inline-occ');
+    if (!occSelect) return;
+
+    const cleanSel = (selectedVal || '').trim().toUpperCase();
+    const list = getSavedOccupations();
+
+    if (cleanSel && !list.includes(cleanSel)) {
+        list.push(cleanSel);
+    }
+
+    let html = '<option value="">-- Select Occupation --</option>';
+    list.forEach(occ => {
+        const isSel = (occ === cleanSel) ? 'selected' : '';
+        html += `<option value="${escapeHtml(occ)}" ${isSel}>${escapeHtml(occ)}</option>`;
+    });
+    html += '<option value="__NEW_OCCUPATION__" style="color: #0284c7; font-weight: 700;">➕ Add New Occupation...</option>';
+
+    occSelect.innerHTML = html;
+    occSelect.dataset.prev = cleanSel;
+}
+
+function onOccupationSelectChange(selectEl) {
+    if (!selectEl) return;
+    if (selectEl.value === '__NEW_OCCUPATION__') {
+        const custom = prompt('Enter new occupation (e.g. ADVOCATE, POLICE, ENGINEER):');
+        if (custom && custom.trim()) {
+            const clean = custom.trim().toUpperCase();
+            recordCustomOccupation(clean);
+            renderOccupationOptions(clean);
+            selectEl.value = clean;
+            selectEl.dataset.prev = clean;
+            autoSaveCustomerField('occupation', clean);
+        } else {
+            selectEl.value = selectEl.dataset.prev || '';
+            return;
+        }
+    } else {
+        const val = selectEl.value;
+        selectEl.dataset.prev = val;
+        autoSaveCustomerField('occupation', val);
+    }
+}
+
+// Initial populate of occupation options
+renderOccupationOptions('');
 
 // ==========================================
 // 5. UNIFIED EXCEL TABLE: RENDER COMMITTED ROWS

@@ -38,7 +38,19 @@ class FastEntryController extends Controller
         // Active operators/employees
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
 
-        return view('fast_entry.index', compact('branches', 'services', 'employees'));
+        // Distinct customer occupations in database
+        $existingOccupations = Customer::where('tenant_id', $user->tenant_id)
+            ->whereNotNull('occupation')
+            ->where('occupation', '!=', '')
+            ->distinct()
+            ->pluck('occupation')
+            ->map(fn($o) => strtoupper(trim($o)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return view('fast_entry.index', compact('branches', 'services', 'employees', 'existingOccupations'));
     }
 
     /**
