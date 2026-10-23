@@ -194,8 +194,14 @@
 
     .details-summary-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    @media (min-width: 1400px) {
+        .details-summary-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
     }
 
     @media (max-width: 768px) {
@@ -1028,6 +1034,18 @@
                             <span class="summary-val font-mono" id="cd-mobile">-</span>
                         </div>
 
+                        <!-- 2b. ALTERNATE MOBILE (Click to edit) -->
+                        <div class="summary-item" title="Click to edit Alternate Mobile (Auto-saves on blur/Enter)">
+                            <span class="summary-label">
+                                <span>Alt Mobile (Click to edit)</span>
+                                <i class="fa-solid fa-pencil" style="font-size: 10px; color: #0284c7;"></i>
+                            </span>
+                            <input type="tel" id="cd-inline-alt-mobile" class="inline-edit-input font-mono" placeholder="Alternate Mobile" maxlength="20"
+                                   onblur="autoSaveCustomerField('alternate_mobile', this.value)"
+                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <span class="save-indicator" id="ind-alt-mobile">✓ Saved</span>
+                        </div>
+
                         <!-- 3. CODE -->
                         <div class="summary-item">
                             <span class="summary-label">Customer Code</span>
@@ -1163,9 +1181,10 @@
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
                             <th style="min-width: 95px;">5. Remaining (₹)</th>
                             <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
+                            <th style="min-width: 160px; color: #10b981;">7. Payment Remark</th>
                             <th style="min-width: 145px; color: #f59e0b;">
                                 <div class="excel-th-inner">
-                                    <span>7. Status</span>
+                                    <span>8. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1173,7 +1192,7 @@
                             </th>
                             <th style="min-width: 145px;">
                                 <div class="excel-th-inner">
-                                    <span>8. Operator</span>
+                                    <span>9. Operator</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1181,7 +1200,7 @@
                             </th>
                             <th style="min-width: 145px; color: #fbbf24;">
                                 <div class="excel-th-inner">
-                                    <span>9. Follow-Up Date</span>
+                                    <span>10. Follow-Up Date</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1270,7 +1289,17 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 7. Status (Direct Clickable Select Dropdown) -->
+                            <!-- 7. Payment Remark (Auto-expandable & Resizable) -->
+                            <td style="padding: 4px 6px;">
+                                <textarea id="se_payment_remarks" class="excel-work-details"
+                                          placeholder="Payment notes, mode, txn..."
+                                          rows="1"
+                                          title="Payment Remark: GPay, Cash, Part-payment notes, Txn ID, etc."
+                                          oninput="autoExpandWorkDetails(this)"
+                                          onkeydown="handleRowKeyDown(event)"></textarea>
+                            </td>
+
+                            <!-- 8. Status (Direct Clickable Select Dropdown) -->
                             <td style="padding: 4px 6px;">
                                 <select id="se_status" class="excel-select font-bold status-select"
                                         data-prev="IN_PROGRESS"
@@ -1415,7 +1444,7 @@
             </p>
 
             <!-- Customer Name Input -->
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 14px;">
                 <label for="confirm-modal-name-input" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                     Customer Full Name
                 </label>
@@ -1426,6 +1455,17 @@
                 <small style="color: #64748b; font-size: 11.5px; margin-top: 4px; display: block;">
                     Verify or type the customer's full name before registering.
                 </small>
+            </div>
+
+            <!-- Alternate Mobile (Optional) -->
+            <div style="margin-bottom: 20px;">
+                <label for="confirm-modal-alt-mobile-input" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                    Alternate Mobile Number (Optional)
+                </label>
+                <input type="tel" id="confirm-modal-alt-mobile-input" class="form-control font-mono"
+                       placeholder="e.g. 9822012345" maxlength="20"
+                       style="height: 42px; font-size: 14px; font-weight: 600; border: 1.5px solid #cbd5e1; border-radius: 8px;"
+                       onkeydown="if(event.key === 'Enter'){ event.preventDefault(); confirmAndCreateCustomer(); }">
             </div>
 
             <!-- Action Buttons -->
@@ -1484,7 +1524,8 @@ function executeQuickGo(e, confirmCreate = false) {
         body: JSON.stringify({
             mobile: mobile,
             customer_name: name,
-            confirm_create: confirmCreate
+            confirm_create: confirmCreate,
+            alternate_mobile: document.getElementById('confirm-modal-alt-mobile-input')?.value?.trim() || null
         })
     })
     .then(async res => {
@@ -1658,6 +1699,8 @@ function populateCustomerUI(cust, isNew) {
     document.getElementById('current_cust_id').value = cust.id;
     document.getElementById('cd-inline-name').value = cust.name;
     document.getElementById('cd-mobile').innerText = cust.mobile;
+    const altMobInput = document.getElementById('cd-inline-alt-mobile');
+    if (altMobInput) altMobInput.value = cust.alternate_mobile || '';
     document.getElementById('cd-code').innerText = cust.customer_code;
     document.getElementById('cd-services-count').innerText = `${cust.total_services} Services`;
     
@@ -1706,9 +1749,17 @@ function autoSaveCustomerField(fieldName, fieldValue) {
             // Show subtle saved indicator
             if (fieldName === 'name') {
                 const ind = document.getElementById('ind-name');
-                ind.style.display = 'inline';
-                setTimeout(() => ind.style.display = 'none', 1500);
+                if (ind) {
+                    ind.style.display = 'inline';
+                    setTimeout(() => ind.style.display = 'none', 1500);
+                }
                 document.getElementById('fe_name').value = fieldValue;
+            } else if (fieldName === 'alternate_mobile') {
+                const ind = document.getElementById('ind-alt-mobile');
+                if (ind) {
+                    ind.style.display = 'inline';
+                    setTimeout(() => ind.style.display = 'none', 1500);
+                }
             }
         }
     })
@@ -2365,6 +2416,15 @@ function getCommittedRowInnerHtml(app) {
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
         <td style="padding: 4px 6px;">
+            <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
+                      placeholder="Payment remark / notes..."
+                      rows="1"
+                      title="${escapeHtml(app.payment_remarks || '')}"
+                      oninput="autoExpandWorkDetails(this)"
+                      onchange="autoSaveCommittedRow(${app.id})"
+                      onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
+        </td>
+        <td style="padding: 4px 6px;">
             <div style="display: flex; align-items: center; gap: 4px;">
                 <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
                         data-prev="${escapeHtml(currentStatus)}"
@@ -2449,6 +2509,7 @@ function autoSaveCommittedRow(appId) {
     const operatorSelect = document.getElementById(`crow_operator_${appId}`);
     const subInput = document.getElementById(`crow_sub_${appId}`);
     const workDetailsInput = document.getElementById(`crow_work_details_${appId}`);
+    const paymentRemarksInput = document.getElementById(`crow_payment_remarks_${appId}`);
     const followupInput = document.getElementById(`crow_followup_${appId}`);
 
     if (!rateInput) return;
@@ -2459,6 +2520,7 @@ function autoSaveCommittedRow(appId) {
     const operator = operatorSelect ? operatorSelect.value : null;
     const subService = subInput ? subInput.value.trim() : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
+    const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
 
     const rowEl = document.getElementById(`committed-row-${appId}`);
@@ -2489,6 +2551,7 @@ function autoSaveCommittedRow(appId) {
         assigned_employee_id: operator || null,
         sub_service: subService || null,
         work_details: workDetails,
+        payment_remarks: paymentRemarks,
         follow_up_date: followupDate,
     };
 
@@ -2515,6 +2578,7 @@ function autoSaveCommittedRow(appId) {
                     operator: d.operator,
                     sub_service: d.sub_service,
                     work_details: d.work_details,
+                    payment_remarks: d.payment_remarks,
                     follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
@@ -2699,6 +2763,8 @@ function resetActiveRowFields() {
     document.getElementById('se_remaining').value = '';
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '34px';
+    document.getElementById('se_payment_remarks').value = '';
+    document.getElementById('se_payment_remarks').style.height = '34px';
     document.getElementById('se_docs_list').value = '';
     document.getElementById('se_followup').value = '';
 }
@@ -2758,6 +2824,7 @@ function saveActiveServiceRow() {
         rate: rate,
         received: document.getElementById('se_received').value || 0,
         work_details: document.getElementById('se_work_details').value.trim() || null,
+        payment_remarks: document.getElementById('se_payment_remarks').value.trim() || null,
         documents_list: document.getElementById('se_docs_list').value.trim() || null,
         follow_up_date: document.getElementById('se_followup').value || null,
         work_status: (document.getElementById('se_status').value || 'IN_PROGRESS').trim().toUpperCase(),
@@ -2799,6 +2866,7 @@ function saveActiveServiceRow() {
                 remaining: d.remaining.replace(/,/g, ''),
                 status: payload.work_status || 'READY',
                 work_details: d.work_details || payload.work_details || '',
+                payment_remarks: d.payment_remarks || payload.payment_remarks || '',
                 follow_up_date: d.follow_up_date || payload.follow_up_date || '',
                 portal_link: d.portal_link,
                 tutorial_link: d.tutorial_link,

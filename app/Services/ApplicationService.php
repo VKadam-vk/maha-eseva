@@ -97,6 +97,7 @@ class ApplicationService
                 'expected_completion_date' => $expectedCompletion,
                 'delivery_status' => 'PENDING',
                 'work_details' => $data['work_details'] ?? null,
+                'payment_remarks' => $data['payment_remarks'] ?? null,
                 'documents_list' => $data['documents_list'] ?? null,
                 'pending_remarks' => $data['pending_remarks'] ?? null,
                 'created_by' => $creator->id,

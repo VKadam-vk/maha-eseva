@@ -49,6 +49,7 @@ class FastEntryController extends Controller
         $validated = $request->validate([
             'customer_name' => ['nullable', 'string', 'max:255'],
             'mobile' => ['required', 'string', 'min:10', 'max:20'],
+            'alternate_mobile' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = Auth::user();
@@ -71,6 +72,11 @@ class FastEntryController extends Controller
             $newName = trim($validated['customer_name'] ?? '');
             if (!empty($newName) && $existing->name !== $newName) {
                 $existing->name = $newName;
+                $existing->save();
+            }
+
+            if ($request->filled('alternate_mobile')) {
+                $existing->alternate_mobile = trim($request->input('alternate_mobile'));
                 $existing->save();
             }
 
@@ -101,6 +107,7 @@ class FastEntryController extends Controller
                 'branch_id' => $branchId,
                 'name' => $custName,
                 'mobile' => $cleanedMobile,
+                'alternate_mobile' => $request->filled('alternate_mobile') ? trim($request->input('alternate_mobile')) : null,
                 'gender' => 'MALE',
                 'star_rating' => 5,
             ], $user);
@@ -128,6 +135,7 @@ class FastEntryController extends Controller
                     'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
                     'main_service_name' => $app->service?->main_service_name ?? 'Service',
                     'work_details' => $app->work_details ?? '',
+                    'payment_remarks' => $app->payment_remarks ?? '',
                     'follow_up_date' => $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : '',
                     'portal_link' => $app->service?->work_portal_link ?: $app->service?->service_portal_link,
                     'tutorial_link' => $app->service?->video_instruction_link,
@@ -222,6 +230,7 @@ class FastEntryController extends Controller
             'assigned_employee_id' => ['nullable', 'exists:employees,id'],
             'sub_service' => ['nullable', 'string', 'max:255'],
             'work_details' => ['nullable', 'string'],
+            'payment_remarks' => ['nullable', 'string'],
             'follow_up_date' => ['nullable', 'date'],
         ]);
 
@@ -259,6 +268,7 @@ class FastEntryController extends Controller
             'assigned_employee_id' => $newAssigned,
             'sub_service' => $newSubService,
             'work_details' => array_key_exists('work_details', $validated) ? $validated['work_details'] : $application->work_details,
+            'payment_remarks' => array_key_exists('payment_remarks', $validated) ? $validated['payment_remarks'] : $application->payment_remarks,
             'follow_up_date' => array_key_exists('follow_up_date', $validated) ? $validated['follow_up_date'] : $application->follow_up_date,
         ]);
 
@@ -294,6 +304,7 @@ class FastEntryController extends Controller
                 'status' => $application->work_status,
                 'assigned_employee_id' => $application->assigned_employee_id,
                 'work_details' => $application->work_details ?? '',
+                'payment_remarks' => $application->payment_remarks ?? '',
                 'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
                 'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
                 'customer_total_outstanding' => (float) $customer?->total_outstanding,
@@ -437,6 +448,7 @@ class FastEntryController extends Controller
             'rate' => ['required', 'numeric', 'min:0'],
             'received' => ['nullable', 'numeric', 'min:0'],
             'work_details' => ['nullable', 'string'],
+            'payment_remarks' => ['nullable', 'string'],
             'documents_list' => ['nullable', 'string'],
             'pending_remarks' => ['nullable', 'string'],
             'follow_up_date' => ['nullable', 'date'],
@@ -472,6 +484,7 @@ class FastEntryController extends Controller
                     'received_amount' => $received,
                     'work_status' => $workStatus,
                     'work_details' => $validated['work_details'] ?? null,
+                    'payment_remarks' => $validated['payment_remarks'] ?? null,
                     'documents_list' => $validated['documents_list'] ?? null,
                     'pending_remarks' => $validated['pending_remarks'] ?? null,
                     'follow_up_date' => $validated['follow_up_date'] ?? null,
@@ -520,6 +533,7 @@ class FastEntryController extends Controller
                     'expected_days' => (int) ($service->expected_processing_days ?? 7),
                     'main_service_name' => $service->main_service_name,
                     'work_details' => $application->work_details ?? '',
+                    'payment_remarks' => $application->payment_remarks ?? '',
                     'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
                     'portal_link' => $service->work_portal_link ?: $service->service_portal_link,
                     'tutorial_link' => $service->video_instruction_link,

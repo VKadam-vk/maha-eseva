@@ -65,6 +65,7 @@ class Application extends Model
         'delivery_status',
         'delivery_date',
         'work_details',
+        'payment_remarks',
         'documents_list',
         'pending_remarks',
         'rejection_reason',

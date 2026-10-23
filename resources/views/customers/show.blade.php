@@ -620,6 +620,7 @@
                 'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
                 'main_service_name' => $app->service?->main_service_name ?? 'Service',
                 'work_details' => $app->work_details ?? '',
+                'payment_remarks' => $app->payment_remarks ?? '',
                 'follow_up_date' => $app->follow_up_date ? $app->follow_up_date->format('Y-m-d') : '',
                 'portal_link' => $app->service?->work_portal_link ?: $app->service?->service_portal_link,
                 'tutorial_link' => $app->service?->video_instruction_link,
@@ -688,9 +689,10 @@
                         <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
                         <th style="min-width: 75px;">5. Remaining (₹)</th>
                         <th style="min-width: 140px; color: #38bdf8;">6. Work Details</th>
+                        <th style="min-width: 140px; color: #10b981;">7. Payment Remark</th>
                         <th style="min-width: 125px;">
                             <div class="excel-th-inner">
-                                <span>7. Operator</span>
+                                <span>8. Operator</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -698,7 +700,7 @@
                         </th>
                         <th style="min-width: 125px; color: #fbbf24;">
                             <div class="excel-th-inner">
-                                <span>8. Follow-Up Date</span>
+                                <span>9. Follow-Up Date</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -706,7 +708,7 @@
                         </th>
                         <th class="sticky-status-th" style="min-width: 130px; color: #f59e0b; text-align: center;">
                             <div class="excel-th-inner">
-                                <span>9. Status</span>
+                                <span>10. Status</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -788,7 +790,14 @@
                                       rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
-                        <!-- 7. Operator -->
+                        <!-- 7. Payment Remark -->
+                        <td>
+                            <textarea id="se_payment_remarks" class="excel-work-details"
+                                      placeholder="Payment notes, txn..."
+                                      rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
+                        </td>
+
+                        <!-- 8. Operator -->
                         <td>
                             <select id="se_operator" class="excel-select font-semibold" onkeydown="handleActiveRowKey(event)">
                                 <option value="">-- Operator --</option>
@@ -1193,6 +1202,15 @@ function getCommittedRowInnerHtml(app) {
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
         <td style="padding: 4px 6px;">
+            <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
+                      placeholder="Payment remark..."
+                      rows="1"
+                      title="${escapeHtml(app.payment_remarks || '')}"
+                      oninput="autoExpandWorkDetails(this)"
+                      onchange="autoSaveCommittedRow(${app.id})"
+                      onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
+        </td>
+        <td style="padding: 4px 6px;">
             <div style="display: flex; align-items: center; gap: 4px;">
                 <select id="crow_operator_${app.id}" class="excel-operator-select" style="flex: 1;"
                         title="Click to assign operator"
@@ -1306,6 +1324,7 @@ function autoSaveCommittedRow(appId) {
     const operatorSelect = document.getElementById(`crow_operator_${appId}`);
     const subInput = document.getElementById(`crow_sub_${appId}`);
     const workDetailsInput = document.getElementById(`crow_work_details_${appId}`);
+    const paymentRemarksInput = document.getElementById(`crow_payment_remarks_${appId}`);
     const followupInput = document.getElementById(`crow_followup_${appId}`);
 
     if (!rateInput) return;
@@ -1316,6 +1335,7 @@ function autoSaveCommittedRow(appId) {
     const operator = operatorSelect ? operatorSelect.value : null;
     const subService = subInput ? subInput.value.trim() : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
+    const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
 
     const rowEl = document.getElementById(`committed-row-${appId}`);
@@ -1347,6 +1367,7 @@ function autoSaveCommittedRow(appId) {
         assigned_employee_id: operator || null,
         sub_service: subService || null,
         work_details: workDetails,
+        payment_remarks: paymentRemarks,
         follow_up_date: followupDate,
     };
 
@@ -1373,6 +1394,7 @@ function autoSaveCommittedRow(appId) {
                     operator: d.operator,
                     sub_service: d.sub_service,
                     work_details: d.work_details,
+                    payment_remarks: d.payment_remarks,
                     follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
@@ -1505,6 +1527,8 @@ function resetActiveRowFields() {
     document.getElementById('se_remaining').value = '';
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '30px';
+    document.getElementById('se_payment_remarks').value = '';
+    document.getElementById('se_payment_remarks').style.height = '30px';
     document.getElementById('se_followup').value = '';
 }
 
@@ -1548,6 +1572,7 @@ function saveActiveServiceRow() {
         rate: rate,
         received: document.getElementById('se_received').value || 0,
         work_details: document.getElementById('se_work_details').value.trim() || null,
+        payment_remarks: document.getElementById('se_payment_remarks').value.trim() || null,
         follow_up_date: document.getElementById('se_followup').value || null,
         work_status: statusVal,
         assigned_employee_id: document.getElementById('se_operator').value || null,
@@ -1584,6 +1609,7 @@ function saveActiveServiceRow() {
                 expected_days: d.expected_days,
                 main_service_name: d.main_service_name || mainServiceName,
                 work_details: d.work_details,
+                payment_remarks: d.payment_remarks || payload.payment_remarks || '',
                 follow_up_date: d.follow_up_date,
                 portal_link: d.portal_link,
                 tutorial_link: d.tutorial_link,

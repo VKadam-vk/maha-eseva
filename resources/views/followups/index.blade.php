@@ -663,6 +663,7 @@
                         <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
                         <th style="min-width: 160px;">Work Details</th>
+                        <th style="min-width: 150px; width: 160px; color: #10b981;">Payment Remark</th>
                         <th style="min-width: 135px; width: 140px;">
                             <div class="excel-th-inner">
                                 <span>Operator</span>
@@ -809,6 +810,14 @@
                                           placeholder="Notes / instructions..."
                                           rows="1" oninput="autoExpandWorkDetails(this)"
                                           onchange="saveRowField({{ $app->id }}, 'work_details', this.value)">{{ $app->work_details }}</textarea>
+                            </td>
+
+                            <!-- Payment Remark -->
+                            <td>
+                                <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
+                                          placeholder="Payment notes, txn..."
+                                          rows="1" oninput="autoExpandWorkDetails(this)"
+                                          onchange="saveRowField({{ $app->id }}, 'payment_remarks', this.value)">{{ $app->payment_remarks }}</textarea>
                             </td>
 
                             <!-- 8. Operator -->
@@ -1114,6 +1123,7 @@
         const rate = parseFloat(document.getElementById(`rate_${appId}`)?.value || 0);
         const received = parseFloat(document.getElementById(`received_${appId}`)?.value || 0);
         const workDetails = document.getElementById(`work_details_${appId}`)?.value || null;
+        const paymentRemarks = document.getElementById(`payment_remarks_${appId}`)?.value || null;
         const operatorId = document.getElementById(`operator_${appId}`)?.value || null;
         const followUpDate = document.getElementById(`followup_${appId}`)?.value || null;
         const statusVal = document.getElementById(`status_${appId}`)?.value || 'PENDING';
@@ -1134,6 +1144,7 @@
             rate: rate,
             received: received,
             work_details: workDetails,
+            payment_remarks: paymentRemarks,
             assigned_employee_id: operatorId,
             follow_up_date: followUpDate,
             work_status: statusVal
