@@ -1133,10 +1133,8 @@ function getCommittedRowInnerHtml(app) {
     const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
-        <td class="font-mono font-bold" style="color: #0284c7; white-space: nowrap;">
-            <a href="${app.show_url || '#'}" target="_blank" style="color: #0284c7; text-decoration: none;" title="Open application details">
-                ${escapeHtml(app.application_number)}
-            </a>
+        <td class="font-mono font-bold" style="color: #475569; white-space: nowrap; user-select: text; cursor: default;">
+            ${escapeHtml(app.application_number)}
         </td>
         <td style="font-weight: 700; color: #0f172a;">
             ${escapeHtml(app.service_name)}
