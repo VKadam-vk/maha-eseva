@@ -689,7 +689,7 @@
                         <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
                         <th style="min-width: 75px;">5. Remaining (₹)</th>
                         <th style="min-width: 140px; color: #38bdf8;">6. Work Details</th>
-                        <th style="min-width: 140px; color: #10b981;">7. Payment Remark</th>
+                        <th style="min-width: 140px; color: #10b981;">7. Pending Remark</th>
                         <th style="min-width: 125px;">
                             <div class="excel-th-inner">
                                 <span>8. Operator</span>
@@ -790,10 +790,10 @@
                                       rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
-                        <!-- 7. Payment Remark -->
+                        <!-- 7. Pending Remark -->
                         <td>
                             <textarea id="se_payment_remarks" class="excel-work-details"
-                                      placeholder="Payment notes, txn..."
+                                      placeholder="Pending remark / notes..."
                                       rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
@@ -1203,7 +1203,7 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td style="padding: 4px 6px;">
             <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
-                      placeholder="Payment remark..."
+                      placeholder="Pending remark..."
                       rows="1"
                       title="${escapeHtml(app.payment_remarks || '')}"
                       oninput="autoExpandWorkDetails(this)"

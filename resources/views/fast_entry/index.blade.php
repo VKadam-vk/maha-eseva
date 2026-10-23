@@ -1184,7 +1184,7 @@
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
                             <th style="min-width: 95px;">5. Remaining (₹)</th>
                             <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
-                            <th style="min-width: 160px; color: #10b981;">7. Payment Remark</th>
+                            <th style="min-width: 160px; color: #10b981;">7. Pending Remark</th>
                             <th style="min-width: 145px; color: #f59e0b;">
                                 <div class="excel-th-inner">
                                     <span>8. Status</span>
@@ -1292,12 +1292,12 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 7. Payment Remark (Auto-expandable & Resizable) -->
+                            <!-- 7. Pending Remark (Auto-expandable & Resizable) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_payment_remarks" class="excel-work-details"
-                                          placeholder="Payment notes, mode, txn..."
+                                          placeholder="Pending remark / notes..."
                                           rows="1"
-                                          title="Payment Remark: GPay, Cash, Part-payment notes, Txn ID, etc."
+                                          title="Pending Remark: Pending reason, documents needed, notes, etc."
                                           oninput="autoExpandWorkDetails(this)"
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
@@ -2529,7 +2529,7 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td style="padding: 4px 6px;">
             <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
-                      placeholder="Payment remark / notes..."
+                      placeholder="Pending remark / notes..."
                       rows="1"
                       title="${escapeHtml(app.payment_remarks || '')}"
                       oninput="autoExpandWorkDetails(this)"

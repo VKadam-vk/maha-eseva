@@ -663,7 +663,7 @@
                         <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
                         <th style="min-width: 160px;">Work Details</th>
-                        <th style="min-width: 150px; width: 160px; color: #10b981;">Payment Remark</th>
+                        <th style="min-width: 150px; width: 160px; color: #10b981;">Pending Remark</th>
                         <th style="min-width: 135px; width: 140px;">
                             <div class="excel-th-inner">
                                 <span>Operator</span>
@@ -812,10 +812,10 @@
                                           onchange="saveRowField({{ $app->id }}, 'work_details', this.value)">{{ $app->work_details }}</textarea>
                             </td>
 
-                            <!-- Payment Remark -->
+                            <!-- Pending Remark -->
                             <td>
                                 <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
-                                          placeholder="Payment notes, txn..."
+                                          placeholder="Pending remark / notes..."
                                           rows="1" oninput="autoExpandWorkDetails(this)"
                                           onchange="saveRowField({{ $app->id }}, 'payment_remarks', this.value)">{{ $app->payment_remarks }}</textarea>
                             </td>
