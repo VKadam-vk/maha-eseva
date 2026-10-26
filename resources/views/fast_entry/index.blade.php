@@ -436,8 +436,8 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         right: 0 !important;
-        min-width: 185px !important;
-        width: 185px !important;
+        min-width: 170px !important;
+        width: 170px !important;
         box-sizing: border-box !important;
     }
 
@@ -1467,7 +1467,7 @@
                             </th>
                             <th style="min-width: 240px; text-align: center;">Actions & Quick Links</th>
                             <!-- 10. Status (Fixed Sticky Column on Right Side) -->
-                            <th class="sticky-col-status" style="min-width: 185px; text-align: center;">
+                            <th class="sticky-col-status" style="min-width: 170px; text-align: center;">
                                 <div class="excel-th-inner" style="justify-content: center; gap: 6px;">
                                     <span><i class="fa-solid fa-thumbtack" style="font-size: 11px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
@@ -1599,27 +1599,21 @@
 
                             <!-- 10. Status (Fixed Sticky Column on Right Side) -->
                             <td class="sticky-col-status" style="padding: 4px 6px;">
-                                <div style="display: flex; align-items: center; gap: 5px;">
-                                    <select id="se_status" class="excel-select font-bold status-select"
-                                            data-prev="IN_PROGRESS"
-                                            onchange="onActiveStatusSelectChange(this)"
-                                            onkeydown="handleRowKeyDown(event)"
-                                            style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; flex: 1;">
-                                        <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
-                                        <option value="PENDING">PENDING</option>
-                                        <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
-                                        <option value="SUBMITTED">SUBMITTED</option>
-                                        <option value="READY">READY</option>
-                                        <option value="DELIVERED">DELIVERED</option>
-                                        <option value="COMPLETED">COMPLETED</option>
-                                        <option value="REJECTED">REJECTED</option>
-                                        <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
-                                    </select>
-                                    <button type="button" id="btn-save-sticky" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)"
-                                            style="height: 38px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 800; font-size: 12px; gap: 4px; white-space: nowrap; flex-shrink: 0;">
-                                        <i class="fa-solid fa-check"></i> Save
-                                    </button>
-                                </div>
+                                <select id="se_status" class="excel-select font-bold status-select"
+                                        data-prev="IN_PROGRESS"
+                                        onchange="onActiveStatusSelectChange(this)"
+                                        onkeydown="handleRowKeyDown(event)"
+                                        style="width: 100%; height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
+                                    <option value="SUBMITTED">SUBMITTED</option>
+                                    <option value="READY">READY</option>
+                                    <option value="DELIVERED">DELIVERED</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="REJECTED">REJECTED</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
