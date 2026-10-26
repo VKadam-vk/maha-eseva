@@ -2991,28 +2991,16 @@ function getCommittedRowInnerHtml(app) {
             ${escapeHtml(app.service_name)}
         </td>
         <td style="padding: 4px 6px;">
-            <div class="crow-view-mode">
-                <span class="crow-view-text font-bold" id="crow_view_sub_${app.id}">${escapeHtml(app.sub_service || '-')}</span>
-                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
-                    <i class="fa-solid fa-eye"></i>
-                </button>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-            <div class="crow-edit-mode">
-                <input type="text" id="crow_sub_${app.id}" class="excel-cell-input" style="flex: 1;"
-                       value="${escapeHtml(app.sub_service || '')}"
-                       placeholder="Sub service"
-                       title="Click to edit sub-service"
-                       onchange="autoSaveCommittedRow(${app.id})"
-                       onkeydown="handleCommittedKey(event, ${app.id})">
-                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
-                    <i class="fa-solid fa-eye"></i>
-                </button>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <span class="crow-view-text font-bold" id="crow_view_sub_${app.id}" style="color: #0284c7;">${escapeHtml(app.sub_service || '-')}</span>
+                <div style="display: flex; align-items: center; gap: 3px; flex-shrink: 0;">
+                    <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                </div>
             </div>
         </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
@@ -3206,7 +3194,7 @@ function autoSaveCommittedRow(appId) {
     const receivedInput = document.getElementById(`crow_received_${appId}`);
     const statusInput = document.getElementById(`crow_status_${appId}`);
     const operatorSelect = document.getElementById(`crow_operator_${appId}`);
-    const subInput = document.getElementById(`crow_sub_${appId}`);
+    const subInput = document.getElementById(`crow_sub_${appId}`) || document.getElementById(`crow_view_sub_${appId}`);
     const workDetailsInput = document.getElementById(`crow_work_details_${appId}`);
     const paymentRemarksInput = document.getElementById(`crow_payment_remarks_${appId}`);
     const followupInput = document.getElementById(`crow_followup_${appId}`);
@@ -3217,7 +3205,7 @@ function autoSaveCommittedRow(appId) {
     const received = receivedInput ? (receivedInput.value || 0) : 0;
     const status = statusInput ? (statusInput.value.trim().toUpperCase() || 'PENDING') : 'PENDING';
     const operator = operatorSelect ? operatorSelect.value : null;
-    const subService = subInput ? subInput.value.trim() : '';
+    const subService = subInput ? (subInput.tagName === 'INPUT' ? subInput.value.trim() : (subInput.textContent || '').trim()) : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;

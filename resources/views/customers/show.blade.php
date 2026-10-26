@@ -1164,20 +1164,18 @@ function getCommittedRowInnerHtml(app) {
             ${escapeHtml(app.service_name)}
         </td>
         <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <input type="text" id="crow_sub_${app.id}" class="excel-cell-input" style="flex: 1;"
-                       value="${escapeHtml(app.sub_service || '')}"
-                       placeholder="Sub service"
-                       tabindex="-1"
-                       title="${escapeHtml(app.sub_service || 'Sub service')}"
-                       onchange="autoSaveCommittedRow(${app.id})"
-                       onkeydown="handleCommittedKey(event, ${app.id})">
-                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
-                    <i class="fa-solid fa-eye"></i>
-                </button>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <span id="crow_sub_${app.id}" style="font-weight: 600; color: #0284c7; font-size: 12px; line-height: 1.25;">
+                    ${escapeHtml(app.sub_service || '-')}
+                </span>
+                <div style="display: flex; align-items: center; gap: 3px; flex-shrink: 0;">
+                    <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                </div>
             </div>
         </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
@@ -1438,7 +1436,7 @@ function autoSaveCommittedRow(appId) {
     const received = receivedInput ? (receivedInput.value || 0) : 0;
     const status = statusInput ? (statusInput.value.trim().toUpperCase() || 'PENDING') : 'PENDING';
     const operator = operatorSelect ? operatorSelect.value : null;
-    const subService = subInput ? subInput.value.trim() : '';
+    const subService = subInput ? (subInput.tagName === 'INPUT' ? subInput.value.trim() : (subInput.textContent || '').trim()) : '';
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
