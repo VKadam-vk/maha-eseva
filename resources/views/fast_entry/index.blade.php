@@ -436,9 +436,10 @@
     .pocket-excel-table .sticky-col-status {
         position: -webkit-sticky !important;
         position: sticky !important;
-        right: 215px !important;
+        right: 260px !important;
         min-width: 155px !important;
         width: 155px !important;
+        max-width: 155px !important;
         box-sizing: border-box !important;
     }
 
@@ -446,8 +447,9 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         right: 0 !important;
-        min-width: 215px !important;
-        width: 215px !important;
+        min-width: 260px !important;
+        width: 260px !important;
+        max-width: 260px !important;
         box-sizing: border-box !important;
     }
 
@@ -456,6 +458,7 @@
         background: #0f172a !important;
         color: #f59e0b !important;
         border-left: 1.5px solid #334155 !important;
+        border-right: 1.5px solid #334155 !important;
         box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.4) !important;
     }
 
@@ -470,6 +473,7 @@
         z-index: 24 !important;
         background: #fffbeb !important;
         border-left: 1.5px solid #f59e0b !important;
+        border-right: 1.5px solid #fde68a !important;
         border-top: 2px solid #f59e0b !important;
         border-bottom: 2px solid #f59e0b !important;
     }
@@ -486,6 +490,7 @@
         z-index: 19 !important;
         background: #ffffff !important;
         border-left: 1.5px solid #cbd5e1 !important;
+        border-right: 1.5px solid #e2e8f0 !important;
         box-shadow: -4px 0 8px -2px rgba(15, 23, 42, 0.08) !important;
     }
 
@@ -500,6 +505,11 @@
         background: #f0f9ff !important;
     }
 
+    .pocket-excel-table tbody tr.committed-row.unlocked-row td.sticky-col-status,
+    .pocket-excel-table tbody tr.committed-row.unlocked-row td.sticky-col-actions {
+        background: #f0fdf4 !important;
+    }
+
     .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-status,
     .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-actions {
         background: #dcfce7 !important;
@@ -508,11 +518,11 @@
     .pocket-excel-table .excel-input,
     .pocket-excel-table .excel-select {
         width: 100%;
-        height: 38px;
-        font-size: 13px;
+        height: 34px;
+        font-size: 12.5px;
         border: 1.5px solid #cbd5e1;
         border-radius: 6px;
-        padding: 5px 9px;
+        padding: 4px 8px;
         background: #ffffff;
         transition: all 0.15s ease;
     }
@@ -727,8 +737,8 @@
 
     /* Sub-Service Eye Icon Button */
     .btn-doc-eye {
-        width: 34px;
-        height: 38px;
+        width: 32px;
+        height: 34px;
         flex-shrink: 0;
         background: #e0f2fe;
         color: #0284c7;
@@ -949,22 +959,28 @@
         box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
     }
 
-    /* Row Action Buttons (Apply, Tutorial, View) */
+    /* Row Action Buttons (Edit, Apply, Tutorial, Receipt) */
     .btn-row-action {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        font-size: 11px;
+        gap: 3.5px;
+        font-size: 10.5px;
         font-weight: 700;
-        padding: 6px 9px;
-        border-radius: 6px;
+        padding: 2.5px 6.5px;
+        height: 24px;
+        border-radius: 4px;
         text-decoration: none;
         cursor: pointer;
         transition: all 0.15s ease;
         white-space: nowrap;
         line-height: 1;
         border: 1px solid transparent;
+        box-sizing: border-box;
+    }
+
+    .btn-row-action i {
+        font-size: 10px;
     }
 
     .btn-row-apply {
@@ -977,7 +993,7 @@
         background: #0369a1;
         color: #ffffff;
         transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        box-shadow: 0 2px 5px rgba(2, 132, 199, 0.35);
     }
 
     .btn-row-tutorial {
@@ -990,7 +1006,20 @@
         background: #b91c1c;
         color: #ffffff;
         transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+        box-shadow: 0 2px 5px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-row-action.btn-row-receipt {
+        background: #16a34a;
+        color: #ffffff;
+        border-color: #15803d;
+    }
+
+    .btn-row-action.btn-row-receipt:hover {
+        background: #15803d;
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
     }
 
     .btn-row-view {
@@ -1005,8 +1034,8 @@
     }
 
     .btn-doc-eye-small {
-        width: 26px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         flex-shrink: 0;
         background: #e0f2fe;
         color: #0284c7;
@@ -1016,7 +1045,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 10px;
         transition: all 0.15s ease;
     }
 
@@ -1027,26 +1056,27 @@
     }
 
     .btn-save-excel-row {
-        height: 38px;
-        background: #ea580c;
+        height: 27px;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         color: white;
-        border: none;
+        border: 1px solid #c2410c;
         font-weight: 800;
-        font-size: 13px;
-        padding: 0 16px;
-        border-radius: 6px;
-        box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
+        font-size: 11px;
+        padding: 0 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.25);
         cursor: pointer;
         white-space: nowrap;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        transition: all 0.2s ease;
+        gap: 4px;
+        transition: all 0.15s ease;
     }
 
     .btn-save-excel-row:hover {
-        background: #c2410c;
+        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
         transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(234, 88, 12, 0.35);
     }
 
     /* Alert Banner */
@@ -1498,16 +1528,16 @@
                                 </div>
                             </th>
                             <!-- 10. Status (Sticky Right, Left of Actions) -->
-                            <th class="sticky-col-status" style="min-width: 155px; text-align: center;">
-                                <div class="excel-th-inner" style="justify-content: center; gap: 6px;">
-                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 11px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
+                            <th class="sticky-col-status" style="width: 155px; min-width: 155px; max-width: 155px; text-align: center;">
+                                <div class="excel-th-inner" style="justify-content: center; gap: 5px;">
+                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 10px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
                             <!-- Actions & Quick Links (Sticky Right, Far Edge) -->
-                            <th class="sticky-col-actions" style="min-width: 215px; text-align: center;">Actions & Quick Links</th>
+                            <th class="sticky-col-actions" style="width: 260px; min-width: 260px; max-width: 260px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1616,12 +1646,12 @@
                             </td>
 
                             <!-- 10. Status (Sticky Right, Left of Actions) -->
-                            <td class="sticky-col-status" style="padding: 4px 6px;">
+                            <td class="sticky-col-status" style="padding: 4px 6px; width: 155px; min-width: 155px; max-width: 155px; text-align: center;">
                                 <select id="se_status" class="excel-select font-bold status-select"
                                         data-prev="IN_PROGRESS"
                                         onchange="onActiveStatusSelectChange(this)"
                                         onkeydown="handleRowKeyDown(event)"
-                                        style="width: 100%; height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                        style="width: 100%; height: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 2px 4px;">
                                     <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
                                     <option value="PENDING">PENDING</option>
                                     <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
@@ -1635,8 +1665,8 @@
                             </td>
 
                             <!-- Actions & Quick Links: Save + Apply + Tutorial (Sticky Right, Far Edge) -->
-                            <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+                            <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 260px; min-width: 260px; max-width: 260px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
                                     <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
                                         <i class="fa-solid fa-check"></i> Save
                                     </button>
@@ -3098,15 +3128,15 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
         <!-- 10. STATUS (Sticky Right, Left of Actions) -->
-        <td class="sticky-col-status" style="padding: 4px 6px;">
-            <div class="crow-view-mode">
-                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
+        <td class="sticky-col-status" style="padding: 4px 6px; width: 155px; min-width: 155px; max-width: 155px;">
+            <div class="crow-view-mode" style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                <span id="crow_view_status_${app.id}" class="crow-view-badge" style="flex: 1; text-align: center;">${escapeHtml(currentStatus || 'PENDING')}</span>
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </button>
             </div>
-            <div class="crow-edit-mode">
-                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+            <div class="crow-edit-mode" style="display: none; align-items: center; gap: 4px;">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1; height: 28px; font-size: 11px; padding: 2px 4px;"
                         data-prev="${escapeHtml(currentStatus)}"
                         onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
                     ${renderStatusOptionsHtml(currentStatus, serviceName)}
@@ -3117,8 +3147,8 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
         <!-- Actions & Quick Links (Sticky Right, Far Edge) -->
-        <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+        <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 260px; min-width: 260px; max-width: 260px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
                     <i class="fa-solid fa-pencil"></i> Edit
                 </button>
@@ -3129,7 +3159,6 @@ function getCommittedRowInnerHtml(app) {
                     <i class="fa-brands fa-youtube"></i> Tutorial
                 </a>
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openQuickReceiptModal(${app.id})"
-                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 700; padding: 4px 9px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"
                    title="View & Print Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i> Receipt
                 </button>
