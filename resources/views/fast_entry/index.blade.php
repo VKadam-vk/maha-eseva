@@ -363,6 +363,7 @@
         border-radius: 10px;
         background: #ffffff;
         overflow-x: auto;
+        position: relative;
         -webkit-overflow-scrolling: touch;
         box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.05);
     }
@@ -426,6 +427,50 @@
         border-top: 2px solid #f59e0b;
         border-bottom: 2px solid #f59e0b;
         padding: 6px 8px;
+    }
+
+    /* ========================================================================= */
+    /* STICKY RIGHT STATUS COLUMN (FREEZE PANE ON RIGHT SIDE)                     */
+    /* ========================================================================= */
+    .pocket-excel-table .sticky-col-status {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 0 !important;
+        min-width: 185px !important;
+        width: 185px !important;
+        box-sizing: border-box !important;
+    }
+
+    .pocket-excel-table th.sticky-col-status {
+        z-index: 35 !important;
+        background: #0f172a !important;
+        color: #f59e0b !important;
+        border-left: 2px solid #334155 !important;
+        box-shadow: -5px 0 12px -2px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .pocket-excel-table tr.active-entry-row td.sticky-col-status {
+        z-index: 25 !important;
+        background: #fffbeb !important;
+        border-left: 2px solid #f59e0b !important;
+        border-top: 2px solid #f59e0b !important;
+        border-bottom: 2px solid #f59e0b !important;
+        box-shadow: -5px 0 12px -2px rgba(245, 158, 11, 0.35) !important;
+    }
+
+    .pocket-excel-table tbody tr.committed-row td.sticky-col-status {
+        z-index: 20 !important;
+        background: #ffffff !important;
+        border-left: 2px solid #cbd5e1 !important;
+        box-shadow: -5px 0 10px -2px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-status {
+        background: #f0f9ff !important;
+    }
+
+    .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-status {
+        background: #dcfce7 !important;
     }
 
     .pocket-excel-table .excel-input,
@@ -1420,16 +1465,16 @@
                                     </button>
                                 </div>
                             </th>
-                            <!-- 10. Status (Fixed on Right Side) -->
-                            <th style="min-width: 155px; color: #f59e0b;">
-                                <div class="excel-th-inner">
-                                    <span>10. Status</span>
+                            <th style="min-width: 240px; text-align: center;">Actions & Quick Links</th>
+                            <!-- 10. Status (Fixed Sticky Column on Right Side) -->
+                            <th class="sticky-col-status" style="min-width: 185px; text-align: center;">
+                                <div class="excel-th-inner" style="justify-content: center; gap: 6px;">
+                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 11px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
-                            <th style="min-width: 250px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1537,25 +1582,6 @@
                                        onkeydown="handleRowKeyDown(event)">
                             </td>
 
-                            <!-- 10. Status (Right Side Position Column) -->
-                            <td style="padding: 4px 6px;">
-                                <select id="se_status" class="excel-select font-bold status-select"
-                                        data-prev="IN_PROGRESS"
-                                        onchange="onActiveStatusSelectChange(this)"
-                                        onkeydown="handleRowKeyDown(event)"
-                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
-                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
-                                    <option value="SUBMITTED">SUBMITTED</option>
-                                    <option value="READY">READY</option>
-                                    <option value="DELIVERED">DELIVERED</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                    <option value="REJECTED">REJECTED</option>
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
-                                </select>
-                            </td>
-
                             <!-- Actions & Quick Links: Save + Apply + Tutorial -->
                             <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
@@ -1568,6 +1594,31 @@
                                     <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
                                         <i class="fa-brands fa-youtube"></i> Tutorial
                                     </a>
+                                </div>
+                            </td>
+
+                            <!-- 10. Status (Fixed Sticky Column on Right Side) -->
+                            <td class="sticky-col-status" style="padding: 4px 6px;">
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <select id="se_status" class="excel-select font-bold status-select"
+                                            data-prev="IN_PROGRESS"
+                                            onchange="onActiveStatusSelectChange(this)"
+                                            onkeydown="handleRowKeyDown(event)"
+                                            style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; flex: 1;">
+                                        <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
+                                        <option value="PENDING">PENDING</option>
+                                        <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
+                                        <option value="SUBMITTED">SUBMITTED</option>
+                                        <option value="READY">READY</option>
+                                        <option value="DELIVERED">DELIVERED</option>
+                                        <option value="COMPLETED">COMPLETED</option>
+                                        <option value="REJECTED">REJECTED</option>
+                                        <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                    </select>
+                                    <button type="button" id="btn-save-sticky" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)"
+                                            style="height: 38px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 800; font-size: 12px; gap: 4px; white-space: nowrap; flex-shrink: 0;">
+                                        <i class="fa-solid fa-check"></i> Save
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -3014,25 +3065,6 @@ function getCommittedRowInnerHtml(app) {
                 </button>
             </div>
         </td>
-        <!-- 10. STATUS (Fixed on Right Side Column) -->
-        <td style="padding: 4px 6px;">
-            <div class="crow-view-mode">
-                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-            <div class="crow-edit-mode">
-                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
-                        data-prev="${escapeHtml(currentStatus)}"
-                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
-                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
-                </select>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-        </td>
         <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
@@ -3052,6 +3084,25 @@ function getCommittedRowInnerHtml(app) {
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
+            </div>
+        </td>
+        <!-- 10. STATUS (Fixed Sticky Column on Right Side) -->
+        <td class="sticky-col-status" style="padding: 4px 6px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        data-prev="${escapeHtml(currentStatus)}"
+                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
+                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
             </div>
         </td>
     `;
@@ -3389,9 +3440,11 @@ function saveActiveServiceRow() {
         return;
     }
 
-    const btn = document.getElementById('btn-save-row');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    const saveBtns = document.querySelectorAll('.btn-save-excel-row');
+    saveBtns.forEach(b => {
+        b.disabled = true;
+        b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    });
 
     const payload = {
         _token: '{{ csrf_token() }}',
@@ -3419,8 +3472,10 @@ function saveActiveServiceRow() {
     })
     .then(res => res.json())
     .then(res => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Save (Enter)';
+        saveBtns.forEach(b => {
+            b.disabled = false;
+            b.innerHTML = '<i class="fa-solid fa-check"></i> Save (Enter)';
+        });
 
         if (res.success) {
             const d = res.data;
@@ -3514,8 +3569,10 @@ function saveActiveServiceRow() {
         }
     })
     .catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Save (Enter)';
+        saveBtns.forEach(b => {
+            b.disabled = false;
+            b.innerHTML = '<i class="fa-solid fa-check"></i> Save (Enter)';
+        });
         alert('Network error while recording service.');
     });
 }
