@@ -904,20 +904,6 @@
                                         </a>
                                     @endif
 
-                                    @if($cust)
-                                        <a href="{{ route('customers.show', $cust->id) }}"
-                                           class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #f1f5f9; color: #334155; border-radius: 4px; border: 1px solid #cbd5e1;"
-                                           title="View Full Profile">
-                                            <i class="fa-solid fa-user"></i>
-                                        </a>
-                                    @endif
-
-                                    <button type="button" class="btn btn-sm"
-                                            style="padding: 3px 6px; font-size: 11px; background: #dcfce7; color: #166534; border-radius: 4px; border: 1px solid #bbf7d0;"
-                                            onclick="markServiceComplete({{ $app->id }})"
-                                            title="Mark as Completed / Delivered">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
                                 </div>
                             </td>
                         </tr>
