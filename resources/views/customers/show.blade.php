@@ -610,7 +610,7 @@
     <!-- 3. UNIFIED CUSTOMER SERVICES SPREADSHEET (Fast Entry Style: Live Row on Top + Old Services Below) -->
     @php
         $uniqueMainServices = $activeServices->pluck('main_service_name')->filter()->unique()->sort()->values();
-        $formattedApps = $customer->applications->map(function ($app) {
+        $formattedApps = $customer->applications->map(function ($app) use ($customer) {
             return [
                 'id' => $app->id,
                 'application_number' => $app->application_number,
