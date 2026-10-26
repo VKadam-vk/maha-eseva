@@ -1023,3 +1023,173 @@
     box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
 }
 
+/* ========================================================================= */
+/* UNIVERSAL ROW LOCK & UNLOCK SYSTEM FOR SERVICES TABLES                   */
+/* ========================================================================= */
+
+/* 1. ROW LOCKED STATE (Read-Only Mode: strictly no accidental edits) */
+tr.recent-row-locked,
+tr.followup-row-locked,
+tr.committed-row-locked,
+tr.service-row-locked {
+    position: relative;
+}
+
+tr.recent-row-locked input,
+tr.recent-row-locked select,
+tr.recent-row-locked textarea,
+tr.followup-row-locked input,
+tr.followup-row-locked select,
+tr.followup-row-locked textarea,
+tr.committed-row-locked input,
+tr.committed-row-locked select,
+tr.committed-row-locked textarea,
+tr.service-row-locked input,
+tr.service-row-locked select,
+tr.service-row-locked textarea {
+    pointer-events: none !important;
+    user-select: text !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    cursor: default !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Hide number spinner buttons when row is locked */
+tr.recent-row-locked input[type="number"]::-webkit-inner-spin-button,
+tr.recent-row-locked input[type="number"]::-webkit-outer-spin-button,
+tr.followup-row-locked input[type="number"]::-webkit-inner-spin-button,
+tr.followup-row-locked input[type="number"]::-webkit-outer-spin-button,
+tr.committed-row-locked input[type="number"]::-webkit-inner-spin-button,
+tr.committed-row-locked input[type="number"]::-webkit-outer-spin-button,
+tr.service-row-locked input[type="number"]::-webkit-inner-spin-button,
+tr.service-row-locked input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    display: none !important;
+    margin: 0 !important;
+}
+
+tr.recent-row-locked input[type="number"],
+tr.followup-row-locked input[type="number"],
+tr.committed-row-locked input[type="number"],
+tr.service-row-locked input[type="number"] {
+    -moz-appearance: textfield !important;
+}
+
+/* Hide date calendar picker indicator when row is locked */
+tr.recent-row-locked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.followup-row-locked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.committed-row-locked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.service-row-locked input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none !important;
+}
+
+/* Status dropdown looks like a clean status badge when locked */
+tr.recent-row-locked select.status-select,
+tr.recent-row-locked select.excel-status-input,
+tr.followup-row-locked select.status-select,
+tr.followup-row-locked select.excel-status-input,
+tr.committed-row-locked select.status-select,
+tr.committed-row-locked select.excel-status-input,
+tr.service-row-locked select.status-select,
+tr.service-row-locked select.excel-status-input {
+    border-radius: 4px !important;
+    font-weight: 800 !important;
+    padding: 3px 6px !important;
+    text-align: center !important;
+    pointer-events: none !important;
+    cursor: default !important;
+}
+
+/* Textareas in locked mode */
+tr.recent-row-locked textarea,
+tr.followup-row-locked textarea,
+tr.committed-row-locked textarea,
+tr.service-row-locked textarea {
+    resize: none !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.3 !important;
+}
+
+/* 2. ROW UNLOCKED STATE (Edit Mode: active editing cells) */
+tr.recent-row-unlocked,
+tr.followup-row-unlocked,
+tr.committed-row-unlocked,
+tr.service-row-unlocked {
+    background-color: #f0fdf4 !important;
+    box-shadow: inset 0 0 0 2px #16a34a !important;
+}
+
+tr.recent-row-unlocked td,
+tr.followup-row-unlocked td,
+tr.committed-row-unlocked td,
+tr.service-row-unlocked td {
+    background-color: #f0fdf4 !important;
+}
+
+tr.recent-row-unlocked input,
+tr.recent-row-unlocked select,
+tr.recent-row-unlocked textarea,
+tr.followup-row-unlocked input,
+tr.followup-row-unlocked select,
+tr.followup-row-unlocked textarea,
+tr.committed-row-unlocked input,
+tr.committed-row-unlocked select,
+tr.committed-row-unlocked textarea,
+tr.service-row-unlocked input,
+tr.service-row-unlocked select,
+tr.service-row-unlocked textarea {
+    background: #ffffff !important;
+    border: 1.5px solid #16a34a !important;
+    border-radius: 4px !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    -webkit-appearance: auto !important;
+    -moz-appearance: auto !important;
+    appearance: auto !important;
+}
+
+tr.recent-row-unlocked select,
+tr.followup-row-unlocked select,
+tr.committed-row-unlocked select,
+tr.service-row-unlocked select {
+    cursor: pointer !important;
+}
+
+tr.recent-row-unlocked input[type="number"]::-webkit-inner-spin-button,
+tr.recent-row-unlocked input[type="number"]::-webkit-outer-spin-button,
+tr.followup-row-unlocked input[type="number"]::-webkit-inner-spin-button,
+tr.followup-row-unlocked input[type="number"]::-webkit-outer-spin-button,
+tr.committed-row-unlocked input[type="number"]::-webkit-inner-spin-button,
+tr.committed-row-unlocked input[type="number"]::-webkit-outer-spin-button,
+tr.service-row-unlocked input[type="number"]::-webkit-inner-spin-button,
+tr.service-row-unlocked input[type="number"]::-webkit-outer-spin-button {
+    display: block !important;
+    -webkit-appearance: auto !important;
+}
+
+tr.recent-row-unlocked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.followup-row-unlocked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.committed-row-unlocked input[type="date"]::-webkit-calendar-picker-indicator,
+tr.service-row-unlocked input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block !important;
+    cursor: pointer !important;
+}
+
+tr.recent-row-unlocked textarea,
+tr.followup-row-unlocked textarea,
+tr.committed-row-unlocked textarea,
+tr.service-row-unlocked textarea {
+    resize: vertical !important;
+    overflow: auto !important;
+    white-space: normal !important;
+}
+

@@ -241,12 +241,12 @@
         transition: all 0.15s ease;
     }
 
-    .pocket-excel-table .excel-cell-input:hover {
+    .pocket-excel-table tr.committed-row-unlocked .excel-cell-input {
         border-color: #cbd5e1;
         background: #ffffff;
     }
 
-    .pocket-excel-table .excel-cell-input:focus {
+    .pocket-excel-table tr.committed-row-unlocked .excel-cell-input:focus {
         border-color: #0284c7;
         background: #ffffff;
         outline: none;
@@ -258,12 +258,16 @@
         height: 30px;
         font-size: 11.5px;
         font-weight: 800;
-        border: 1.5px solid #cbd5e1;
+        border: 1px solid transparent;
         border-radius: 5px;
         padding: 3px 6px;
         text-align: center;
         background: #ffffff;
         text-transform: uppercase;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked .excel-status-input {
+        border: 1.5px solid #0284c7;
         cursor: pointer;
     }
 
@@ -276,17 +280,18 @@
         border-radius: 5px;
         background: transparent;
         padding: 3px 6px;
-        resize: vertical;
+        resize: none;
         line-height: 1.3;
         transition: all 0.15s ease;
     }
 
-    .pocket-excel-table .excel-work-details:hover {
+    .pocket-excel-table tr.committed-row-unlocked .excel-work-details {
         border-color: #cbd5e1;
         background: #ffffff;
+        resize: vertical;
     }
 
-    .pocket-excel-table .excel-work-details:focus {
+    .pocket-excel-table tr.committed-row-unlocked .excel-work-details:focus {
         border-color: #0284c7;
         background: #ffffff;
         outline: none;
@@ -303,15 +308,15 @@
         background: transparent;
         padding: 3px 6px;
         color: #334155;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked .excel-operator-select {
+        border-color: #cbd5e1;
+        background: #ffffff;
         cursor: pointer;
     }
 
-    .pocket-excel-table .excel-operator-select:hover {
-        border-color: #cbd5e1;
-        background: #ffffff;
-    }
-
-    .pocket-excel-table .excel-operator-select:focus {
+    .pocket-excel-table tr.committed-row-unlocked .excel-operator-select:focus {
         border-color: #0284c7;
         background: #ffffff;
         outline: none;
@@ -1163,7 +1168,8 @@ function getCommittedRowInnerHtml(app) {
                 <input type="text" id="crow_sub_${app.id}" class="excel-cell-input" style="flex: 1;"
                        value="${escapeHtml(app.sub_service || '')}"
                        placeholder="Sub service"
-                       title="Click to edit sub-service"
+                       tabindex="-1"
+                       title="${escapeHtml(app.sub_service || 'Sub service')}"
                        onchange="autoSaveCommittedRow(${app.id})"
                        onkeydown="handleCommittedKey(event, ${app.id})">
                 <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
@@ -1183,7 +1189,8 @@ function getCommittedRowInnerHtml(app) {
             <div style="display: flex; align-items: center; gap: 4px;">
                 <input type="number" step="0.01" id="crow_rate_${app.id}" class="excel-cell-input font-mono font-bold" style="flex: 1;"
                        value="${rateNum}"
-                       title="Click to edit rate"
+                       tabindex="-1"
+                       title="Rate (Click Edit to change)"
                        oninput="calcCommittedRemaining(${app.id})"
                        onchange="autoSaveCommittedRow(${app.id})"
                        onkeydown="handleCommittedKey(event, ${app.id})">
@@ -1195,8 +1202,9 @@ function getCommittedRowInnerHtml(app) {
         <td style="padding: 4px 6px;">
             <input type="number" step="0.01" id="crow_received_${app.id}" class="excel-cell-input font-mono font-bold"
                    value="${recNum}"
+                   tabindex="-1"
                    style="color: #166534;"
-                   title="Click to edit received amount"
+                   title="Received (Click Edit to change)"
                    oninput="calcCommittedRemaining(${app.id})"
                    onchange="autoSaveCommittedRow(${app.id})"
                    onkeydown="handleCommittedKey(event, ${app.id})">
@@ -1210,6 +1218,7 @@ function getCommittedRowInnerHtml(app) {
             <textarea id="crow_work_details_${app.id}" class="excel-work-details"
                       placeholder="Work details..."
                       rows="1"
+                      tabindex="-1"
                       title="${escapeHtml(app.work_details || '')}"
                       oninput="autoExpandWorkDetails(this)"
                       onchange="autoSaveCommittedRow(${app.id})"
@@ -1219,6 +1228,7 @@ function getCommittedRowInnerHtml(app) {
             <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
                       placeholder="Pending remark..."
                       rows="1"
+                      tabindex="-1"
                       title="${escapeHtml(app.payment_remarks || '')}"
                       oninput="autoExpandWorkDetails(this)"
                       onchange="autoSaveCommittedRow(${app.id})"
@@ -1227,7 +1237,8 @@ function getCommittedRowInnerHtml(app) {
         <td style="padding: 4px 6px;">
             <div style="display: flex; align-items: center; gap: 4px;">
                 <select id="crow_operator_${app.id}" class="excel-operator-select" style="flex: 1;"
-                        title="Click to assign operator"
+                        tabindex="-1"
+                        title="Operator"
                         onchange="autoSaveCommittedRow(${app.id})">
                     ${getEmployeeOptionsHtml(app.assigned_employee_id)}
                 </select>
@@ -1240,6 +1251,7 @@ function getCommittedRowInnerHtml(app) {
             <div style="display: flex; align-items: center; gap: 4px;">
                 <input type="date" id="crow_followup_${app.id}" class="excel-date-input" style="flex: 1;"
                        value="${escapeHtml(app.follow_up_date || '')}"
+                       tabindex="-1"
                        title="Expected Follow-up Date"
                        onchange="autoSaveCommittedRow(${app.id})"
                        onblur="autoSaveCommittedRow(${app.id})">
@@ -1251,6 +1263,7 @@ function getCommittedRowInnerHtml(app) {
         <td class="sticky-status-td" style="padding: 4px 6px;">
             <div style="display: flex; align-items: center; gap: 4px;">
                 <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        tabindex="-1"
                         data-prev="${escapeHtml(currentStatus)}"
                         onchange="onCommittedStatusSelectChange(this, ${app.id})">
                     ${renderStatusOptionsHtml(currentStatus, serviceName)}
@@ -1262,7 +1275,7 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
-                <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="focusRowForEdit(${app.id})" title="Click to edit service details">
+                <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCustomerRow(${app.id})" title="Click to edit service details">
                     <i class="fa-solid fa-pencil"></i> Edit
                 </button>
                 <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Online">
@@ -1282,17 +1295,63 @@ function getCommittedRowInnerHtml(app) {
     `;
 }
 
-function focusRowForEdit(appId) {
-    const rateInput = document.getElementById(`crow_rate_${appId}`);
+function toggleEditCustomerRow(appId) {
     const row = document.getElementById(`committed-row-${appId}`);
-    if (row) {
-        row.style.transition = 'background-color 0.3s ease';
-        row.style.backgroundColor = '#f0fdf4';
-        setTimeout(() => { row.style.backgroundColor = ''; }, 1000);
+    const btn = document.getElementById(`btn-edit-row-${appId}`);
+    if (!row || !btn) return;
+
+    const isLocked = row.classList.contains('committed-row-locked');
+    if (isLocked) {
+        // Unlock row for editing
+        row.classList.remove('committed-row-locked');
+        row.classList.add('committed-row-unlocked');
+
+        btn.className = 'btn-row-action btn-row-done';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
+        btn.title = 'Save and Lock this service row';
+
+        // Enable inputs for tabbing
+        row.querySelectorAll('input, select, textarea').forEach(el => {
+            el.removeAttribute('tabindex');
+        });
+
+        const rateInput = document.getElementById(`crow_rate_${appId}`);
+        if (rateInput) {
+            rateInput.focus();
+            rateInput.select();
+        }
+    } else {
+        // Save and lock row back
+        saveCustomerRowAndLock(appId);
     }
-    if (rateInput) {
-        rateInput.focus();
-        rateInput.select();
+}
+
+function saveCustomerRowAndLock(appId) {
+    const row = document.getElementById(`committed-row-${appId}`);
+    const btn = document.getElementById(`btn-edit-row-${appId}`);
+    if (!row) return;
+
+    // Persist row to backend
+    autoSaveCommittedRow(appId);
+
+    // Lock row back
+    row.classList.remove('committed-row-unlocked');
+    row.classList.add('committed-row-locked');
+
+    row.querySelectorAll('input, select, textarea').forEach(el => {
+        el.setAttribute('tabindex', '-1');
+    });
+
+    if (btn) {
+        btn.className = 'btn-row-action btn-row-edit';
+        btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+        btn.title = 'Click to edit service details';
+    }
+
+    const ind = document.getElementById(`saved-indicator-${appId}`);
+    if (ind) {
+        ind.style.display = 'inline-flex';
+        setTimeout(() => { ind.style.display = 'none'; }, 2000);
     }
 }
 
@@ -1321,7 +1380,7 @@ function getEmployeeName(empId, fallback = '') {
 
 function createCommittedRowElement(app) {
     const tr = document.createElement('tr');
-    tr.className = 'committed-row';
+    tr.className = 'committed-row committed-row-locked';
     tr.id = 'committed-row-' + app.id;
     tr.dataset.appId = app.id;
     tr.dataset.main_service = (app.service_name || app.main_service_name || '').trim();
@@ -1344,7 +1403,7 @@ function createCommittedRowElement(app) {
 function handleCommittedKey(e, appId) {
     if (e.key === 'Enter') {
         e.preventDefault();
-        e.target.blur();
+        saveCustomerRowAndLock(appId);
     }
 }
 

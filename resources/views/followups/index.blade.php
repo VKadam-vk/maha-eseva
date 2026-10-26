@@ -808,6 +808,7 @@
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <input type="number" step="0.01" class="excel-input font-mono font-bold"
                                            id="rate_{{ $app->id }}" value="{{ $rate }}"
+                                           tabindex="-1"
                                            style="text-align: right; flex: 1;"
                                            oninput="calculateRowRemaining({{ $app->id }})"
                                            onchange="saveRowField({{ $app->id }}, 'rate', this.value)">
@@ -823,6 +824,7 @@
                             <td>
                                 <input type="number" step="0.01" class="excel-input font-mono font-bold"
                                        id="received_{{ $app->id }}" value="{{ $received }}"
+                                       tabindex="-1"
                                        style="text-align: right; color: #166534;"
                                        oninput="calculateRowRemaining({{ $app->id }})"
                                        onchange="saveRowField({{ $app->id }}, 'received', this.value)">
@@ -840,7 +842,7 @@
                             <td>
                                 <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
                                           placeholder="Notes / instructions..."
-                                          rows="1" oninput="autoExpandWorkDetails(this)"
+                                          rows="1" tabindex="-1" oninput="autoExpandWorkDetails(this)"
                                           onchange="saveRowField({{ $app->id }}, 'work_details', this.value)">{{ $app->work_details }}</textarea>
                             </td>
 
@@ -848,7 +850,7 @@
                             <td>
                                 <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
                                           placeholder="Pending remark / notes..."
-                                          rows="1" oninput="autoExpandWorkDetails(this)"
+                                          rows="1" tabindex="-1" oninput="autoExpandWorkDetails(this)"
                                           onchange="saveRowField({{ $app->id }}, 'payment_remarks', this.value)">{{ $app->payment_remarks }}</textarea>
                             </td>
 
@@ -856,6 +858,7 @@
                             <td>
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <select class="excel-select font-semibold" id="operator_{{ $app->id }}" style="flex: 1;"
+                                            tabindex="-1"
                                             onchange="saveRowField({{ $app->id }}, 'assigned_employee_id', this.value)">
                                         <option value="">-- Staff --</option>
                                         @foreach($employees as $emp)
@@ -877,6 +880,7 @@
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <input type="date" class="excel-input" id="followup_{{ $app->id }}"
                                            value="{{ $appDate }}"
+                                           tabindex="-1"
                                            style="font-size: 11.5px; font-weight: 600; color: #475569; flex: 1;"
                                            onchange="saveRowField({{ $app->id }}, 'follow_up_date', this.value)">
                                     <button type="button" class="btn-cell-history"
@@ -892,6 +896,7 @@
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <select class="excel-select font-bold status-select" style="flex: 1;"
                                             id="status_{{ $app->id }}"
+                                            tabindex="-1"
                                             data-prev="{{ $app->work_status ?? 'PENDING' }}"
                                             onchange="onStatusSelectChange(this, {{ $app->id }})">
                                         @php
@@ -1262,8 +1267,12 @@
             row.classList.add('followup-row-unlocked');
 
             btn.className = 'btn-row-action btn-row-done';
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
             btn.title = 'Save and Lock this service row';
+
+            row.querySelectorAll('input, select, textarea').forEach(el => {
+                el.removeAttribute('tabindex');
+            });
 
             const rateInput = document.getElementById(`rate_${appId}`);
             if (rateInput) {
@@ -1287,6 +1296,10 @@
         // Lock row back
         row.classList.remove('followup-row-unlocked');
         row.classList.add('followup-row-locked');
+
+        row.querySelectorAll('input, select, textarea').forEach(el => {
+            el.setAttribute('tabindex', '-1');
+        });
 
         if (btn) {
             btn.className = 'btn-row-action btn-row-edit';
