@@ -436,7 +436,7 @@
     .pocket-excel-table .sticky-col-status {
         position: -webkit-sticky !important;
         position: sticky !important;
-        right: 0 !important;
+        right: 215px !important;
         min-width: 155px !important;
         width: 155px !important;
         box-sizing: border-box !important;
@@ -445,14 +445,14 @@
     .pocket-excel-table .sticky-col-actions {
         position: -webkit-sticky !important;
         position: sticky !important;
-        right: 155px !important;
-        min-width: 220px !important;
-        width: 220px !important;
+        right: 0 !important;
+        min-width: 215px !important;
+        width: 215px !important;
         box-sizing: border-box !important;
     }
 
     .pocket-excel-table th.sticky-col-status {
-        z-index: 35 !important;
+        z-index: 34 !important;
         background: #0f172a !important;
         color: #f59e0b !important;
         border-left: 1.5px solid #334155 !important;
@@ -460,14 +460,14 @@
     }
 
     .pocket-excel-table th.sticky-col-actions {
-        z-index: 34 !important;
+        z-index: 35 !important;
         background: #0f172a !important;
         color: #ffffff !important;
         border-left: 1.5px solid #334155 !important;
     }
 
     .pocket-excel-table tr.active-entry-row td.sticky-col-status {
-        z-index: 25 !important;
+        z-index: 24 !important;
         background: #fffbeb !important;
         border-left: 1.5px solid #f59e0b !important;
         border-top: 2px solid #f59e0b !important;
@@ -475,7 +475,7 @@
     }
 
     .pocket-excel-table tr.active-entry-row td.sticky-col-actions {
-        z-index: 24 !important;
+        z-index: 25 !important;
         background: #fffbeb !important;
         border-left: 1.5px solid #fde68a !important;
         border-top: 2px solid #f59e0b !important;
@@ -483,14 +483,14 @@
     }
 
     .pocket-excel-table tbody tr.committed-row td.sticky-col-status {
-        z-index: 20 !important;
+        z-index: 19 !important;
         background: #ffffff !important;
         border-left: 1.5px solid #cbd5e1 !important;
         box-shadow: -4px 0 8px -2px rgba(15, 23, 42, 0.08) !important;
     }
 
     .pocket-excel-table tbody tr.committed-row td.sticky-col-actions {
-        z-index: 19 !important;
+        z-index: 20 !important;
         background: #ffffff !important;
         border-left: 1.5px solid #e2e8f0 !important;
     }
@@ -1497,9 +1497,7 @@
                                     </button>
                                 </div>
                             </th>
-                            <!-- Actions & Quick Links (Sticky Right) -->
-                            <th class="sticky-col-actions" style="min-width: 220px; text-align: center;">Actions & Quick Links</th>
-                            <!-- 10. Status (Fixed Sticky Column on Right Side) -->
+                            <!-- 10. Status (Sticky Right, Left of Actions) -->
                             <th class="sticky-col-status" style="min-width: 155px; text-align: center;">
                                 <div class="excel-th-inner" style="justify-content: center; gap: 6px;">
                                     <span><i class="fa-solid fa-thumbtack" style="font-size: 11px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
@@ -1508,6 +1506,8 @@
                                     </button>
                                 </div>
                             </th>
+                            <!-- Actions & Quick Links (Sticky Right, Far Edge) -->
+                            <th class="sticky-col-actions" style="min-width: 215px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1615,22 +1615,7 @@
                                        onkeydown="handleRowKeyDown(event)">
                             </td>
 
-                            <!-- Actions & Quick Links: Save + Apply + Tutorial (Sticky Right) -->
-                            <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
-                                    <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
-                                        <i class="fa-solid fa-check"></i> Save
-                                    </button>
-                                    <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal" style="display: none;">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
-                                    </a>
-                                    <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
-                                        <i class="fa-brands fa-youtube"></i> Tutorial
-                                    </a>
-                                </div>
-                            </td>
-
-                            <!-- 10. Status (Fixed Sticky Column on Right Side) -->
+                            <!-- 10. Status (Sticky Right, Left of Actions) -->
                             <td class="sticky-col-status" style="padding: 4px 6px;">
                                 <select id="se_status" class="excel-select font-bold status-select"
                                         data-prev="IN_PROGRESS"
@@ -1647,6 +1632,21 @@
                                     <option value="REJECTED">REJECTED</option>
                                     <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                                 </select>
+                            </td>
+
+                            <!-- Actions & Quick Links: Save + Apply + Tutorial (Sticky Right, Far Edge) -->
+                            <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+                                    <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
+                                        <i class="fa-solid fa-check"></i> Save
+                                    </button>
+                                    <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal" style="display: none;">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                    </a>
+                                    <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
+                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -3097,6 +3097,26 @@ function getCommittedRowInnerHtml(app) {
                 </button>
             </div>
         </td>
+        <!-- 10. STATUS (Sticky Right, Left of Actions) -->
+        <td class="sticky-col-status" style="padding: 4px 6px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        data-prev="${escapeHtml(currentStatus)}"
+                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
+                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+        </td>
+        <!-- Actions & Quick Links (Sticky Right, Far Edge) -->
         <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
@@ -3116,25 +3136,6 @@ function getCommittedRowInnerHtml(app) {
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
-            </div>
-        </td>
-        <!-- 10. STATUS (Fixed Sticky Column on Right Side) -->
-        <td class="sticky-col-status" style="padding: 4px 6px;">
-            <div class="crow-view-mode">
-                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-            <div class="crow-edit-mode">
-                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
-                        data-prev="${escapeHtml(currentStatus)}"
-                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
-                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
-                </select>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
             </div>
         </td>
     `;
