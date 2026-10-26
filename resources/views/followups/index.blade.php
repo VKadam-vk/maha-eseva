@@ -230,22 +230,24 @@
     /* Sticky Right Columns: Status & Actions */
     .sticky-status-th {
         position: sticky;
-        right: 80px;
+        right: 260px;
         background: #f8fafc !important;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 130px;
-        width: 130px;
+        min-width: 145px;
+        width: 145px;
+        max-width: 145px;
     }
 
     .sticky-status-td {
         position: sticky;
-        right: 80px;
+        right: 260px;
         background: #ffffff;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 130px;
-        width: 130px;
+        min-width: 145px;
+        width: 145px;
+        max-width: 145px;
     }
 
     .sheet-table tbody tr:hover .sticky-status-td {
@@ -258,8 +260,9 @@
         background: #f8fafc !important;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 80px;
-        width: 80px;
+        min-width: 260px;
+        width: 260px;
+        max-width: 260px;
         text-align: center;
     }
 
@@ -269,13 +272,41 @@
         background: #ffffff;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 80px;
-        width: 80px;
+        min-width: 260px;
+        width: 260px;
+        max-width: 260px;
         text-align: center;
     }
 
     .sheet-table tbody tr:hover .sticky-action-td {
         background-color: #f8fafc !important;
+    }
+
+    /* Locked vs Unlocked Rows for Follow-up Services */
+    tr.followup-row-locked .excel-input,
+    tr.followup-row-locked .excel-select,
+    tr.followup-row-locked .excel-work-details {
+        pointer-events: none;
+        user-select: none;
+        background: transparent !important;
+        border-color: transparent !important;
+    }
+
+    tr.followup-row-unlocked {
+        background-color: #f0f9ff !important;
+        box-shadow: inset 0 0 0 2px #0284c7;
+    }
+
+    tr.followup-row-unlocked td {
+        background-color: #f0f9ff !important;
+    }
+
+    tr.followup-row-unlocked .excel-input,
+    tr.followup-row-unlocked .excel-select,
+    tr.followup-row-unlocked .excel-work-details {
+        background: #ffffff !important;
+        border: 1.5px solid #0284c7 !important;
+        pointer-events: auto !important;
     }
 
     /* Fast Entry Input Styles */
@@ -680,7 +711,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-status-th" style="text-align: center; min-width: 135px;">
+                        <th class="sticky-status-th" style="text-align: center; min-width: 145px; width: 145px; max-width: 145px;">
                             <div class="excel-th-inner">
                                 <span>Status</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
@@ -688,7 +719,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th">Action</th>
+                        <th class="sticky-action-th" style="text-align: center; min-width: 260px; width: 260px; max-width: 260px;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="followup-sheet-tbody">
@@ -707,6 +738,7 @@
                             $subName = trim($app->sub_service ?? '');
                         @endphp
                         <tr id="row-app-{{ $app->id }}"
+                            class="followup-row-locked"
                             data-app-id="{{ $app->id }}"
                             data-main_service="{{ $mainName }}"
                             data-sub_service="{{ $subName }}"
@@ -893,17 +925,68 @@
                                 </div>
                             </td>
 
-                            <!-- 11. Actions (Sticky Right) -->
+                            <!-- 11. Actions (Sticky Right: Edit, Apply, Tutorial, Receipt) -->
                             <td class="sticky-action-td" style="text-align: center; padding: 4px 6px;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    @if($serv?->portal_link)
-                                        <a href="{{ $serv->portal_link }}" target="_blank"
-                                           class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #e0f2fe; color: #0369a1; border-radius: 4px; border: 1px solid #bae6fd;"
-                                           title="Open Government Portal">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
-                                    @endif
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
+                                    <!-- Edit Button (Toggles Inline Editing) -->
+                                    <button type="button" id="btn-edit-followup-{{ $app->id }}"
+                                            class="btn-row-action btn-row-edit"
+                                            onclick="toggleEditFollowupRow({{ $app->id }})"
+                                            title="Click to edit service details">
+                                        <i class="fa-solid fa-pencil"></i> Edit
+                                    </button>
 
+                                    <!-- Apply Button (Official Portal Link) -->
+                                    @php
+                                        $portalLink = $serv?->work_portal_link ?: ($serv?->service_portal_link ?: $serv?->portal_link);
+                                        if (!$portalLink) {
+                                            $pQuery = urlencode(($serv?->main_service_name ?? 'Service') . ' ' . ($app->sub_service ?? '') . ' online portal apply maharashtra');
+                                            $portalLink = "https://www.google.com/search?q={$pQuery}";
+                                        }
+                                        $tutLink = $serv?->video_instruction_link;
+                                        if (!$tutLink) {
+                                            $tQuery = urlencode(($serv?->main_service_name ?? 'Service') . ' ' . ($app->sub_service ?? '') . ' online application tutorial form fill up');
+                                            $tutLink = "https://www.youtube.com/results?search_query={$tQuery}";
+                                        }
+                                        $appDataJson = json_encode([
+                                            'id' => $app->id,
+                                            'application_number' => $app->application_number,
+                                            'customer_name' => $cust?->name ?? 'Citizen',
+                                            'customer_mobile' => $cust?->mobile ?? '',
+                                            'main_service_name' => $serv?->main_service_name ?? 'Service',
+                                            'sub_service' => $app->sub_service ?? '',
+                                            'rate' => $rate,
+                                            'received' => $received,
+                                            'remaining' => $rem,
+                                            'status' => $stVal,
+                                            'operator' => $opName ?: 'Staff Desk',
+                                            'formatted_date_time' => $app->created_at ? $app->created_at->format('d-m-Y h:i A') : '',
+                                            'receipt_url' => route('applications.receipt', $app->id)
+                                        ]);
+                                    @endphp
+                                    <a href="{{ $portalLink }}" target="_blank"
+                                       class="btn-row-action btn-row-apply"
+                                       title="Open Official Portal">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                    </a>
+
+                                    <!-- Tutorial Button (YouTube Video Link) -->
+                                    <a href="{{ $tutLink }}" target="_blank"
+                                       class="btn-row-action btn-row-tutorial"
+                                       title="Watch Tutorial Video">
+                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                    </a>
+
+                                    <!-- Receipt Button (Quick Thermal Modal) -->
+                                    <button type="button" class="btn-row-action btn-row-receipt"
+                                            onclick='window.showReceiptModal({!! $appDataJson !!})'
+                                            title="View & Print Citizen Receipt (पावती)">
+                                        <i class="fa-solid fa-receipt"></i> Receipt
+                                    </button>
+
+                                    <span id="saved-indicator-{{ $app->id }}" class="saved-pulse-badge" style="display: none;">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
                                 </div>
                             </td>
                         </tr>
@@ -1164,6 +1247,58 @@
         .catch(err => {
             console.error('Save error:', err);
         });
+    }
+
+    // Toggle Edit / Save Mode for a Follow-up row
+    function toggleEditFollowupRow(appId) {
+        const row = document.getElementById(`row-app-${appId}`);
+        const btn = document.getElementById(`btn-edit-followup-${appId}`);
+        if (!row || !btn) return;
+
+        const isLocked = row.classList.contains('followup-row-locked');
+        if (isLocked) {
+            // Unlock row for editing
+            row.classList.remove('followup-row-locked');
+            row.classList.add('followup-row-unlocked');
+
+            btn.className = 'btn-row-action btn-row-done';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
+            btn.title = 'Save and Lock this service row';
+
+            const rateInput = document.getElementById(`rate_${appId}`);
+            if (rateInput) {
+                rateInput.focus();
+                rateInput.select();
+            }
+        } else {
+            // Save and lock row
+            saveFollowupRowAndLock(appId);
+        }
+    }
+
+    function saveFollowupRowAndLock(appId) {
+        const row = document.getElementById(`row-app-${appId}`);
+        const btn = document.getElementById(`btn-edit-followup-${appId}`);
+        if (!row) return;
+
+        // Persist row to backend
+        saveRowField(appId, 'all', null);
+
+        // Lock row back
+        row.classList.remove('followup-row-unlocked');
+        row.classList.add('followup-row-locked');
+
+        if (btn) {
+            btn.className = 'btn-row-action btn-row-edit';
+            btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+            btn.title = 'Click to edit service details';
+        }
+
+        const ind = document.getElementById(`saved-indicator-${appId}`);
+        if (ind) {
+            ind.style.display = 'inline-flex';
+            setTimeout(() => { ind.style.display = 'none'; }, 2000);
+        }
     }
 
     // Mark as completed quick action

@@ -322,9 +322,13 @@
     .sticky-status-th,
     .sticky-status-td {
         position: sticky;
-        right: 120px;
+        right: 260px;
         background: #ffffff;
         z-index: 2;
+        width: 145px;
+        min-width: 145px;
+        max-width: 145px;
+        box-sizing: border-box;
     }
     .pocket-excel-table thead th.sticky-status-th {
         background: #0f172a;
@@ -340,6 +344,10 @@
         right: 0;
         background: #ffffff;
         z-index: 2;
+        width: 260px;
+        min-width: 260px;
+        max-width: 260px;
+        box-sizing: border-box;
     }
     .pocket-excel-table thead th.sticky-action-th {
         background: #0f172a;
@@ -714,7 +722,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-status-th" style="min-width: 130px; color: #f59e0b; text-align: center;">
+                        <th class="sticky-status-th" style="width: 145px; min-width: 145px; max-width: 145px; color: #f59e0b; text-align: center;">
                             <div class="excel-th-inner">
                                 <span>10. Status</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
@@ -722,7 +730,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th" style="min-width: 120px; text-align: center;">Actions</th>
+                        <th class="sticky-action-th" style="width: 260px; min-width: 260px; max-width: 260px; text-align: center;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="services-tbody">
@@ -843,18 +851,18 @@
                         </td>
 
                         <!-- Actions (Sticky Right) -->
-                        <td class="sticky-action-td" style="text-align: center; padding: 4px 6px;">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                <button type="button" id="btn-save-service" class="btn btn-sm btn-primary" onclick="saveActiveServiceRow()"
-                                        style="font-weight: 800; font-size: 11px; padding: 5px 10px; background: #ea580c; border: none; border-radius: 5px;"
+                        <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 260px; min-width: 260px; max-width: 260px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
+                                <button type="button" id="btn-save-service" class="btn-save-excel-row" onclick="saveActiveServiceRow()"
+                                        style="height: 27px; padding: 0 10px; font-size: 11px; font-weight: 800; border-radius: 4px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: 1px solid #c2410c; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"
                                         title="Save service entry to customer profile (Enter)">
                                     <i class="fa-solid fa-check"></i> Save
                                 </button>
                                 <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" style="display: none;" title="Apply on Portal">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                                 </a>
                                 <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" style="display: none;" title="Watch Tutorial">
-                                    <i class="fa-brands fa-youtube"></i>
+                                    <i class="fa-brands fa-youtube"></i> Tutorial
                                 </a>
                             </div>
                         </td>
@@ -1253,16 +1261,18 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
         <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
+                <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="focusRowForEdit(${app.id})" title="Click to edit service details">
+                    <i class="fa-solid fa-pencil"></i> Edit
+                </button>
                 <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Online">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Video Tutorial">
-                    <i class="fa-brands fa-youtube"></i>
+                    <i class="fa-brands fa-youtube"></i> Tutorial
                 </a>
-                <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)"
-                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; border-radius: 4px; padding: 4px 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
-                    <i class="fa-solid fa-receipt"></i>
+                <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)">
+                    <i class="fa-solid fa-receipt"></i> Receipt
                 </button>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
@@ -1272,10 +1282,30 @@ function getCommittedRowInnerHtml(app) {
     `;
 }
 
+function focusRowForEdit(appId) {
+    const rateInput = document.getElementById(`crow_rate_${appId}`);
+    const row = document.getElementById(`committed-row-${appId}`);
+    if (row) {
+        row.style.transition = 'background-color 0.3s ease';
+        row.style.backgroundColor = '#f0fdf4';
+        setTimeout(() => { row.style.backgroundColor = ''; }, 1000);
+    }
+    if (rateInput) {
+        rateInput.focus();
+        rateInput.select();
+    }
+}
+
 function openReceiptModal(appId) {
-    const app = loadedApplications[appId];
+    const app = (window.loadedApplications && window.loadedApplications[appId]) 
+             || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
     if (app && window.showReceiptModal) {
-        window.showReceiptModal(app);
+        window.showReceiptModal({
+            ...app,
+            customer_name: app.customer_name || '{{ addslashes($customer->name) }}',
+            customer_mobile: app.customer_mobile || '{{ $customer->mobile }}',
+            receipt_url: `/applications/${appId}/receipt`
+        });
     } else {
         window.open(`/applications/${appId}/receipt`, '_blank');
     }

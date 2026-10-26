@@ -798,6 +798,22 @@
         if (modal) modal.classList.remove('active');
     };
 
+    window.openServiceReceiptModal = function(appId, appData = null) {
+        if (appData && window.showReceiptModal) {
+            window.showReceiptModal(appData);
+            return;
+        }
+        const app = (window.loadedApplications && window.loadedApplications[appId]) 
+                 || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
+        if (app && window.showReceiptModal) {
+            window.showReceiptModal(app);
+        } else {
+            window.open(`/applications/${appId}/receipt`, '_blank');
+        }
+    };
+    window.openQuickReceiptModal = window.openServiceReceiptModal;
+    window.openReceiptModal = window.openServiceReceiptModal;
+
     window.ExcelTableFilter = ExcelTableFilter;
 
 })(window);

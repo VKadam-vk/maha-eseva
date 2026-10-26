@@ -166,22 +166,24 @@
     /* Sticky Right Columns: Status & Actions */
     .sticky-status-th {
         position: sticky;
-        right: 250px;
+        right: 260px;
         background: #f8fafc !important;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 135px;
-        width: 140px;
+        min-width: 145px;
+        width: 145px;
+        max-width: 145px;
     }
 
     .sticky-status-td {
         position: sticky;
-        right: 250px;
+        right: 260px;
         background: #ffffff;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 135px;
-        width: 140px;
+        min-width: 145px;
+        width: 145px;
+        max-width: 145px;
     }
 
     .sheet-table tbody tr:hover .sticky-status-td {
@@ -194,8 +196,9 @@
         background: #f8fafc !important;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 245px;
-        width: 250px;
+        min-width: 260px;
+        width: 260px;
+        max-width: 260px;
         text-align: center;
     }
 
@@ -205,8 +208,9 @@
         background: #ffffff;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 245px;
-        width: 250px;
+        min-width: 260px;
+        width: 260px;
+        max-width: 260px;
         text-align: center;
     }
 
@@ -641,7 +645,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-status-th" style="text-align: center; min-width: 135px;">
+                        <th class="sticky-status-th" style="text-align: center; width: 145px; min-width: 145px; max-width: 145px;">
                             <div class="excel-th-inner">
                                 <span>Status</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
@@ -649,7 +653,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th">Action</th>
+                        <th class="sticky-action-th" style="text-align: center; width: 260px; min-width: 260px; max-width: 260px;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="recent-services-tbody">
@@ -867,11 +871,10 @@
                             </td>
 
                             <!-- 12. Actions (Sticky Right) -->
-                            <td class="sticky-action-td" style="text-align: center; padding: 4px 6px;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
+                            <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
                                     <!-- Edit / Save Toggle Option -->
-                                    <button type="button" id="btn-edit-recent-{{ $app->id }}" class="btn btn-sm btn-row-edit"
-                                            style="padding: 3px 7px; font-size: 11px; font-weight: 700; background: #f1f5f9; color: #0284c7; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"
+                                    <button type="button" id="btn-edit-recent-{{ $app->id }}" class="btn-row-action btn-row-edit"
                                             onclick="toggleEditRecentRow({{ $app->id }})"
                                             title="Click to edit service details">
                                         <i class="fa-solid fa-pencil"></i> Edit
@@ -889,22 +892,43 @@
                                             $tQuery = urlencode(($serv?->main_service_name ?? 'Service') . ' ' . ($app->sub_service ?? '') . ' online application tutorial form fill up');
                                             $tutLink = "https://www.youtube.com/results?search_query={$tQuery}";
                                         }
+                                        $appDataJson = json_encode([
+                                            'id' => $app->id,
+                                            'application_number' => $app->application_number,
+                                            'customer_name' => $cust?->name ?? 'Citizen',
+                                            'customer_mobile' => $cust?->mobile ?? '',
+                                            'main_service_name' => $serv?->main_service_name ?? 'Service',
+                                            'sub_service' => $app->sub_service ?? '',
+                                            'rate' => $rate,
+                                            'received' => $received,
+                                            'remaining' => $rem,
+                                            'status' => $stVal,
+                                            'operator' => $opName ?: 'Staff Desk',
+                                            'formatted_date_time' => $app->created_at ? $app->created_at->format('d-m-Y h:i A') : '',
+                                            'receipt_url' => route('applications.receipt', $app->id)
+                                        ]);
                                     @endphp
                                     <a href="{{ $portalLink }}" target="_blank"
-                                       class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; font-weight: 700; background: #e0f2fe; color: #0369a1; border-radius: 4px; border: 1px solid #bae6fd; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"
+                                       class="btn-row-action btn-row-apply"
                                        title="Open Official Portal">
                                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                                     </a>
 
                                     <!-- Tutorial Button (YouTube Video Link) -->
                                     <a href="{{ $tutLink }}" target="_blank"
-                                       class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; font-weight: 700; background: #fee2e2; color: #dc2626; border-radius: 4px; border: 1px solid #fca5a5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"
+                                       class="btn-row-action btn-row-tutorial"
                                        title="Watch Tutorial Video">
                                         <i class="fa-brands fa-youtube"></i> Tutorial
                                     </a>
 
-                                    <span id="saved-indicator-{{ $app->id }}"
-                                          style="display: none; background: #16a34a; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;">
+                                    <!-- Receipt Button (Quick Thermal Modal) -->
+                                    <button type="button" class="btn-row-action btn-row-receipt"
+                                            onclick='window.showReceiptModal({!! $appDataJson !!})'
+                                            title="View & Print Citizen Receipt (पावती)">
+                                        <i class="fa-solid fa-receipt"></i> Receipt
+                                    </button>
+
+                                    <span id="saved-indicator-{{ $app->id }}" class="saved-pulse-badge" style="display: none;">
                                         <i class="fa-solid fa-check"></i>
                                     </span>
                                 </div>
@@ -1204,11 +1228,8 @@
             row.classList.remove('recent-row-locked');
             row.classList.add('recent-row-unlocked');
 
-            btn.className = 'btn btn-sm btn-row-save';
-            btn.style.background = '#16a34a';
-            btn.style.color = '#ffffff';
-            btn.style.borderColor = '#15803d';
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
+            btn.className = 'btn-row-action btn-row-done';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
             btn.title = 'Save and Lock this service row';
 
             const rateInput = document.getElementById(`rate_${appId}`);
@@ -1235,10 +1256,7 @@
         row.classList.add('recent-row-locked');
 
         if (btn) {
-            btn.className = 'btn btn-sm btn-row-edit';
-            btn.style.background = '#f1f5f9';
-            btn.style.color = '#0284c7';
-            btn.style.borderColor = '#cbd5e1';
+            btn.className = 'btn-row-action btn-row-edit';
             btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
             btn.title = 'Click to edit service details';
         }
