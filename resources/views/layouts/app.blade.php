@@ -184,6 +184,9 @@
         </div>
     </div>
 
+    <script>
+        window.TENANT_NAME = @json(Auth::user()?->tenant?->name ?? 'Maha E-Seva Kendra');
+    </script>
     <script src="{{ asset('js/excel-table-filter.js') }}"></script>
     <script src="{{ asset('js/field-history-modal.js') }}"></script>
     @stack('scripts')

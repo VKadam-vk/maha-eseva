@@ -430,14 +430,24 @@
     }
 
     /* ========================================================================= */
-    /* STICKY RIGHT STATUS COLUMN (FREEZE PANE ON RIGHT SIDE)                     */
+    /* ========================================================================= */
+    /* STICKY RIGHT STATUS & ACTIONS COLUMNS (FREEZE PANES ON RIGHT SIDE)        */
     /* ========================================================================= */
     .pocket-excel-table .sticky-col-status {
         position: -webkit-sticky !important;
         position: sticky !important;
         right: 0 !important;
-        min-width: 170px !important;
-        width: 170px !important;
+        min-width: 155px !important;
+        width: 155px !important;
+        box-sizing: border-box !important;
+    }
+
+    .pocket-excel-table .sticky-col-actions {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 155px !important;
+        min-width: 220px !important;
+        width: 220px !important;
         box-sizing: border-box !important;
     }
 
@@ -445,31 +455,53 @@
         z-index: 35 !important;
         background: #0f172a !important;
         color: #f59e0b !important;
-        border-left: 2px solid #334155 !important;
-        box-shadow: -5px 0 12px -2px rgba(0, 0, 0, 0.5) !important;
+        border-left: 1.5px solid #334155 !important;
+        box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .pocket-excel-table th.sticky-col-actions {
+        z-index: 34 !important;
+        background: #0f172a !important;
+        color: #ffffff !important;
+        border-left: 1.5px solid #334155 !important;
     }
 
     .pocket-excel-table tr.active-entry-row td.sticky-col-status {
         z-index: 25 !important;
         background: #fffbeb !important;
-        border-left: 2px solid #f59e0b !important;
+        border-left: 1.5px solid #f59e0b !important;
         border-top: 2px solid #f59e0b !important;
         border-bottom: 2px solid #f59e0b !important;
-        box-shadow: -5px 0 12px -2px rgba(245, 158, 11, 0.35) !important;
+    }
+
+    .pocket-excel-table tr.active-entry-row td.sticky-col-actions {
+        z-index: 24 !important;
+        background: #fffbeb !important;
+        border-left: 1.5px solid #fde68a !important;
+        border-top: 2px solid #f59e0b !important;
+        border-bottom: 2px solid #f59e0b !important;
     }
 
     .pocket-excel-table tbody tr.committed-row td.sticky-col-status {
         z-index: 20 !important;
         background: #ffffff !important;
-        border-left: 2px solid #cbd5e1 !important;
-        box-shadow: -5px 0 10px -2px rgba(15, 23, 42, 0.12) !important;
+        border-left: 1.5px solid #cbd5e1 !important;
+        box-shadow: -4px 0 8px -2px rgba(15, 23, 42, 0.08) !important;
     }
 
-    .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-status {
+    .pocket-excel-table tbody tr.committed-row td.sticky-col-actions {
+        z-index: 19 !important;
+        background: #ffffff !important;
+        border-left: 1.5px solid #e2e8f0 !important;
+    }
+
+    .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-status,
+    .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-actions {
         background: #f0f9ff !important;
     }
 
-    .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-status {
+    .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-status,
+    .pocket-excel-table tbody tr.newly-saved-row-pulse td.sticky-col-actions {
         background: #dcfce7 !important;
     }
 
@@ -1465,9 +1497,10 @@
                                     </button>
                                 </div>
                             </th>
-                            <th style="min-width: 240px; text-align: center;">Actions & Quick Links</th>
+                            <!-- Actions & Quick Links (Sticky Right) -->
+                            <th class="sticky-col-actions" style="min-width: 220px; text-align: center;">Actions & Quick Links</th>
                             <!-- 10. Status (Fixed Sticky Column on Right Side) -->
-                            <th class="sticky-col-status" style="min-width: 170px; text-align: center;">
+                            <th class="sticky-col-status" style="min-width: 155px; text-align: center;">
                                 <div class="excel-th-inner" style="justify-content: center; gap: 6px;">
                                     <span><i class="fa-solid fa-thumbtack" style="font-size: 11px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
@@ -1582,8 +1615,8 @@
                                        onkeydown="handleRowKeyDown(event)">
                             </td>
 
-                            <!-- Actions & Quick Links: Save + Apply + Tutorial -->
-                            <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
+                            <!-- Actions & Quick Links: Save + Apply + Tutorial (Sticky Right) -->
+                            <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                                     <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
                                         <i class="fa-solid fa-check"></i> Save
@@ -3064,7 +3097,7 @@ function getCommittedRowInnerHtml(app) {
                 </button>
             </div>
         </td>
-        <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
+        <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 8px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
                     <i class="fa-solid fa-pencil"></i> Edit
@@ -3075,11 +3108,11 @@ function getCommittedRowInnerHtml(app) {
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video">
                     <i class="fa-brands fa-youtube"></i> Tutorial
                 </a>
-                <a href="${app.receipt_url || `/applications/${app.id}/receipt`}" target="_blank" class="btn-row-action btn-row-receipt"
-                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 700; text-decoration: none; padding: 4px 9px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"
-                   title="Print Official Citizen Receipt (पावती)">
+                <button type="button" class="btn-row-action btn-row-receipt" onclick="openQuickReceiptModal(${app.id})"
+                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 700; padding: 4px 9px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"
+                   title="View & Print Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i> Receipt
-                </a>
+                </button>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
@@ -3105,6 +3138,15 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
     `;
+}
+
+function openQuickReceiptModal(appId) {
+    const app = (window.loadedApplications && window.loadedApplications[appId]) || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
+    if (app && window.showReceiptModal) {
+        window.showReceiptModal(app);
+    } else {
+        window.open(`/applications/${appId}/receipt`, '_blank');
+    }
 }
 
 function handleCommittedKey(e, appId) {

@@ -455,16 +455,21 @@
     min-width: 0;
 }
 
-/* 2. Field History Anchored Popover Box */
+/* 2. Field History Center Modal Box */
 .field-history-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.15);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
     z-index: 999998;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.15s ease, visibility 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
 }
 
 .field-history-backdrop.active {
@@ -474,27 +479,28 @@
 }
 
 .field-history-dialog {
-    position: fixed;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin: auto !important;
     z-index: 999999;
-    width: 380px;
-    max-width: calc(100vw - 20px);
-    max-height: 480px;
+    width: 460px;
+    max-width: calc(100vw - 32px);
+    max-height: 85vh;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.3), 0 4px 14px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     border: 1px solid #cbd5e1;
-    transform: translateY(4px) scale(0.98);
+    transform: scale(0.95);
     transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
     opacity: 0;
-    top: 50%;
-    left: 50%;
 }
 
 .field-history-backdrop.active .field-history-dialog {
-    transform: translateY(0) scale(1);
+    transform: scale(1) !important;
     opacity: 1;
 }
 
@@ -837,6 +843,91 @@
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease;
+}
+
+/* ========================================================================= */
+/* EXCEL ACTIVE CELL FOCUS GLOW (Snappy Google Sheets / Excel Visual Cue)     */
+/* ========================================================================= */
+.pocket-excel-table input:focus,
+.pocket-excel-table select:focus,
+.pocket-excel-table textarea:focus,
+.sheet-table input:focus,
+.sheet-table select:focus,
+.sheet-table textarea:focus {
+    outline: 2.5px solid #0284c7 !important;
+    outline-offset: -1px !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22) !important;
+    border-color: #0284c7 !important;
+    background-color: #ffffff !important;
+    z-index: 10 !important;
+    position: relative !important;
+}
+
+/* ========================================================================= */
+/* QUICK RECEIPT & INVOICE MODAL                                             */
+/* ========================================================================= */
+.receipt-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(3px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.receipt-modal-backdrop.active {
+    display: flex;
+}
+.receipt-modal-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    border: 1px solid #cbd5e1;
+    animation: receiptModalPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes receiptModalPop {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.receipt-modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.receipt-modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #1e293b;
+    background: #f8fafc;
+}
+.receipt-slip-box {
+    background: #ffffff;
+    border: 1px dashed #94a3b8;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+.receipt-modal-footer {
+    padding: 12px 18px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
 .field-history-footer-close-btn:hover {

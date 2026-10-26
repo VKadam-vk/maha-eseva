@@ -633,6 +633,171 @@
             .replace(/'/g, '&#039;');
     }
 
+    // =========================================================================
+    // EXCEL TAB AUTO-SCROLL (Keeps active input centered/visible on Tab / Focus)
+    // =========================================================================
+    document.addEventListener('focusin', function (e) {
+        const target = e.target;
+        if (!target || !target.matches('input, select, textarea')) return;
+
+        const table = target.closest('.pocket-excel-table, .sheet-table, table');
+        if (!table) return;
+
+        const container = target.closest('.excel-table-scroll-wrapper, .pocket-excel-wrap, .sheet-scroll-container, .table-responsive') || table.parentElement;
+        if (!container || container.scrollWidth <= container.clientWidth) return;
+
+        const cell = target.closest('td, th') || target;
+        const cellRect = cell.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+
+        // Right margin reserved for sticky columns (Status & Actions usually take 250px - 340px)
+        const rightStickyMargin = 280;
+        const leftStickyMargin = 60;
+
+        if (cellRect.right > (contRect.right - rightStickyMargin)) {
+            const overflowRight = cellRect.right - (contRect.right - rightStickyMargin);
+            container.scrollBy({ left: overflowRight + 50, behavior: 'smooth' });
+        } else if (cellRect.left < (contRect.left + leftStickyMargin)) {
+            const overflowLeft = (contRect.left + leftStickyMargin) - cellRect.left;
+            container.scrollBy({ left: -(overflowLeft + 50), behavior: 'smooth' });
+        }
+    }, true);
+
+    // =========================================================================
+    // QUICK RECEIPT / INVOICE MODAL (On-Screen Receipt Display & Direct Print)
+    // =========================================================================
+    window.showReceiptModal = function(app) {
+        if (!app) return;
+        let modal = document.getElementById('global-quick-receipt-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'global-quick-receipt-modal';
+            modal.className = 'receipt-modal-backdrop';
+            modal.innerHTML = `
+                <div class="receipt-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+                    <div class="receipt-modal-header">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-receipt" style="color: #4ade80; font-size: 16px;"></i>
+                            <div>
+                                <div style="font-weight: 800; font-size: 14px;">Citizen Service Receipt</div>
+                                <div style="font-size: 11px; color: #94a3b8;">Official Acknowledgement Slip</div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.closeReceiptModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="receipt-modal-body">
+                        <div class="receipt-slip-box">
+                            <div style="text-align: center; font-weight: 800; font-size: 14px; margin-bottom: 2px;">
+                                ${escapeHtml(window.TENANT_NAME || 'MAHA E-SEVA KENDRA')}
+                            </div>
+                            <div style="text-align: center; font-size: 11px; color: #64748b; margin-bottom: 8px;">
+                                GOVERNMENT & CITIZEN SERVICES ERP
+                            </div>
+                            <div style="border-top: 1px dashed #334155; margin: 8px 0;"></div>
+
+                            <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                <span>SR / TOKEN:</span>
+                                <strong style="color: #0f172a;" id="qrm-app-num">-</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                <span>DATE & TIME:</span>
+                                <span id="qrm-date">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                <span>STATUS:</span>
+                                <strong id="qrm-status" style="color: #d97706;">-</strong>
+                            </div>
+
+                            <div style="border-top: 1px dashed #94a3b8; margin: 8px 0;"></div>
+
+                            <div style="margin: 4px 0;">
+                                <span style="color: #64748b;">CITIZEN:</span>
+                                <div style="font-weight: 700; color: #0f172a;" id="qrm-citizen">-</div>
+                            </div>
+                            <div style="margin: 4px 0;">
+                                <span style="color: #64748b;">SERVICE:</span>
+                                <div style="font-weight: 700; color: #0f172a;" id="qrm-service">-</div>
+                                <div style="font-size: 11.5px; color: #475569;" id="qrm-subservice"></div>
+                            </div>
+
+                            <div style="border-top: 1px dashed #334155; margin: 8px 0;"></div>
+
+                            <div style="display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px;">
+                                <span>SERVICE RATE:</span>
+                                <strong id="qrm-rate">₹ 0.00</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; color: #166534;">
+                                <span>AMOUNT PAID:</span>
+                                <strong id="qrm-paid">₹ 0.00</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 4px 0; font-size: 13px; color: #dc2626;">
+                                <span>BALANCE DUE:</span>
+                                <strong id="qrm-balance">₹ 0.00</strong>
+                            </div>
+
+                            <div style="border-top: 1px dashed #334155; margin: 8px 0;"></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b;">
+                                <span>OPERATOR:</span>
+                                <span id="qrm-operator">Staff Desk</span>
+                            </div>
+                            <div style="text-align: center; font-size: 10.5px; color: #94a3b8; margin-top: 10px;">
+                                *** Thank You - Keep Slip For Status Enquiry ***
+                            </div>
+                        </div>
+                    </div>
+                    <div class="receipt-modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeReceiptModal()" style="padding: 6px 14px; font-weight: 700;">
+                            Close
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" id="qrm-btn-print" style="padding: 6px 16px; font-weight: 700; background: #16a34a; border-color: #15803d; color: white;">
+                            <i class="fa-solid fa-print"></i> Print Slip
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', window.closeReceiptModal);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    window.closeReceiptModal();
+                }
+            });
+        }
+
+        const rate = parseFloat(app.rate || 0);
+        const paid = parseFloat(app.received || 0);
+        const rem = Math.max(0, rate - paid);
+
+        document.getElementById('qrm-app-num').textContent = app.application_number || '-';
+        document.getElementById('qrm-date').textContent = app.formatted_date_time || app.application_date_time || app.application_date || 'Today';
+        document.getElementById('qrm-status').textContent = (app.status || 'IN_PROGRESS').toUpperCase();
+        document.getElementById('qrm-citizen').textContent = app.customer_name ? (app.customer_name + (app.customer_mobile ? ' (' + app.customer_mobile + ')' : '')) : (window.CURRENT_CUSTOMER_NAME || 'Citizen');
+        document.getElementById('qrm-service').textContent = app.main_service_name || app.service_name || 'Government Service';
+        document.getElementById('qrm-subservice').textContent = app.sub_service || '';
+        document.getElementById('qrm-rate').textContent = '₹ ' + rate.toFixed(2);
+        document.getElementById('qrm-paid').textContent = '₹ ' + paid.toFixed(2);
+        const balEl = document.getElementById('qrm-balance');
+        balEl.textContent = '₹ ' + rem.toFixed(2);
+        balEl.style.color = rem > 0 ? '#dc2626' : '#166534';
+        document.getElementById('qrm-operator').textContent = app.operator || 'Staff Desk';
+
+        const printBtn = document.getElementById('qrm-btn-print');
+        printBtn.onclick = function() {
+            const receiptUrl = app.receipt_url || (`/applications/${app.id}/receipt`);
+            window.open(receiptUrl, '_blank');
+        };
+
+        modal.classList.add('active');
+    };
+
+    window.closeReceiptModal = function() {
+        const modal = document.getElementById('global-quick-receipt-modal');
+        if (modal) modal.classList.remove('active');
+    };
+
     window.ExcelTableFilter = ExcelTableFilter;
 
 })(window);

@@ -81,66 +81,16 @@
 
     function positionHistoryPopover(dialog, triggerBtn) {
         if (!dialog) return;
-
-        if (!triggerBtn) {
-            // Fallback center
-            dialog.style.top = '50%';
-            dialog.style.left = '50%';
-            dialog.style.transform = 'translate(-50%, -50%)';
-            return;
-        }
-
-        dialog.style.transform = 'none';
-        const rect = triggerBtn.getBoundingClientRect();
-        const popWidth = Math.min(390, window.innerWidth - 20);
-        const popHeight = dialog.offsetHeight || 360;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        const spaceBelow = viewportHeight - rect.bottom - 10;
-        const spaceAbove = rect.top - 10;
-
-        let top;
-        // Prefer placing below the clicked button
-        if (spaceBelow < 200 && spaceAbove > spaceBelow) {
-            // Place above button
-            const effHeight = Math.min(popHeight, spaceAbove);
-            top = rect.top - effHeight - 6;
-            if (top < 10) top = 10;
-            dialog.style.maxHeight = `${spaceAbove}px`;
-        } else {
-            // Place below button
-            top = rect.bottom + 6;
-            dialog.style.maxHeight = `${Math.max(200, spaceBelow)}px`;
-        }
-
-        // Horizontal alignment: Center slightly or align with button
-        let left = rect.left - (popWidth / 2) + (rect.width / 2);
-        if (left + popWidth > viewportWidth - 10) {
-            left = viewportWidth - popWidth - 10;
-        }
-        if (left < 10) left = 10;
-
-        dialog.style.top = `${Math.round(top)}px`;
-        dialog.style.left = `${Math.round(left)}px`;
-        dialog.style.width = `${popWidth}px`;
+        // Keep dialog centered inside flex backdrop
+        dialog.style.top = '';
+        dialog.style.left = '';
+        dialog.style.transform = '';
+        dialog.style.maxHeight = '85vh';
     }
 
     function bindPopoverReposition(dialog, triggerBtn) {
         unbindPopoverReposition();
-        if (!triggerBtn) return;
-        repositionListener = () => {
-            if (dialog && triggerBtn) {
-                const rect = triggerBtn.getBoundingClientRect();
-                if (rect.bottom < 0 || rect.top > window.innerHeight) {
-                    closeFieldHistoryModal();
-                    return;
-                }
-                positionHistoryPopover(dialog, triggerBtn);
-            }
-        };
-        window.addEventListener('scroll', repositionListener, true);
-        window.addEventListener('resize', repositionListener);
+        // Centered modal doesn't need reposition listeners on scroll
     }
 
     function unbindPopoverReposition() {

@@ -617,7 +617,8 @@
                 'service_id' => $app->service_id,
                 'service_name' => $app->service?->main_service_name ?? 'Service',
                 'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
-                'application_date' => $app->application_date ? $app->application_date->format('d-m-Y') : $app->created_at->format('d-m-Y'),
+                'application_date' => $app->created_at ? $app->created_at->format('d-m-Y') : 'Today',
+                'application_date_time' => $app->created_at ? $app->created_at->format('d-m-Y h:i A') : ($app->application_date ? $app->application_date->format('d-m-Y') : 'Today'),
                 'rate' => (float) $app->total_amount,
                 'received' => (float) $app->received_amount,
                 'remaining' => (float) $app->remaining_amount,
@@ -631,7 +632,10 @@
                 'tutorial_link' => $app->service?->video_instruction_link,
                 'assigned_employee_id' => $app->assigned_employee_id,
                 'operator' => $app->assignedEmployee?->user?->name ?? 'Unassigned',
+                'customer_name' => $customer->name,
+                'customer_mobile' => $customer->mobile,
                 'show_url' => route('applications.show', $app->id),
+                'receipt_url' => route('applications.receipt', $app->id),
             ];
         });
     @endphp
@@ -689,7 +693,6 @@
                             </div>
                         </th>
                         <th style="min-width: 85px; color: #38bdf8; text-align: center;">Exp. Days</th>
-                        <th style="min-width: 80px;">Date</th>
                         <th style="min-width: 75px;">3. Rate (₹) *</th>
                         <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
                         <th style="min-width: 75px;">5. Remaining (₹)</th>
@@ -726,10 +729,13 @@
                     <!-- ACTIVE EXCEL LIVE INPUT ROW (Always on Top for instant 5-second entry) -->
                     <tr id="active-service-row" class="active-entry-row">
                         <!-- SR Number Column -->
-                        <td>
+                        <td style="padding: 4px 6px;">
                             <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 10px; padding: 4px 6px; border-radius: 4px; font-family: var(--font-mono);">
                                 <i class="fa-solid fa-plus"></i> NEW
                             </span>
+                            <div style="font-size: 10px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 2px;">
+                                <i class="fa-regular fa-clock" style="font-size: 9px; color: #94a3b8; margin-right: 2px;"></i>Today
+                            </div>
                         </td>
 
                         <!-- 1. Main Service -->
@@ -763,11 +769,6 @@
                                   style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; font-size: 11px; padding: 3px 6px; border-radius: 4px;">
                                 -
                             </span>
-                        </td>
-
-                        <!-- Date Column -->
-                        <td>
-                            <span style="font-size: 11.5px; color: #64748b; font-family: var(--font-mono); font-weight: 600;">Today</span>
                         </td>
 
                         <!-- 3. Rate (₹) -->
@@ -1138,8 +1139,13 @@ function getCommittedRowInnerHtml(app) {
     const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
-        <td class="font-mono font-bold" style="color: #475569; white-space: nowrap; user-select: text; cursor: default;">
-            ${escapeHtml(app.application_number)}
+        <td class="font-mono" style="white-space: nowrap; user-select: text; cursor: default; padding: 4px 6px;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 12px; line-height: 1.2;">
+                ${escapeHtml(app.application_number)}
+            </div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-top: 2px;">
+                <i class="fa-regular fa-clock" style="font-size: 9px; color: #94a3b8; margin-right: 2px;"></i>${escapeHtml(app.application_date_time || app.application_date || 'Today')}
+            </div>
         </td>
         <td style="font-weight: 700; color: #0f172a;">
             ${escapeHtml(app.service_name)}
@@ -1164,9 +1170,6 @@ function getCommittedRowInnerHtml(app) {
             <span class="badge" style="background: #f1f5f9; color: #0369a1; border: 1px solid #cbd5e1; font-weight: 700; font-size: 11px; padding: 3px 6px; border-radius: 4px;">
                 ⏱️ ${app.expected_days ? app.expected_days + ' Days' : '-'}
             </span>
-        </td>
-        <td class="font-mono" style="font-size: 11.5px; color: #64748b; white-space: nowrap;">
-            ${escapeHtml(app.application_date || 'Today')}
         </td>
         <td style="padding: 4px 6px;">
             <div style="display: flex; align-items: center; gap: 4px;">
@@ -1257,15 +1260,25 @@ function getCommittedRowInnerHtml(app) {
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Video Tutorial">
                     <i class="fa-brands fa-youtube"></i>
                 </a>
-                <a href="${app.show_url || '#'}" class="btn-row-action btn-row-view" title="Receipt & Details">
+                <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)"
+                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; border-radius: 4px; padding: 4px 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
                     <i class="fa-solid fa-receipt"></i>
-                </a>
+                </button>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
             </div>
         </td>
     `;
+}
+
+function openReceiptModal(appId) {
+    const app = loadedApplications[appId];
+    if (app && window.showReceiptModal) {
+        window.showReceiptModal(app);
+    } else {
+        window.open(`/applications/${appId}/receipt`, '_blank');
+    }
 }
 
 function getEmployeeName(empId, fallback = '') {
@@ -1619,7 +1632,11 @@ function saveActiveServiceRow() {
                 operator: d.operator,
                 assigned_employee_id: payload.assigned_employee_id,
                 show_url: d.show_url,
-                application_date: 'Today'
+                receipt_url: d.receipt_url || `/applications/${d.id}/receipt`,
+                customer_name: '{{ addslashes($customer->name) }}',
+                customer_mobile: '{{ addslashes($customer->mobile) }}',
+                application_date: 'Today',
+                application_date_time: d.formatted_date_time || (new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }))
             };
 
             loadedApplications[newApp.id] = newApp;
