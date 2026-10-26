@@ -136,8 +136,8 @@
                         </span>
                     @endif
 
-                    <a href="{{ route('portal.track') }}" target="_blank" class="btn btn-secondary btn-sm" title="Open Public Customer Tracking Portal">
-                        <i class="fa-solid fa-external-link"></i> Customer Tracker
+                    <a href="{{ route('portal.track') }}" class="btn btn-secondary btn-sm" title="Customer Tracker">
+                        <i class="fa-solid fa-magnifying-glass"></i> Customer Tracker
                     </a>
 
                     <a href="{{ route('profile') }}" class="user-profile-pill">

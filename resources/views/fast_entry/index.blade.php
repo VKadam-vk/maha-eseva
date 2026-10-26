@@ -1376,8 +1376,8 @@
                         <button type="button" id="btn-toggle-blacklist" onclick="promptCustomerBlacklist()" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                             <i class="fa-solid fa-ban"></i> <span id="btn-blacklist-label">Blacklist Customer</span>
                         </button>
-                        <a id="cd-full-profile-link" href="#" target="_blank" class="btn btn-sm" style="color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none;">
-                            Open Full CRM Profile <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <a id="cd-full-profile-link" href="#" class="btn btn-sm" style="color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none;">
+                            Open Full CRM Profile <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>

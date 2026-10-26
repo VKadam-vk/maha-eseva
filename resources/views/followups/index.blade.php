@@ -719,7 +719,7 @@
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                         <a href="{{ route('customers.show', $cust->id) }}"
                                            style="font-weight: 800; color: #0f172a; text-decoration: none; font-size: 12.5px; line-height: 1.25;"
-                                           title="Open customer profile in new tab" target="_blank">
+                                           title="Open customer profile">
                                             {{ $cust->name }}
                                         </a>
                                         @if($cust->mobile)
@@ -905,7 +905,7 @@
                                     @endif
 
                                     @if($cust)
-                                        <a href="{{ route('customers.show', $cust->id) }}" target="_blank"
+                                        <a href="{{ route('customers.show', $cust->id) }}"
                                            class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #f1f5f9; color: #334155; border-radius: 4px; border: 1px solid #cbd5e1;"
                                            title="View Full Profile">
                                             <i class="fa-solid fa-user"></i>

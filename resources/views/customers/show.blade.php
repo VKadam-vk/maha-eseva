@@ -1257,7 +1257,7 @@ function getCommittedRowInnerHtml(app) {
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Video Tutorial">
                     <i class="fa-brands fa-youtube"></i>
                 </a>
-                <a href="${app.show_url || '#'}" target="_blank" class="btn-row-action btn-row-view" title="Receipt & Details">
+                <a href="${app.show_url || '#'}" class="btn-row-action btn-row-view" title="Receipt & Details">
                     <i class="fa-solid fa-receipt"></i>
                 </a>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">

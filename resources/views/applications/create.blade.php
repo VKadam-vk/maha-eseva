@@ -21,7 +21,7 @@
         <div class="erp-card">
             <div class="erp-card-header">
                 <h3 class="erp-card-title"><i class="fa-solid fa-user-check"></i> Step 1: Customer Selection</h3>
-                <a href="{{ route('customers.create') }}" target="_blank" class="btn btn-secondary btn-sm">
+                <a href="{{ route('customers.create') }}" class="btn btn-secondary btn-sm">
                     <i class="fa-solid fa-user-plus"></i> New Customer
                 </a>
             </div>
