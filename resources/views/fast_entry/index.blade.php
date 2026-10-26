@@ -1398,14 +1398,6 @@
                                     </button>
                                 </div>
                             </th>
-                            <th style="min-width: 145px; color: #f59e0b;">
-                                <div class="excel-th-inner">
-                                    <span>Status</span>
-                                    <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
-                                        <i class="fa-solid fa-filter"></i>
-                                    </button>
-                                </div>
-                            </th>
                             <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
                             <th style="min-width: 90px;">3. Rate (₹) *</th>
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
@@ -1424,6 +1416,15 @@
                                 <div class="excel-th-inner">
                                     <span>9. Follow-Up Date</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <!-- 10. Status (Fixed on Right Side) -->
+                            <th style="min-width: 155px; color: #f59e0b;">
+                                <div class="excel-th-inner">
+                                    <span>10. Status</span>
+                                    <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
@@ -1469,25 +1470,6 @@
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
                                 </div>
-                            </td>
-
-                            <!-- Status (Fixed Position Column) -->
-                            <td style="padding: 4px 6px;">
-                                <select id="se_status" class="excel-select font-bold status-select"
-                                        data-prev="IN_PROGRESS"
-                                        onchange="onActiveStatusSelectChange(this)"
-                                        onkeydown="handleRowKeyDown(event)"
-                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
-                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
-                                    <option value="SUBMITTED">SUBMITTED</option>
-                                    <option value="READY">READY</option>
-                                    <option value="DELIVERED">DELIVERED</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                    <option value="REJECTED">REJECTED</option>
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
-                                </select>
                             </td>
 
                             <!-- Expected Days Column -->
@@ -1555,7 +1537,26 @@
                                        onkeydown="handleRowKeyDown(event)">
                             </td>
 
-                            <!-- 10. Actions & Quick Links: Save + Apply + Tutorial -->
+                            <!-- 10. Status (Right Side Position Column) -->
+                            <td style="padding: 4px 6px;">
+                                <select id="se_status" class="excel-select font-bold status-select"
+                                        data-prev="IN_PROGRESS"
+                                        onchange="onActiveStatusSelectChange(this)"
+                                        onkeydown="handleRowKeyDown(event)"
+                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
+                                    <option value="SUBMITTED">SUBMITTED</option>
+                                    <option value="READY">READY</option>
+                                    <option value="DELIVERED">DELIVERED</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="REJECTED">REJECTED</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                </select>
+                            </td>
+
+                            <!-- Actions & Quick Links: Save + Apply + Tutorial -->
                             <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
                                     <button type="button" id="btn-save-row" class="btn-save-excel-row" onclick="saveActiveServiceRow()" title="Save Service Entry (Enter)">
@@ -2901,25 +2902,6 @@ function getCommittedRowInnerHtml(app) {
                 </button>
             </div>
         </td>
-        <!-- 4. STATUS (Fixed Position Column beside Sub Service) -->
-        <td style="padding: 4px 6px;">
-            <div class="crow-view-mode">
-                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-            <div class="crow-edit-mode">
-                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
-                        data-prev="${escapeHtml(currentStatus)}"
-                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
-                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
-                </select>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
-            </div>
-        </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
             <span class="badge" style="background: #f1f5f9; color: #0369a1; border: 1px solid #cbd5e1; font-weight: 700; font-size: 11px; padding: 4px 7px; border-radius: 5px;">
                 ⏱️ ${app.expected_days ? app.expected_days + ' Days' : '-'}
@@ -3028,6 +3010,25 @@ function getCommittedRowInnerHtml(app) {
                        onchange="autoSaveCommittedRow(${app.id})"
                        onblur="autoSaveCommittedRow(${app.id})">
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'follow_up_date', event)" title="Follow-Up Date Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+        </td>
+        <!-- 10. STATUS (Fixed on Right Side Column) -->
+        <td style="padding: 4px 6px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        data-prev="${escapeHtml(currentStatus)}"
+                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
+                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </button>
             </div>
