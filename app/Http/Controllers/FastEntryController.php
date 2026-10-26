@@ -514,16 +514,15 @@ class FastEntryController extends Controller
         $user = Auth::user();
         $customer = Customer::findOrFail($validated['customer_id']);
         $service = Service::findOrFail($validated['service_id']);
+        $rate = (float) $validated['rate'];
+        $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
+        $workStatus = $validated['work_status'] ?? Application::STATUS_NEW;
+        if ($workStatus === 'DONE') {
+            $workStatus = Application::STATUS_READY;
+        }
 
         try {
-            $application = DB::transaction(function () use ($validated, $user, $customer, $service) {
-                $rate = (float) $validated['rate'];
-                $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
-                $workStatus = $validated['work_status'] ?? Application::STATUS_NEW;
-                if ($workStatus === 'DONE') {
-                    $workStatus = Application::STATUS_READY;
-                }
-
+            $application = DB::transaction(function () use ($validated, $user, $customer, $service, $rate, $received, $workStatus) {
                 $app = $this->applicationService->createApplication([
                     'customer_id' => $customer->id,
                     'service_id' => $service->id,
