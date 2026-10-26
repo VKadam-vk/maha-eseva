@@ -15,6 +15,8 @@ services:
         value: "true"
       - key: APP_URL
         value: https://maha-eseva.onrender.com
+      - key: APP_KEY
+        value: base64:1XJ3komCSQ1WVEJqyV59Fl5NZRpLv+NaQjMjkmzUCcg=
       - key: DB_CONNECTION
         value: sqlite
       - key: SESSION_DRIVER

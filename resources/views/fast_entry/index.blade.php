@@ -1802,6 +1802,11 @@ function executeQuickGo(e, confirmCreate = false) {
     })
     .then(async res => {
         if (!res) return null;
+        if (res.status === 401) {
+            alert('तुमचे लॉगिन सेशन संपले आहे (Session Expired). कृपया पुन्हा लॉगिन (Login) करा.');
+            window.location.href = '{{ route("login") }}';
+            return null;
+        }
         if (res.status === 419) {
             alert('Your session was refreshed. Reloading page...');
             window.location.reload();
@@ -3192,8 +3197,20 @@ function autoSaveCommittedRow(appId) {
         },
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(async response => {
+        if (response.status === 401) {
+            alert('तुमचे लॉगिन सेशन संपले आहे (Session Expired). कृपया पुन्हा लॉगिन करा.');
+            window.location.href = '{{ route("login") }}';
+            return null;
+        }
+        if (response.status === 419) {
+            window.location.reload();
+            return null;
+        }
+        return await response.json();
+    })
     .then(res => {
+        if (!res) return;
         if (res.success) {
             const d = res.data;
             if (loadedApplications[appId]) {
@@ -3470,12 +3487,26 @@ function saveActiveServiceRow() {
         },
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(res => {
+    .then(async response => {
         saveBtns.forEach(b => {
             b.disabled = false;
             b.innerHTML = '<i class="fa-solid fa-check"></i> Save (Enter)';
         });
+
+        if (response.status === 401) {
+            alert('तुमचे लॉगिन सेशन संपले आहे (Session Expired). कृपया पुन्हा लॉगिन (Login) करा.');
+            window.location.href = '{{ route("login") }}';
+            return null;
+        }
+        if (response.status === 419) {
+            alert('पेज किंवा टोकन एक्सपायर झाले आहे. कृपया पेज रीफ्रेश करा (Refresh).');
+            window.location.reload();
+            return null;
+        }
+        return await response.json();
+    })
+    .then(res => {
+        if (!res) return;
 
         if (res.success) {
             const d = res.data;

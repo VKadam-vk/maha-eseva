@@ -21,6 +21,9 @@ function setEnvValue(&$content, $key, $value) {
 setEnvValue($env, 'APP_NAME', '"Maha E-Seva ERP"');
 setEnvValue($env, 'APP_ENV', 'production');
 setEnvValue($env, 'APP_DEBUG', 'true');
+if (getenv('APP_KEY')) {
+    setEnvValue($env, 'APP_KEY', getenv('APP_KEY'));
+}
 
 // Port & URL
 $port = getenv('PORT') ?: '80';
