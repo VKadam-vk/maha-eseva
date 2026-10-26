@@ -547,6 +547,107 @@
         100% { opacity: 0; }
     }
 
+    /* Committed Row Locked vs Unlocked Mode */
+    .pocket-excel-table tr.committed-row.locked-row {
+        background: #ffffff;
+    }
+    .pocket-excel-table tr.committed-row.locked-row:hover {
+        background: #f8fafc;
+    }
+    .pocket-excel-table tr.committed-row.unlocked-row {
+        background: #f0fdf4 !important;
+        box-shadow: inset 0 0 0 2px #22c55e !important;
+    }
+
+    .crow-view-mode {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .crow-edit-mode {
+        display: none !important;
+        align-items: center;
+        gap: 4px;
+    }
+    .unlocked-row .crow-view-mode {
+        display: none !important;
+    }
+    .unlocked-row .crow-edit-mode {
+        display: flex !important;
+    }
+
+    .crow-view-text {
+        font-size: 13px;
+        color: #0f172a;
+        font-weight: 600;
+        user-select: text;
+    }
+    .crow-view-rate {
+        font-size: 13.5px;
+        color: #0f172a;
+        font-weight: 800;
+        font-family: var(--font-mono, monospace);
+    }
+    .crow-view-notes {
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        color: #334155;
+        font-weight: 500;
+        cursor: help;
+    }
+    .crow-view-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .btn-row-action.btn-row-edit {
+        background: #eff6ff;
+        color: #0284c7;
+        border: 1.5px solid #bae6fd;
+        font-weight: 700;
+    }
+    .btn-row-action.btn-row-edit:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+    }
+    .btn-row-action.btn-row-done {
+        background: #16a34a !important;
+        color: #ffffff !important;
+        border: 1.5px solid #15803d !important;
+        font-weight: 800;
+    }
+    .btn-row-action.btn-row-done:hover {
+        background: #15803d !important;
+    }
+
+    .pocket-badge-danger {
+        background: #fee2e2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #f87171 !important;
+    }
+
+    @keyframes pulseNewSavedRow {
+        0% { background-color: #86efac; }
+        50% { background-color: #bbf7d0; }
+        100% { background-color: transparent; }
+    }
+    .newly-saved-row-pulse {
+        animation: pulseNewSavedRow 2s ease-out;
+    }
+
     /* Sub-Service Eye Icon Button */
     .btn-doc-eye {
         width: 34px;
@@ -934,6 +1035,103 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- SERVICES QUICK CATALOG & DOCUMENT CHECKLIST (Above Customer Quick Entry)  -->
+    <!-- ========================================================================= -->
+    @php
+        $uniqueMainServices = $services->pluck('main_service_name')->filter()->unique()->sort()->values();
+    @endphp
+    <div class="pocket-card" style="border: 1.5px solid #cbd5e1; margin-bottom: 8px; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-radius: 8px 8px 0 0;">
+            <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-layer-group" style="color: #38bdf8; font-size: 14px;"></i>
+                <span>SERVICES MASTER CATALOG & RATES</span>
+                <span class="badge" style="background: #334155; color: #38bdf8; font-size: 10px; font-weight: 700; border-radius: 8px; padding: 2px 7px;">
+                    {{ $services->count() }} Services
+                </span>
+            </div>
+
+            <!-- Dropdown Selectors -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <!-- 1. Main Service Dropdown -->
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 0; white-space: nowrap;">Main:</label>
+                    <select id="catalog_main_service_select" onchange="onCatalogMainSelectChange(this.value)"
+                            style="height: 30px; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #ffffff; min-width: 170px; outline: none; cursor: pointer;">
+                        <option value="">-- Choose Main Service --</option>
+                        @foreach($uniqueMainServices as $mainName)
+                            <option value="{{ $mainName }}">{{ strtoupper($mainName) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- 2. Sub Service Dropdown -->
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 0; white-space: nowrap;">Sub:</label>
+                    <select id="catalog_sub_service_select" onchange="onCatalogSubSelectChange(this.value)" disabled
+                            style="height: 30px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #ffffff; min-width: 210px; max-width: 340px; outline: none; cursor: pointer;">
+                        <option value="">-- Choose Sub Service --</option>
+                    </select>
+                </div>
+
+                <!-- Reset Button -->
+                <button type="button" onclick="resetCatalogSelection()" title="Reset Selection"
+                        style="height: 30px; padding: 2px 10px; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Particular Service Details Display Strip -->
+        <div id="catalog-card-body" style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
+            <!-- Placeholder (when nothing selected) -->
+            <div id="catalog-empty-placeholder" style="display: flex; align-items: center; justify-content: space-between; color: #64748b; font-size: 12px; padding: 3px 4px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-info" style="color: #0284c7; font-size: 13px;"></i>
+                    <span>वरून <strong>Main Service</strong> व <strong>Sub Service</strong> निवडा — त्या विशिष्ट सेवेचे दर, अपेक्षित दिवस आणि 👁️ कागदपत्रे बटण येथे दिसेल.</span>
+                </div>
+                <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">Fast Counter Catalog</span>
+            </div>
+
+            <!-- Particular Service Details (Visible when selected) -->
+            <div id="catalog-selected-view" style="display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <!-- Left: Service Identity -->
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span id="cat-view-main" style="background: #e0e7ff; color: #3730a3; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; text-transform: uppercase;">
+                        MAIN SERVICE
+                    </span>
+                    <span id="cat-view-sub" style="font-size: 13px; font-weight: 800; color: #0f172a;">
+                        Sub Service Name
+                    </span>
+                </div>
+
+                <!-- Right: Price, Expected Days, Document Eye Icon, and Use Button -->
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <!-- Price -->
+                    <div style="display: flex; align-items: baseline; gap: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 10px; border-radius: 6px;">
+                        <span style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">दर (Price):</span>
+                        <span id="cat-view-price" style="font-size: 14.5px; font-weight: 800; font-family: var(--font-mono); color: #166534;">
+                            ₹ 0.00
+                        </span>
+                    </div>
+
+                    <!-- Expected Days -->
+                    <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 3px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 4px;">
+                        <i class="fa-regular fa-clock" style="color: #0284c7;"></i>
+                        <span id="cat-view-days">7 Days</span>
+                    </div>
+
+                    <!-- Eye Icon for Documents -->
+                    <button type="button" id="cat-view-doc-btn" onclick="openCatalogServiceDocs()" class="btn-doc-eye"
+                            title="View Required Documents" style="width: auto; height: 30px; padding: 0 12px; gap: 6px; font-size: 11.5px; font-weight: 700; background: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8;">
+                        <i class="fa-solid fa-eye" style="font-size: 13px; color: #2563eb;"></i>
+                        <span>लागणारी कागदपत्रे (Documents)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- 1. POCKET PAY INSPIRED 2-COLUMN SECTION (LEFT: LOOKUP/ENTRY, RIGHT: INFO) -->
     <!-- ========================================================================= -->
     <div class="pocket-top-grid" id="pocket-top-grid">
@@ -994,9 +1192,14 @@
                     <i class="fa-solid fa-address-card" style="color: #38bdf8;"></i>
                     <span>Customer Details (Click to edit - Auto-Saves)</span>
                 </div>
-                <span id="cd-status-badge" class="pocket-badge-neutral">
-                    No Customer Selected
-                </span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="cd-status-badge" class="pocket-badge-neutral">
+                        No Customer Selected
+                    </span>
+                    <span id="cd-blacklist-badge" class="badge" style="display: none; background: #dc2626; color: white; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 5px; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-ban"></i> BLACKLISTED
+                    </span>
+                </div>
             </div>
 
             <div class="pocket-card-body">
@@ -1014,6 +1217,20 @@
                 <!-- Loaded State (Sender Details Card with Direct Inline Editable Fields) -->
                 <div id="cust-loaded-state" style="display: none;">
                     <input type="hidden" id="current_cust_id" value="">
+
+                    <!-- Blacklisted Customer Alert Warning Banner -->
+                    <div id="cd-blacklist-banner" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: #dc2626; font-size: 18px;"></i>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 800; color: #b91c1c;">⚠️ BLACKLISTED CUSTOMER</div>
+                                <div id="cd-blacklist-reason-text" style="font-size: 11.5px; color: #7f1d1d; font-weight: 600;"></div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="toggleCustomerBlacklist(false)" class="btn btn-sm" style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: #ffffff; color: #dc2626; border: 1px solid #ef4444; cursor: pointer;">
+                            <i class="fa-solid fa-unlock"></i> Remove Blacklist
+                        </button>
+                    </div>
 
                     <div class="details-summary-grid">
                         <!-- 1. NAME (Click to edit directly) -->
@@ -1109,8 +1326,11 @@
                         </div>
                     </div>
 
-                    <!-- Footer Link -->
-                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px;">
+                    <!-- Footer Actions -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                        <button type="button" id="btn-toggle-blacklist" onclick="promptCustomerBlacklist()" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-ban"></i> <span id="btn-blacklist-label">Blacklist Customer</span>
+                        </button>
                         <a id="cd-full-profile-link" href="#" target="_blank" class="btn btn-sm" style="color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none;">
                             Open Full CRM Profile <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
@@ -1161,7 +1381,7 @@
                 <table id="fast-entry-table" class="pocket-excel-table">
                     <thead>
                         <tr>
-                            <th style="min-width: 120px;"># SR Number</th>
+                            <th style="min-width: 130px;"># SR Number</th>
                             <th style="min-width: 160px;">
                                 <div class="excel-th-inner">
                                     <span>1. Main Service *</span>
@@ -1178,24 +1398,23 @@
                                     </button>
                                 </div>
                             </th>
-                            <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
-                            <th style="min-width: 90px;">Date</th>
-                            <th style="min-width: 90px;">3. Rate (₹) *</th>
-                            <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
-                            <th style="min-width: 95px;">5. Remaining (₹)</th>
-                            <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
-                            <th style="min-width: 160px; color: #10b981;">7. Pending Remark</th>
                             <th style="min-width: 145px; color: #f59e0b;">
                                 <div class="excel-th-inner">
-                                    <span>8. Status</span>
+                                    <span>Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
+                            <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
+                            <th style="min-width: 90px;">3. Rate (₹) *</th>
+                            <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
+                            <th style="min-width: 95px;">5. Remaining (₹)</th>
+                            <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
+                            <th style="min-width: 160px; color: #10b981;">7. Pending Remark</th>
                             <th style="min-width: 145px;">
                                 <div class="excel-th-inner">
-                                    <span>9. Operator</span>
+                                    <span>8. Operator</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1203,13 +1422,13 @@
                             </th>
                             <th style="min-width: 145px; color: #fbbf24;">
                                 <div class="excel-th-inner">
-                                    <span>10. Follow-Up Date</span>
+                                    <span>9. Follow-Up Date</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
-                            <th style="min-width: 220px; text-align: center;">Actions & Quick Links</th>
+                            <th style="min-width: 250px; text-align: center;">Actions & Quick Links</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -1218,10 +1437,13 @@
                         <!-- ACTIVE SPREADSHEET INPUT ROW (Always present right below existing rows!) -->
                         <tr id="active-service-row" class="active-entry-row">
                             <!-- SR Number Column -->
-                            <td>
-                                <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 11px; padding: 5px 8px; border-radius: 5px; font-family: var(--font-mono);">
+                            <td style="padding: 6px 8px;">
+                                <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 11px; padding: 4px 7px; border-radius: 5px; font-family: var(--font-mono);">
                                     <i class="fa-solid fa-plus"></i> NEW ROW
                                 </span>
+                                <div style="font-size: 10.5px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 3px;">
+                                    {{ now()->format('d-m-Y h:i A') }}
+                                </div>
                             </td>
 
                             <!-- 1. Main Service -->
@@ -1249,17 +1471,31 @@
                                 </div>
                             </td>
 
+                            <!-- Status (Fixed Position Column) -->
+                            <td style="padding: 4px 6px;">
+                                <select id="se_status" class="excel-select font-bold status-select"
+                                        data-prev="IN_PROGRESS"
+                                        onchange="onActiveStatusSelectChange(this)"
+                                        onkeydown="handleRowKeyDown(event)"
+                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
+                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
+                                    <option value="SUBMITTED">SUBMITTED</option>
+                                    <option value="READY">READY</option>
+                                    <option value="DELIVERED">DELIVERED</option>
+                                    <option value="COMPLETED">COMPLETED</option>
+                                    <option value="REJECTED">REJECTED</option>
+                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                </select>
+                            </td>
+
                             <!-- Expected Days Column -->
                             <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
                                 <span id="se_expected_days_badge" class="badge"
                                       style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; font-size: 11.5px; padding: 4px 8px; border-radius: 5px;">
                                     -
                                 </span>
-                            </td>
-
-                            <!-- Date Column -->
-                            <td>
-                                <span style="font-size: 12px; color: #64748b; font-family: var(--font-mono); font-weight: 600;">Today</span>
                             </td>
 
                             <!-- 3. Rate (₹) -->
@@ -1300,25 +1536,6 @@
                                           title="Pending Remark: Pending reason, documents needed, notes, etc."
                                           oninput="autoExpandWorkDetails(this)"
                                           onkeydown="handleRowKeyDown(event)"></textarea>
-                            </td>
-
-                            <!-- 8. Status (Direct Clickable Select Dropdown) -->
-                            <td style="padding: 4px 6px;">
-                                <select id="se_status" class="excel-select font-bold status-select"
-                                        data-prev="IN_PROGRESS"
-                                        onchange="onActiveStatusSelectChange(this)"
-                                        onkeydown="handleRowKeyDown(event)"
-                                        style="height: 38px; font-size: 11.5px; font-weight: 800; text-transform: uppercase;">
-                                    <option value="IN_PROGRESS" selected>IN_PROGRESS</option>
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="WAITING_FOR_DOCS">WAITING FOR DOCS</option>
-                                    <option value="SUBMITTED">SUBMITTED</option>
-                                    <option value="READY">READY</option>
-                                    <option value="DELIVERED">DELIVERED</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                    <option value="REJECTED">REJECTED</option>
-                                    <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
-                                </select>
                             </td>
 
                             <!-- 8. Operator -->
@@ -1691,7 +1908,10 @@ function populateCustomerUI(cust, isNew) {
     document.getElementById('cust-loaded-state').style.display = 'block';
 
     const statusBadge = document.getElementById('cd-status-badge');
-    if (isNew) {
+    if (cust.is_blacklisted) {
+        statusBadge.className = 'pocket-badge-danger';
+        statusBadge.innerText = '⛔ BLACKLISTED';
+    } else if (isNew) {
         statusBadge.className = 'pocket-badge-active';
         statusBadge.innerText = 'Auto-Saved to CRM';
     } else {
@@ -1718,10 +1938,98 @@ function populateCustomerUI(cust, isNew) {
     document.getElementById('cd-inline-dob').value = cust.birth_date || '';
     document.getElementById('cd-full-profile-link').href = cust.profile_url;
 
+    // Update Blacklist Status UI
+    updateBlacklistUI(cust);
+
     // Sync back left name if blank
     if (!document.getElementById('fe_name').value) {
         document.getElementById('fe_name').value = cust.name;
     }
+
+    if (cust.is_blacklisted) {
+        showAlert('⛔ BLACKLISTED CUSTOMER', `Caution: Customer is marked as BLACKLISTED! Reason: ${cust.blacklist_reason || 'Flagged by desk operator'}`);
+    }
+}
+
+function updateBlacklistUI(cust) {
+    const isBl = !!(cust && cust.is_blacklisted);
+    const badge = document.getElementById('cd-blacklist-badge');
+    const banner = document.getElementById('cd-blacklist-banner');
+    const reasonText = document.getElementById('cd-blacklist-reason-text');
+    const btnLabel = document.getElementById('btn-blacklist-label');
+    const btn = document.getElementById('btn-toggle-blacklist');
+    const statusBadge = document.getElementById('cd-status-badge');
+
+    if (badge) badge.style.display = isBl ? 'inline-flex' : 'none';
+    if (banner) {
+        banner.style.display = isBl ? 'flex' : 'none';
+        if (reasonText) reasonText.textContent = cust && cust.blacklist_reason ? `Reason: ${cust.blacklist_reason}` : 'No specific reason provided';
+    }
+    if (btnLabel) btnLabel.textContent = isBl ? 'Remove from Blacklist' : 'Blacklist Customer';
+    if (btn) {
+        btn.style.background = isBl ? '#dcfce7' : '#fee2e2';
+        btn.style.color = isBl ? '#166534' : '#dc2626';
+        btn.style.borderColor = isBl ? '#86efac' : '#fca5a5';
+    }
+    if (statusBadge && cust) {
+        if (isBl) {
+            statusBadge.className = 'pocket-badge-danger';
+            statusBadge.innerText = '⛔ BLACKLISTED';
+        } else {
+            statusBadge.className = 'pocket-badge-active';
+            statusBadge.innerText = 'Existing Active Customer';
+        }
+    }
+}
+
+function promptCustomerBlacklist() {
+    if (!currentLoadedCustomer) {
+        alert('Please select or search a customer first.');
+        return;
+    }
+    const isCurBlacklisted = !!currentLoadedCustomer.is_blacklisted;
+
+    if (isCurBlacklisted) {
+        if (confirm(`Remove ${currentLoadedCustomer.name} (${currentLoadedCustomer.customer_code}) from Blacklist?`)) {
+            toggleCustomerBlacklist(false);
+        }
+    } else {
+        const reason = prompt(`Enter reason for Blacklisting ${currentLoadedCustomer.name}:`, 'Payment pending / non-cooperative citizen');
+        if (reason !== null && reason.trim() !== '') {
+            toggleCustomerBlacklist(true, reason.trim());
+        }
+    }
+}
+
+function toggleCustomerBlacklist(setBlacklist, reason = '') {
+    if (!currentLoadedCustomer) return;
+    const custId = currentLoadedCustomer.id;
+
+    fetch('{{ route("fast_entry.toggle_blacklist") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            customer_id: custId,
+            is_blacklisted: setBlacklist,
+            blacklist_reason: reason
+        })
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            currentLoadedCustomer.is_blacklisted = res.is_blacklisted;
+            currentLoadedCustomer.blacklist_reason = res.blacklist_reason || '';
+            updateBlacklistUI(currentLoadedCustomer);
+            showAlert(res.is_blacklisted ? 'Customer Blacklisted' : 'Blacklist Removed', res.message);
+        } else {
+            alert('Error: ' + res.message);
+        }
+    })
+    .catch(() => alert('Network error updating blacklist status.'));
 }
 
 // ==========================================
@@ -2418,9 +2726,111 @@ function getAppTutorialLink(app) {
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(q.trim())}`;
 }
 
+function applyStatusBadgeStyle(el, statusVal) {
+    if (!el) return;
+    const val = (statusVal || '').trim().toUpperCase();
+    if (val.includes('READY') || val.includes('DONE') || val.includes('APPROVED') || val.includes('DELIVERED') || val.includes('COMPLETED')) {
+        el.style.background = '#dcfce7';
+        el.style.color = '#166534';
+        el.style.border = '1px solid #86efac';
+    } else if (val.includes('PEND') || val.includes('REJECT') || val.includes('CANCEL')) {
+        el.style.background = '#fee2e2';
+        el.style.color = '#dc2626';
+        el.style.border = '1px solid #fca5a5';
+    } else if (val.includes('PROG') || val.includes('HOLD') || val.includes('WAIT') || val.includes('SUBMIT')) {
+        el.style.background = '#fef3c7';
+        el.style.color = '#b45309';
+        el.style.border = '1px solid #fde68a';
+    } else {
+        el.style.background = '#f3e8ff';
+        el.style.color = '#6b21a8';
+        el.style.border = '1px solid #d8b4fe';
+    }
+}
+
+function toggleEditCommittedRow(appId) {
+    const tr = document.getElementById('committed-row-' + appId);
+    if (!tr) return;
+
+    const isLocked = tr.classList.contains('locked-row');
+    if (isLocked) {
+        tr.classList.remove('locked-row');
+        tr.classList.add('unlocked-row');
+        const btn = document.getElementById('btn-edit-row-' + appId);
+        if (btn) {
+            btn.className = 'btn-row-action btn-row-done';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
+            btn.title = 'Save and Lock this service row';
+        }
+        const rateInput = document.getElementById(`crow_rate_${appId}`);
+        if (rateInput) {
+            rateInput.focus();
+            rateInput.select();
+        }
+    } else {
+        saveAndLockCommittedRow(appId);
+    }
+}
+
+function saveAndLockCommittedRow(appId) {
+    autoSaveCommittedRow(appId);
+    const tr = document.getElementById('committed-row-' + appId);
+    if (!tr) return;
+
+    tr.classList.remove('unlocked-row');
+    tr.classList.add('locked-row');
+    const btn = document.getElementById('btn-edit-row-' + appId);
+    if (btn) {
+        btn.className = 'btn-row-action btn-row-edit';
+        btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+        btn.title = 'Click to edit service details';
+    }
+    updateCommittedRowViewTexts(appId);
+}
+
+function updateCommittedRowViewTexts(appId) {
+    const app = loadedApplications[appId];
+    if (!app) return;
+
+    const subEl = document.getElementById(`crow_view_sub_${appId}`);
+    if (subEl) subEl.textContent = app.sub_service || '-';
+
+    const statusEl = document.getElementById(`crow_view_status_${appId}`);
+    if (statusEl) {
+        statusEl.textContent = app.status || 'PENDING';
+        applyStatusBadgeStyle(statusEl, app.status);
+    }
+
+    const rateNum = typeof app.rate === 'number' ? app.rate : (parseFloat(app.rate) || 0);
+    const rateEl = document.getElementById(`crow_view_rate_${appId}`);
+    if (rateEl) rateEl.textContent = '₹ ' + rateNum.toFixed(2);
+
+    const recNum = typeof app.received === 'number' ? app.received : (parseFloat(app.received) || 0);
+    const recEl = document.getElementById(`crow_view_rec_${appId}`);
+    if (recEl) recEl.textContent = '₹ ' + recNum.toFixed(2);
+
+    const wdEl = document.getElementById(`crow_view_wd_${appId}`);
+    if (wdEl) {
+        wdEl.textContent = app.work_details || '-';
+        wdEl.title = app.work_details || '';
+    }
+
+    const prEl = document.getElementById(`crow_view_pr_${appId}`);
+    if (prEl) {
+        prEl.textContent = app.payment_remarks || '-';
+        prEl.title = app.payment_remarks || '';
+    }
+
+    const opEl = document.getElementById(`crow_view_op_${appId}`);
+    if (opEl) opEl.textContent = getEmployeeName(app.assigned_employee_id, app.operator) || 'Unassigned';
+
+    const fuEl = document.getElementById(`crow_view_fu_${appId}`);
+    if (fuEl) fuEl.textContent = app.follow_up_date || '-';
+}
+
 function createCommittedRowElement(app) {
     const tr = document.createElement('tr');
-    tr.className = 'committed-row';
+    tr.className = 'committed-row locked-row';
     tr.id = 'committed-row-' + app.id;
     tr.dataset.appId = app.id;
     tr.dataset.main_service = (app.service_name || app.main_service_name || '').trim();
@@ -2434,6 +2844,9 @@ function createCommittedRowElement(app) {
     setTimeout(() => {
         const input = tr.querySelector(`#crow_status_${app.id}`);
         if (input) applyStatusInputStyle(input);
+
+        const vBadge = tr.querySelector(`#crow_view_status_${app.id}`);
+        if (vBadge) applyStatusBadgeStyle(vBadge, app.status);
 
         const wd = tr.querySelector(`#crow_work_details_${app.id}`);
         if (wd) autoExpandWorkDetails(wd);
@@ -2452,14 +2865,28 @@ function getCommittedRowInnerHtml(app) {
     const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
-        <td class="font-mono font-bold" style="color: #475569; white-space: nowrap; user-select: text; cursor: default;">
-            ${escapeHtml(app.application_number)}
+        <td class="font-mono" style="white-space: nowrap; user-select: text; cursor: default; padding: 6px 8px;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 12.5px; line-height: 1.2;">
+                ${escapeHtml(app.application_number)}
+            </div>
+            <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">
+                ${escapeHtml(app.formatted_date_time || (app.application_date ? app.application_date : 'Today'))}
+            </div>
         </td>
         <td style="font-weight: 700; color: #0f172a;">
             ${escapeHtml(app.service_name)}
         </td>
         <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="crow-view-mode">
+                <span class="crow-view-text font-bold" id="crow_view_sub_${app.id}">${escapeHtml(app.sub_service || '-')}</span>
+                <button type="button" class="btn-doc-eye-small" onclick="openDocsModalForApp(${app.id})" title="View Required Documents">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
                 <input type="text" id="crow_sub_${app.id}" class="excel-cell-input" style="flex: 1;"
                        value="${escapeHtml(app.sub_service || '')}"
                        placeholder="Sub service"
@@ -2474,22 +2901,44 @@ function getCommittedRowInnerHtml(app) {
                 </button>
             </div>
         </td>
+        <!-- 4. STATUS (Fixed Position Column beside Sub Service) -->
+        <td style="padding: 4px 6px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_status_${app.id}" class="crow-view-badge">${escapeHtml(currentStatus || 'PENDING')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
+                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
+                        data-prev="${escapeHtml(currentStatus)}"
+                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
+                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+        </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
             <span class="badge" style="background: #f1f5f9; color: #0369a1; border: 1px solid #cbd5e1; font-weight: 700; font-size: 11px; padding: 4px 7px; border-radius: 5px;">
                 ⏱️ ${app.expected_days ? app.expected_days + ' Days' : '-'}
             </span>
         </td>
-        <td class="font-mono" style="font-size: 12px; color: #64748b; white-space: nowrap;">
-            ${escapeHtml(app.application_date || 'Today')}
-        </td>
         <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_rate_${app.id}" class="crow-view-rate">₹ ${rateNum.toFixed(2)}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'rate', event)" title="Rate Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
                 <div style="position: relative; display: flex; align-items: center; flex: 1;">
                     <span style="position: absolute; left: 8px; font-weight: 700; color: #64748b; pointer-events: none; font-size: 12px;">₹</span>
                     <input type="number" step="0.01" id="crow_rate_${app.id}" class="excel-cell-input font-mono font-bold"
                            value="${rateNum}"
                            style="padding-left: 20px; font-size: 13.5px;"
-                           title="Click to edit rate"
+                           title="Rate"
                            oninput="calcCommittedRemaining(${app.id})"
                            onchange="autoSaveCommittedRow(${app.id})"
                            onkeydown="handleCommittedKey(event, ${app.id})">
@@ -2500,12 +2949,15 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
         <td style="padding: 4px 6px;">
-            <div style="position: relative; display: flex; align-items: center;">
+            <div class="crow-view-mode">
+                <span id="crow_view_rec_${app.id}" class="crow-view-rate" style="color: #166534;">₹ ${recNum.toFixed(2)}</span>
+            </div>
+            <div class="crow-edit-mode" style="position: relative; display: flex; align-items: center;">
                 <span style="position: absolute; left: 8px; font-weight: 700; color: #166534; pointer-events: none; font-size: 12px;">₹</span>
                 <input type="number" step="0.01" id="crow_received_${app.id}" class="excel-cell-input font-mono font-bold"
                        value="${recNum}"
                        style="padding-left: 20px; font-size: 13.5px; color: #166534;"
-                       title="Click to edit received amount"
+                       title="Received amount"
                        oninput="calcCommittedRemaining(${app.id})"
                        onchange="autoSaveCommittedRow(${app.id})"
                        onkeydown="handleCommittedKey(event, ${app.id})">
@@ -2517,37 +2969,41 @@ function getCommittedRowInnerHtml(app) {
             </span>
         </td>
         <td style="padding: 4px 6px;">
-            <textarea id="crow_work_details_${app.id}" class="excel-work-details"
-                      placeholder="Work details / citizen notes..."
-                      rows="1"
-                      title="${escapeHtml(app.work_details || '')}"
-                      oninput="autoExpandWorkDetails(this)"
-                      onchange="autoSaveCommittedRow(${app.id})"
-                      onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
-        </td>
-        <td style="padding: 4px 6px;">
-            <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
-                      placeholder="Pending remark / notes..."
-                      rows="1"
-                      title="${escapeHtml(app.payment_remarks || '')}"
-                      oninput="autoExpandWorkDetails(this)"
-                      onchange="autoSaveCommittedRow(${app.id})"
-                      onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
-        </td>
-        <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <select id="crow_status_${app.id}" class="excel-status-input font-bold status-select" style="flex: 1;"
-                        data-prev="${escapeHtml(currentStatus)}"
-                        onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
-                    ${renderStatusOptionsHtml(currentStatus, serviceName)}
-                </select>
-                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </button>
+            <div class="crow-view-mode">
+                <div id="crow_view_wd_${app.id}" class="crow-view-notes" title="${escapeHtml(app.work_details || '')}">${escapeHtml(app.work_details || '-')}</div>
+            </div>
+            <div class="crow-edit-mode">
+                <textarea id="crow_work_details_${app.id}" class="excel-work-details"
+                          placeholder="Work details / citizen notes..."
+                          rows="1"
+                          title="${escapeHtml(app.work_details || '')}"
+                          oninput="autoExpandWorkDetails(this)"
+                          onchange="autoSaveCommittedRow(${app.id})"
+                          onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
             </div>
         </td>
         <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="crow-view-mode">
+                <div id="crow_view_pr_${app.id}" class="crow-view-notes" title="${escapeHtml(app.payment_remarks || '')}">${escapeHtml(app.payment_remarks || '-')}</div>
+            </div>
+            <div class="crow-edit-mode">
+                <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
+                          placeholder="Pending remark / notes..."
+                          rows="1"
+                          title="${escapeHtml(app.payment_remarks || '')}"
+                          oninput="autoExpandWorkDetails(this)"
+                          onchange="autoSaveCommittedRow(${app.id})"
+                          onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
+            </div>
+        </td>
+        <td style="padding: 4px 6px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_op_${app.id}" class="crow-view-text font-bold" style="font-size: 12px; color: #475569;">${escapeHtml(getEmployeeName(app.assigned_employee_id, app.operator) || 'Unassigned')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'assigned_employee_id', event)" title="Operator Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
                 <select id="crow_operator_${app.id}" class="excel-operator-select" style="flex: 1;"
                         title="Click to assign operator"
                         onchange="autoSaveCommittedRow(${app.id})">
@@ -2559,7 +3015,13 @@ function getCommittedRowInnerHtml(app) {
             </div>
         </td>
         <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="crow-view-mode">
+                <span id="crow_view_fu_${app.id}" class="crow-view-text font-mono" style="font-size: 12px;">${escapeHtml(app.follow_up_date || '-')}</span>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'follow_up_date', event)" title="Follow-Up Date Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+            <div class="crow-edit-mode">
                 <input type="date" id="crow_followup_${app.id}" class="excel-date-input" style="flex: 1;"
                        value="${escapeHtml(app.follow_up_date || '')}"
                        title="Expected Follow-up Date"
@@ -2572,15 +3034,19 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td style="text-align: center; white-space: nowrap; padding: 4px 8px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: nowrap;">
+                <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
+                    <i class="fa-solid fa-pencil"></i> Edit
+                </button>
                 <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video">
                     <i class="fa-brands fa-youtube"></i> Tutorial
                 </a>
-                <a href="${app.show_url || '#'}" target="_blank" class="btn-row-action btn-row-view"
-                   title="View application details">
-                    <i class="fa-solid fa-receipt"></i> View
+                <a href="${app.receipt_url || `/applications/${app.id}/receipt`}" target="_blank" class="btn-row-action btn-row-receipt"
+                   style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 700; text-decoration: none; padding: 4px 9px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"
+                   title="Print Official Citizen Receipt (पावती)">
+                    <i class="fa-solid fa-receipt"></i> Receipt
                 </a>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
@@ -2963,30 +3429,44 @@ function saveActiveServiceRow() {
             // Record custom status to datalist & local storage
             recordCustomStatus(payload.work_status);
 
-            // 1. Create and Insert Committed Row immediately above Active Row
-            const newApp = {
-                id: d.id,
-                application_number: d.application_number,
-                service_id: serviceId,
-                service_name: d.service_name,
-                sub_service: d.sub_service,
-                application_date: 'Today',
-                rate: d.rate.replace(/,/g, ''),
-                received: d.received.replace(/,/g, ''),
-                remaining: d.remaining.replace(/,/g, ''),
-                status: payload.work_status || 'READY',
-                work_details: d.work_details || payload.work_details || '',
-                payment_remarks: d.payment_remarks || payload.payment_remarks || '',
-                follow_up_date: d.follow_up_date || payload.follow_up_date || '',
-                portal_link: d.portal_link,
-                tutorial_link: d.tutorial_link,
-                assigned_employee_id: payload.assigned_employee_id,
-                operator: d.operator,
-                show_url: d.show_url || '#'
-            };
-            loadedApplications[d.id] = newApp;
-            const committedRow = createCommittedRowElement(newApp);
-            activeRow.after(committedRow);
+            // 1. If backend returned the full applications array, render all committed services!
+            if (res.applications && Array.isArray(res.applications)) {
+                renderCommittedServices(res.applications);
+                const newRow = document.getElementById('committed-row-' + d.id);
+                if (newRow) {
+                    newRow.classList.add('newly-saved-row-pulse');
+                    setTimeout(() => newRow.classList.remove('newly-saved-row-pulse'), 2500);
+                }
+            } else {
+                // Fallback: create single committed row and place right after activeRow
+                const newApp = {
+                    id: d.id,
+                    application_number: d.application_number,
+                    service_id: serviceId,
+                    service_name: d.service_name,
+                    sub_service: d.sub_service,
+                    application_date: d.application_date || 'Today',
+                    rate: typeof d.rate === 'string' ? d.rate.replace(/,/g, '') : d.rate,
+                    received: typeof d.received === 'string' ? d.received.replace(/,/g, '') : d.received,
+                    remaining: typeof d.remaining === 'string' ? d.remaining.replace(/,/g, '') : d.remaining,
+                    status: payload.work_status || 'READY',
+                    expected_days: d.expected_days || 7,
+                    main_service_name: d.main_service_name || d.service_name,
+                    work_details: d.work_details || payload.work_details || '',
+                    payment_remarks: d.payment_remarks || payload.payment_remarks || '',
+                    follow_up_date: d.follow_up_date || payload.follow_up_date || '',
+                    portal_link: d.portal_link,
+                    tutorial_link: d.tutorial_link,
+                    assigned_employee_id: payload.assigned_employee_id,
+                    operator: d.operator,
+                    show_url: d.show_url || '#'
+                };
+                loadedApplications[d.id] = newApp;
+                const committedRow = createCommittedRowElement(newApp);
+                activeRow.after(committedRow);
+                committedRow.classList.add('newly-saved-row-pulse');
+                setTimeout(() => committedRow.classList.remove('newly-saved-row-pulse'), 2500);
+            }
 
             if (window.fastEntryFilter) {
                 window.fastEntryFilter.refresh();
@@ -2994,16 +3474,20 @@ function saveActiveServiceRow() {
 
             // 2. Update Customer Summary Badges in Real-time
             if (currentLoadedCustomer) {
-                currentLoadedCustomer.total_services = (currentLoadedCustomer.total_services || 0) + 1;
+                currentLoadedCustomer.total_services = d.total_services !== undefined ? d.total_services : (currentLoadedCustomer.total_services || 0) + 1;
                 document.getElementById('cd-services-count').innerText = `${currentLoadedCustomer.total_services} Services`;
                 document.getElementById('services-badge').innerText = `${tbody.querySelectorAll('tr.committed-row').length} Services`;
 
-                const remNum = parseFloat(d.remaining.replace(/[^0-9.]/g, '')) || 0;
-                if (remNum > 0) {
+                if (d.customer_total_outstanding !== undefined) {
+                    currentLoadedCustomer.total_outstanding = d.customer_total_outstanding;
+                } else {
+                    const remNum = parseFloat(String(d.remaining).replace(/[^0-9.]/g, '')) || 0;
                     currentLoadedCustomer.total_outstanding = (currentLoadedCustomer.total_outstanding || 0) + remNum;
-                    const outEl = document.getElementById('cd-outstanding');
-                    outEl.innerText = `₹ ${currentLoadedCustomer.total_outstanding.toFixed(2)}`;
-                    outEl.style.color = '#dc2626';
+                }
+                const outEl = document.getElementById('cd-outstanding');
+                if (outEl) {
+                    outEl.innerText = `₹ ${parseFloat(currentLoadedCustomer.total_outstanding).toFixed(2)}`;
+                    outEl.style.color = currentLoadedCustomer.total_outstanding > 0 ? '#dc2626' : '#166534';
                 }
             }
 
@@ -3058,6 +3542,7 @@ function resetEntireDesk() {
     document.getElementById('current_cust_id').value = '';
     document.getElementById('cd-status-badge').className = 'pocket-badge-neutral';
     document.getElementById('cd-status-badge').innerText = 'No Customer Selected';
+    updateBlacklistUI(null);
 
     // Remove committed rows from Unified Table
     const tbody = document.getElementById('services-tbody');
@@ -3088,11 +3573,13 @@ function showAlert(title, desc) {
     alertBox.style.display = 'flex';
 }
 
-// Click anywhere on cell to focus its input/select
+// Click anywhere on cell to focus its input/select (only when row is unlocked/editing)
 document.addEventListener('click', function(e) {
-    const td = e.target.closest('tr.committed-row td');
+    const row = e.target.closest('tr.committed-row.unlocked-row');
+    if (!row) return;
+    const td = e.target.closest('td');
     if (td && e.target === td) {
-        const input = td.querySelector('.excel-cell-input, .excel-status-input, .excel-operator-select');
+        const input = td.querySelector('.excel-cell-input, .excel-status-input, .excel-operator-select, .excel-work-details');
         if (input) {
             input.focus();
             if (input.select && typeof input.select === 'function') {
@@ -3143,6 +3630,122 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ========================================================
+// Dropdown Services Catalog & Particular Viewer with Eye Icon
+// ========================================================
+let currentCatalogSelectedService = null;
+
+function onCatalogMainSelectChange(mainName) {
+    const subSel = document.getElementById('catalog_sub_service_select');
+    if (!subSel) return;
+
+    subSel.innerHTML = '<option value="">-- Choose Sub Service --</option>';
+    currentCatalogSelectedService = null;
+
+    if (!mainName) {
+        subSel.disabled = true;
+        renderCatalogParticularView(null);
+        return;
+    }
+
+    const matched = allServices.filter(s => s.main_service_name === mainName);
+    matched.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.sub_service_name;
+        subSel.appendChild(opt);
+    });
+
+    subSel.disabled = false;
+
+    // If there is only 1 sub-service under this main service, auto-select it!
+    if (matched.length === 1) {
+        subSel.value = matched[0].id;
+        onCatalogSubSelectChange(matched[0].id);
+    } else {
+        renderCatalogParticularView(null);
+    }
+}
+
+function onCatalogSubSelectChange(serviceId) {
+    if (!serviceId) {
+        currentCatalogSelectedService = null;
+        renderCatalogParticularView(null);
+        return;
+    }
+    const srv = allServices.find(s => s.id == serviceId);
+    currentCatalogSelectedService = srv || null;
+    renderCatalogParticularView(srv);
+}
+
+function renderCatalogParticularView(srv) {
+    const placeholder = document.getElementById('catalog-empty-placeholder');
+    const selectedView = document.getElementById('catalog-selected-view');
+    if (!placeholder || !selectedView) return;
+
+    if (!srv) {
+        placeholder.style.display = 'flex';
+        selectedView.style.display = 'none';
+        return;
+    }
+
+    placeholder.style.display = 'none';
+    selectedView.style.display = 'flex';
+
+    const mainEl = document.getElementById('cat-view-main');
+    const subEl = document.getElementById('cat-view-sub');
+    const priceEl = document.getElementById('cat-view-price');
+    const daysEl = document.getElementById('cat-view-days');
+
+    if (mainEl) mainEl.textContent = (srv.main_service_name || 'SERVICE').toUpperCase();
+    if (subEl) subEl.textContent = srv.sub_service_name || '';
+
+    const price = parseFloat(srv.price > 0 ? srv.price : ((parseFloat(srv.govt_fee) || 0) + (parseFloat(srv.service_charge) || 0))) || 0;
+    if (priceEl) priceEl.textContent = '₹ ' + price.toFixed(2);
+
+    const days = srv.expected_processing_days || 7;
+    if (daysEl) daysEl.textContent = days + ' Days';
+}
+
+function openCatalogServiceDocs() {
+    if (!currentCatalogSelectedService) {
+        alert('Please select a service first.');
+        return;
+    }
+    openDocsModalWithService(currentCatalogSelectedService);
+}
+
+function applyCatalogServiceToDesk() {
+    if (!currentCatalogSelectedService) return;
+    const srv = currentCatalogSelectedService;
+    const mainSel = document.getElementById('se_main_service');
+    if (mainSel) {
+        mainSel.value = srv.main_service_name;
+        onMainServiceChange(srv.main_service_name);
+        setTimeout(() => {
+            const subSel = document.getElementById('se_sub_service_select');
+            if (subSel) {
+                subSel.value = srv.id;
+                onSubServiceChange(srv.id);
+            }
+        }, 60);
+    }
+    showAlert('Service Selected', `${srv.main_service_name} ➔ ${srv.sub_service_name} active in entry row!`);
+}
+
+function resetCatalogSelection() {
+    const mainSel = document.getElementById('catalog_main_service_select');
+    const subSel = document.getElementById('catalog_sub_service_select');
+    if (mainSel) mainSel.value = '';
+    if (subSel) {
+        subSel.innerHTML = '<option value="">-- Choose Sub Service --</option>';
+        subSel.disabled = true;
+    }
+    currentCatalogSelectedService = null;
+    renderCatalogParticularView(null);
+}
+
 initCustomStatuses();
 </script>
 @endpush

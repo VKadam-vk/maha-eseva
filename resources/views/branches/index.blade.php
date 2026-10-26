@@ -43,7 +43,12 @@
                             @endif
                         </td>
                         <td>{{ $b->city ?? 'Pune' }}</td>
-                        <td>{{ $b->contact_person ?? '-' }}</td>
+                        <td>
+                            <div>{{ $b->contact_person ?? '-' }}</div>
+                            @if($b->owner_name)
+                                <div style="font-size: 11px; color: #4f46e5; font-weight: 600;">Owner: {{ $b->owner_name }}</div>
+                            @endif
+                        </td>
                         <td>{{ $b->contact_mobile ?? '-' }}</td>
                         <td><span class="badge badge-process">{{ $b->employees_count }} Staff</span></td>
                         <td><strong>{{ $b->customers_count }}</strong></td>

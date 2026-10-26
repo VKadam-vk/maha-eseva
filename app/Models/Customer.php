@@ -33,6 +33,8 @@ class Customer extends Model
         'alternate_mobile',
         'occupation',
         'star_rating',
+        'is_blacklisted',
+        'blacklist_reason',
         'category_id',
         'photo_path',
         'notes',
@@ -43,6 +45,7 @@ class Customer extends Model
     protected $casts = [
         'birth_date' => 'date',
         'star_rating' => 'integer',
+        'is_blacklisted' => 'boolean',
     ];
 
     protected static function booted(): void

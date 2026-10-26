@@ -95,6 +95,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/create', [ApplicationController::class, 'create'])->name('create')->middleware('permission:applications.create');
         Route::post('/', [ApplicationController::class, 'store'])->name('store')->middleware('permission:applications.create');
         Route::get('/{application}', [ApplicationController::class, 'show'])->name('show')->middleware('permission:applications.view');
+        Route::get('/{application}/receipt', [ApplicationController::class, 'printReceipt'])->name('receipt')->middleware('permission:applications.view');
         Route::post('/{application}/status', [ApplicationController::class, 'updateStatus'])->name('status.update')->middleware('permission:applications.edit');
         Route::put('/{application}/details', [ApplicationController::class, 'updateDetails'])->name('details.update')->middleware('permission:applications.edit');
         Route::get('/{application}/field-history', [ApplicationController::class, 'fieldHistory'])->name('field_history')->middleware('permission:applications.view');
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/search-customers', [FastEntryController::class, 'searchCustomers'])->name('search_customers')->middleware('permission:customers.view');
         Route::post('/store-service-entry', [FastEntryController::class, 'storeServiceEntry'])->name('store_service_entry')->middleware('permission:customers.create');
         Route::post('/update-service-row', [FastEntryController::class, 'updateServiceRow'])->name('update_service_row')->middleware('permission:applications.edit');
+        Route::post('/toggle-blacklist', [FastEntryController::class, 'toggleBlacklist'])->name('toggle_blacklist')->middleware('permission:customers.edit');
     });
 
     // Staff & Employee Management

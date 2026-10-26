@@ -41,6 +41,7 @@ class ApplicationController extends Controller
                   ->orWhereHas('customer', function ($c) use ($s) {
                       $c->where('name', 'like', "%{$s}%")
                         ->orWhere('mobile', 'like', "%{$s}%")
+                        ->orWhere('alternate_mobile', 'like', "%{$s}%")
                         ->orWhere('customer_code', 'like', "%{$s}%");
                   });
             });
@@ -219,6 +220,15 @@ class ApplicationController extends Controller
         ];
 
         return view('applications.show', compact('application', 'employees', 'statuses'));
+    }
+
+    /**
+     * Print official citizen service acknowledgement & payment receipt.
+     */
+    public function printReceipt(Application $application): View
+    {
+        $application->load(['customer', 'service', 'assignedEmployee.user', 'branch.tenant', 'payments.receiver']);
+        return view('applications.print_receipt', compact('application'));
     }
 
     /**

@@ -46,6 +46,10 @@ class BranchController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'branch_code' => ['required', 'string', 'max:30'],
+            'owner_name' => ['nullable', 'string', 'max:255'],
+            'pan_number' => ['nullable', 'string', 'max:20'],
+            'aadhaar_number' => ['nullable', 'string', 'max:20'],
+            'shop_licence_number' => ['nullable', 'string', 'max:50'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'contact_mobile' => ['nullable', 'string', 'max:20'],
             'contact_email' => ['nullable', 'email', 'max:255'],
@@ -68,6 +72,10 @@ class BranchController extends Controller
             'tenant_id' => $tenantId,
             'name' => $validated['name'],
             'branch_code' => strtoupper($validated['branch_code']),
+            'owner_name' => $validated['owner_name'] ?? null,
+            'pan_number' => !empty($validated['pan_number']) ? strtoupper(trim($validated['pan_number'])) : null,
+            'aadhaar_number' => $validated['aadhaar_number'] ?? null,
+            'shop_licence_number' => $validated['shop_licence_number'] ?? null,
             'contact_person' => $validated['contact_person'] ?? null,
             'contact_mobile' => $validated['contact_mobile'] ?? null,
             'contact_email' => $validated['contact_email'] ?? null,
@@ -110,6 +118,10 @@ class BranchController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'branch_code' => ['required', 'string', 'max:30'],
+            'owner_name' => ['nullable', 'string', 'max:255'],
+            'pan_number' => ['nullable', 'string', 'max:20'],
+            'aadhaar_number' => ['nullable', 'string', 'max:20'],
+            'shop_licence_number' => ['nullable', 'string', 'max:50'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'contact_mobile' => ['nullable', 'string', 'max:20'],
             'contact_email' => ['nullable', 'email', 'max:255'],
@@ -119,6 +131,11 @@ class BranchController extends Controller
             'pincode' => ['nullable', 'string', 'max:10'],
             'status' => ['required', 'in:ACTIVE,INACTIVE'],
         ]);
+
+        if (!empty($validated['pan_number'])) {
+            $validated['pan_number'] = strtoupper(trim($validated['pan_number']));
+        }
+        $validated['branch_code'] = strtoupper(trim($validated['branch_code']));
 
         $branch->update($validated);
         AuditService::log('BRANCH_UPDATED', $branch);

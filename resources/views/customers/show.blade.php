@@ -533,6 +533,11 @@
                         <span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;">
                             {{ $customer->category?->name ?? 'Regular Citizen' }}
                         </span>
+                        @if($customer->is_blacklisted)
+                            <span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; font-weight: 800;">
+                                <i class="fa-solid fa-ban"></i> BLACKLISTED
+                            </span>
+                        @endif
                         <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-weight: 800;">
                             <i class="fa-solid fa-star" style="color: #f59e0b;"></i> {{ $customer->star_rating ?? 5 }} ★
                         </span>

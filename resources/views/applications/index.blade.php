@@ -166,22 +166,22 @@
     /* Sticky Right Columns: Status & Actions */
     .sticky-status-th {
         position: sticky;
-        right: 80px;
+        right: 250px;
         background: #f8fafc !important;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 130px;
-        width: 130px;
+        min-width: 135px;
+        width: 140px;
     }
 
     .sticky-status-td {
         position: sticky;
-        right: 80px;
+        right: 250px;
         background: #ffffff;
         z-index: 5;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 130px;
-        width: 130px;
+        min-width: 135px;
+        width: 140px;
     }
 
     .sheet-table tbody tr:hover .sticky-status-td {
@@ -194,8 +194,8 @@
         background: #f8fafc !important;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 80px;
-        width: 80px;
+        min-width: 245px;
+        width: 250px;
         text-align: center;
     }
 
@@ -205,13 +205,40 @@
         background: #ffffff;
         z-index: 6;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 80px;
-        width: 80px;
+        min-width: 245px;
+        width: 250px;
         text-align: center;
     }
 
     .sheet-table tbody tr:hover .sticky-action-td {
         background-color: #f8fafc !important;
+    }
+
+    /* Locked vs Unlocked Rows for Recent Services */
+    tr.recent-row-locked .excel-input,
+    tr.recent-row-locked .excel-select,
+    tr.recent-row-locked .excel-work-details {
+        pointer-events: none;
+        user-select: none;
+        background: transparent !important;
+        border-color: transparent !important;
+    }
+
+    tr.recent-row-unlocked {
+        background-color: #f0f9ff !important;
+        box-shadow: inset 0 0 0 2px #0284c7;
+    }
+
+    tr.recent-row-unlocked td {
+        background-color: #f0f9ff !important;
+    }
+
+    tr.recent-row-unlocked .excel-input,
+    tr.recent-row-unlocked .excel-select,
+    tr.recent-row-unlocked .excel-work-details {
+        background: #ffffff !important;
+        border: 1.5px solid #0284c7 !important;
+        pointer-events: auto !important;
     }
 
     /* Fast Entry Input Styles */
@@ -451,19 +478,21 @@
 
     <!-- Filters Bar -->
     <div class="filter-card">
-        <form action="{{ route('applications.index') }}" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+        <form id="recentServicesFilterForm" action="{{ route('applications.index') }}" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
             <!-- Search -->
             <div style="flex: 2; min-width: 200px;">
                 <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Search Customer / Mobile / SR</label>
-                <input type="text" name="search" class="form-control form-control-sm"
-                       placeholder="Customer name, mobile, SR number..." value="{{ request('search') }}"
+                <input type="text" name="search" id="recentServicesSearchInput" class="form-control form-control-sm"
+                       placeholder="Customer name, mobile, SR (auto-search)..." value="{{ request('search') }}"
+                       oninput="autoFilterApplications(this.value)"
+                       autocomplete="off"
                        style="font-size: 12px; font-weight: 600;">
             </div>
 
             <!-- Service Filter -->
             <div style="flex: 1.5; min-width: 170px;">
                 <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Service</label>
-                <select name="service_id" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600;">
+                <select name="service_id" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600;" onchange="this.form.submit()">
                     <option value="">All Services</option>
                     @foreach($services as $srv)
                         <option value="{{ $srv->id }}" {{ request('service_id') == $srv->id ? 'selected' : '' }}>
@@ -476,7 +505,7 @@
             <!-- Status Filter -->
             <div style="flex: 1; min-width: 140px;">
                 <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Status</label>
-                <select name="work_status" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600;">
+                <select name="work_status" class="form-select form-select-sm" style="font-size: 12px; font-weight: 600;" onchange="this.form.submit()">
                     <option value="">All Statuses</option>
                     @foreach($statuses as $st)
                         <option value="{{ $st }}" {{ request('work_status') == $st ? 'selected' : '' }}>{{ $st }}</option>
@@ -487,12 +516,12 @@
             <!-- Date Range -->
             <div style="min-width: 130px;">
                 <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">From Date</label>
-                <input type="date" name="from_date" class="form-control form-control-sm" value="{{ request('from_date') }}" style="font-size: 12px;">
+                <input type="date" name="from_date" class="form-control form-control-sm" value="{{ request('from_date') }}" style="font-size: 12px;" onchange="this.form.submit()">
             </div>
 
             <div style="min-width: 130px;">
                 <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">To Date</label>
-                <input type="date" name="to_date" class="form-control form-control-sm" value="{{ request('to_date') }}" style="font-size: 12px;">
+                <input type="date" name="to_date" class="form-control form-control-sm" value="{{ request('to_date') }}" style="font-size: 12px;" onchange="this.form.submit()">
             </div>
 
             <!-- Action Buttons -->
@@ -640,13 +669,14 @@
                             $subName = trim($app->sub_service ?? '');
                         @endphp
                         <tr id="row-app-{{ $app->id }}"
+                            class="recent-row-locked"
                             data-app-id="{{ $app->id }}"
                             data-main_service="{{ $mainName }}"
                             data-sub_service="{{ $subName }}"
                             data-status="{{ $stVal }}"
                             data-operator="{{ strtoupper(trim($opName)) }}"
                             data-followup_date="{{ $followDate }}">
-                            <!-- 1. Customer Name & Contact -->
+                            <!-- 1. Customer Name & Contact (One Below One) -->
                             <td style="padding: 6px 8px;">
                                 @if($cust)
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
@@ -662,11 +692,14 @@
                                             </a>
                                         @endif
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; margin-top: 2px;">
-                                        <span style="font-family: var(--font-mono); font-weight: 600;">{{ $cust->customer_code }}</span>
-                                        @if($cust->mobile)
-                                            <span>&bull; {{ $cust->mobile }}</span>
+                                    <div style="margin-top: 3px; font-size: 11.5px; color: #334155;">
+                                        <strong style="font-family: var(--font-mono); color: #0f172a;"><i class="fa-solid fa-phone" style="font-size: 10px; color: #64748b; margin-right: 3px;"></i>{{ $cust->mobile }}</strong>
+                                        @if($cust->alternate_mobile)
+                                            <span style="font-size: 10.5px; color: #64748b; margin-left: 4px;">(Alt: {{ $cust->alternate_mobile }})</span>
                                         @endif
+                                    </div>
+                                    <div style="font-size: 11px; color: #ea580c; font-family: var(--font-mono); font-weight: 700; margin-top: 2px;">
+                                        {{ $cust->customer_code }}
                                     </div>
                                 @else
                                     <span style="color: #94a3b8; font-style: italic;">No Customer</span>
@@ -835,18 +868,44 @@
 
                             <!-- 12. Actions (Sticky Right) -->
                             <td class="sticky-action-td" style="text-align: center; padding: 4px 6px;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    @if($serv?->portal_link)
-                                        <a href="{{ $serv->portal_link }}" target="_blank"
-                                           class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #e0f2fe; color: #0369a1; border-radius: 4px; border: 1px solid #bae6fd;"
-                                           title="Open Government Portal">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
-                                    @endif
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
+                                    <!-- Edit / Save Toggle Option -->
+                                    <button type="button" id="btn-edit-recent-{{ $app->id }}" class="btn btn-sm btn-row-edit"
+                                            style="padding: 3px 7px; font-size: 11px; font-weight: 700; background: #f1f5f9; color: #0284c7; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;"
+                                            onclick="toggleEditRecentRow({{ $app->id }})"
+                                            title="Click to edit service details">
+                                        <i class="fa-solid fa-pencil"></i> Edit
+                                    </button>
+
+                                    <!-- Apply Button (Official Portal Link) -->
+                                    @php
+                                        $portalLink = $serv?->work_portal_link ?: ($serv?->service_portal_link ?: $serv?->portal_link);
+                                        if (!$portalLink) {
+                                            $pQuery = urlencode(($serv?->main_service_name ?? 'Service') . ' ' . ($app->sub_service ?? '') . ' online portal apply maharashtra');
+                                            $portalLink = "https://www.google.com/search?q={$pQuery}";
+                                        }
+                                        $tutLink = $serv?->video_instruction_link;
+                                        if (!$tutLink) {
+                                            $tQuery = urlencode(($serv?->main_service_name ?? 'Service') . ' ' . ($app->sub_service ?? '') . ' online application tutorial form fill up');
+                                            $tutLink = "https://www.youtube.com/results?search_query={$tQuery}";
+                                        }
+                                    @endphp
+                                    <a href="{{ $portalLink }}" target="_blank"
+                                       class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; font-weight: 700; background: #e0f2fe; color: #0369a1; border-radius: 4px; border: 1px solid #bae6fd; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"
+                                       title="Open Official Portal">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                    </a>
+
+                                    <!-- Tutorial Button (YouTube Video Link) -->
+                                    <a href="{{ $tutLink }}" target="_blank"
+                                       class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; font-weight: 700; background: #fee2e2; color: #dc2626; border-radius: 4px; border: 1px solid #fca5a5; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"
+                                       title="Watch Tutorial Video">
+                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                    </a>
 
                                     @if($cust)
                                         <a href="{{ route('customers.show', $cust->id) }}" target="_blank"
-                                           class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #f1f5f9; color: #334155; border-radius: 4px; border: 1px solid #cbd5e1;"
+                                           class="btn btn-sm" style="padding: 3px 6px; font-size: 11px; background: #f8fafc; color: #334155; border-radius: 4px; border: 1px solid #cbd5e1;"
                                            title="View Customer Profile">
                                             <i class="fa-solid fa-user"></i>
                                         </a>
@@ -858,6 +917,11 @@
                                             title="Mark as Completed / Delivered">
                                         <i class="fa-solid fa-check"></i>
                                     </button>
+
+                                    <span id="saved-indicator-{{ $app->id }}"
+                                          style="display: none; background: #16a34a; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px;">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
                                 </div>
                             </td>
                         </tr>
@@ -948,6 +1012,33 @@
 <script>
     // Master Services Bootstrap
     window.MASTER_SERVICES = @json($activeServices);
+
+    let appSearchTimer = null;
+    function autoFilterApplications(query) {
+        const q = (query || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('#recent-services-tbody tr[data-app-id]');
+        
+        // 1. Instant client-side DOM filter on current rows
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (!q || text.includes(q)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (typeof recalculateDeskMetrics === 'function') {
+            recalculateDeskMetrics();
+        }
+
+        // 2. Debounced auto-submit across all database pages
+        clearTimeout(appSearchTimer);
+        appSearchTimer = setTimeout(() => {
+            const form = document.getElementById('recentServicesFilterForm');
+            if (form) form.submit();
+        }, 600);
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         // Apply status colors to all status selectors
@@ -1114,6 +1205,64 @@
         .catch(err => {
             console.error('Save error:', err);
         });
+    }
+
+    // Toggle Edit / Save Mode for a Recent Services row
+    function toggleEditRecentRow(appId) {
+        const row = document.getElementById(`row-app-${appId}`);
+        const btn = document.getElementById(`btn-edit-recent-${appId}`);
+        if (!row || !btn) return;
+
+        const isLocked = row.classList.contains('recent-row-locked');
+        if (isLocked) {
+            // Unlock row for editing
+            row.classList.remove('recent-row-locked');
+            row.classList.add('recent-row-unlocked');
+
+            btn.className = 'btn btn-sm btn-row-save';
+            btn.style.background = '#16a34a';
+            btn.style.color = '#ffffff';
+            btn.style.borderColor = '#15803d';
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
+            btn.title = 'Save and Lock this service row';
+
+            const rateInput = document.getElementById(`rate_${appId}`);
+            if (rateInput) {
+                rateInput.focus();
+                rateInput.select();
+            }
+        } else {
+            // Save and lock row
+            saveRecentRowAndLock(appId);
+        }
+    }
+
+    function saveRecentRowAndLock(appId) {
+        const row = document.getElementById(`row-app-${appId}`);
+        const btn = document.getElementById(`btn-edit-recent-${appId}`);
+        if (!row) return;
+
+        // Persist row to backend
+        saveRowField(appId, 'all', null);
+
+        // Lock row back
+        row.classList.remove('recent-row-unlocked');
+        row.classList.add('recent-row-locked');
+
+        if (btn) {
+            btn.className = 'btn btn-sm btn-row-edit';
+            btn.style.background = '#f1f5f9';
+            btn.style.color = '#0284c7';
+            btn.style.borderColor = '#cbd5e1';
+            btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+            btn.title = 'Click to edit service details';
+        }
+
+        const ind = document.getElementById(`saved-indicator-${appId}`);
+        if (ind) {
+            ind.style.display = 'inline-flex';
+            setTimeout(() => { ind.style.display = 'none'; }, 2000);
+        }
     }
 
     // Mark as completed quick action

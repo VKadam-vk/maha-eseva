@@ -86,78 +86,77 @@
                 </button>
             </div>
 
-            <div class="erp-card-body" style="padding: 22px;">
-                <!-- Row 1: Sub-Service Name & Expected Days -->
-                <div class="form-grid-2" style="margin-bottom: 18px; gap: 16px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label required" style="font-weight: 700; color: #1e293b;">
-                            Sub-Service Name
-                        </label>
-                        <input type="text" name="sub_services[0][sub_service_name]" class="form-control sub-service-name-input" required 
-                               placeholder="e.g. New PAN Application Form 49A / Correction / Duplicate" 
-                               style="height: 44px; font-weight: 600;">
-                        <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
-                            Specific application or form type under this main service.
-                        </small>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label required" style="font-weight: 700; color: #1e293b;">
-                            <i class="fa-regular fa-clock" style="color: #f59e0b;"></i> Expected Processing Time (Days)
-                        </label>
-                        <input type="number" name="sub_services[0][expected_processing_days]" class="form-control" required min="1" value="7"
-                               placeholder="7" style="height: 44px; font-weight: 700;">
-                        <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
-                            Estimated processing time required for this sub-service (in days).
-                        </small>
-                    </div>
+            <div class="erp-card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                <!-- 1. Sub-Service Name -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label required" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-tag" style="color: #4f46e5;"></i> Sub-Service Name
+                    </label>
+                    <input type="text" name="sub_services[0][sub_service_name]" class="form-control sub-service-name-input" required 
+                           placeholder="e.g. New PAN Application Form 49A / Correction / Duplicate" 
+                           style="height: 44px; font-weight: 600; width: 100%;">
+                    <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
+                        Specific application or form type under this main service.
+                    </small>
                 </div>
 
-                <!-- Row 2: Fee Structure -->
-                <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px;">
-                    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #166534; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <!-- 2. Expected Processing Days -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label required" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-regular fa-clock" style="color: #f59e0b;"></i> Expected Processing Time (Days)
+                    </label>
+                    <input type="number" name="sub_services[0][expected_processing_days]" class="form-control" required min="1" value="7"
+                           placeholder="7" style="height: 44px; font-weight: 700; width: 100%;">
+                    <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
+                        Estimated processing time required for this sub-service (in days).
+                    </small>
+                </div>
+
+                <!-- 3. Fee Structure & Margin (Vertical Layout) -->
+                <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 18px 20px;">
+                    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #166534; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-indian-rupee-sign"></i> Fee Structure & Margin
                     </div>
-                    <div class="form-grid-3" style="gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label class="form-label required" style="font-size: 12px; font-weight: 700;">Government Fee (₹)</label>
+                            <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #334155;">Government Fee (₹)</label>
                             <input type="number" step="0.01" name="sub_services[0][govt_fee]" class="form-control govt-fee-input" required min="0" value="0.00"
-                                   placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700;">
+                                   placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700; width: 100%;">
                         </div>
 
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label class="form-label required" style="font-size: 12px; font-weight: 700;">Service Charge / Kendra Margin (₹)</label>
+                            <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #334155;">Service Charge / Kendra Margin (₹)</label>
                             <input type="number" step="0.01" name="sub_services[0][service_charge]" class="form-control service-charge-input" required min="0" value="0.00"
-                                   placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700;">
+                                   placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700; width: 100%;">
                         </div>
 
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #166534;">Total Customer Price (₹)</label>
+                            <label class="form-label required" style="font-size: 12px; font-weight: 800; color: #166534;">Total Customer Price (₹)</label>
                             <input type="number" step="0.01" name="sub_services[0][price]" class="form-control total-price-input" required min="0" value="0.00"
-                                   placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 800; font-size: 15px; color: #166534; background: #f0fdf4;">
+                                   placeholder="0.00" style="height: 44px; font-family: var(--font-mono); font-weight: 800; font-size: 16px; color: #166534; background: #f0fdf4; border: 1.5px solid #86efac; width: 100%;">
                         </div>
                     </div>
                 </div>
 
-                <!-- Row 3: Required Documents -->
-                <div class="form-group" style="margin-bottom: 18px;">
+                <!-- 4. Required Documents -->
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-file-circle-check" style="color: #4f46e5;"></i> 
                         Required Documents (One per line)
                     </label>
                     <textarea name="sub_services[0][required_documents]" class="form-control" rows="3" 
-                              placeholder="Aadhaar Card&#10;Passport Photo&#10;Signature / Thumb Impression" style="font-size: 13px; border-radius: 6px;"></textarea>
-                    <small style="color: #64748b; font-size: 11px;">
+                              placeholder="Aadhaar Card&#10;Passport Photo&#10;Signature / Thumb Impression" style="font-size: 13px; border-radius: 6px; width: 100%;"></textarea>
+                    <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
                         These documents will automatically appear when an operator selects this sub-service at the desk.
                     </small>
                 </div>
 
-                <!-- Row 4: Operator Links (Work Portal & Tutorial Video) -->
-                <div style="background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 16px 18px;">
-                    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e40af; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <!-- 5. Operator Links (Vertical Layout) -->
+                <div style="background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 18px 20px;">
+                    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e40af; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-link"></i> Operator Links (Portal & Tutorial Links)
                     </div>
-                    <div class="form-grid-2" style="gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
                         <!-- Work Portal Link -->
                         <div class="form-group" style="margin-bottom: 0;">
                             <label class="form-label" style="font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
@@ -165,7 +164,7 @@
                             </label>
                             <input type="text" name="sub_services[0][work_portal_link]" class="form-control" 
                                    placeholder="https://aaplesarkar.mahaonline.gov.in or relevant portal link" 
-                                   style="height: 40px; font-size: 12.5px; background: white;">
+                                   style="height: 42px; font-size: 13px; background: white; width: 100%;">
                         </div>
 
                         <!-- Video Tutorial Link -->
@@ -175,7 +174,7 @@
                             </label>
                             <input type="text" name="sub_services[0][video_instruction_link]" class="form-control" 
                                    placeholder="https://www.youtube.com/watch?v=... or training link" 
-                                   style="height: 40px; font-size: 12.5px; background: white;">
+                                   style="height: 42px; font-size: 13px; background: white; width: 100%;">
                         </div>
                     </div>
                 </div>
@@ -265,94 +264,95 @@ function createSubServiceCard(index) {
             </button>
         </div>
 
-        <div class="erp-card-body" style="padding: 22px;">
-            <!-- Row 1: Sub-Service Name & Expected Days -->
-            <div class="form-grid-2" style="margin-bottom: 18px; gap: 16px;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label required" style="font-weight: 700; color: #1e293b;">
-                        Sub-Service Name
-                    </label>
-                    <input type="text" name="sub_services[${index}][sub_service_name]" class="form-control sub-service-name-input" required 
-                           placeholder="e.g. New PAN Application Form 49A / Correction / Duplicate" 
-                           style="height: 44px; font-weight: 600;">
-                    <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
-                        Specific application or form type under this main service.
-                    </small>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label required" style="font-weight: 700; color: #1e293b;">
-                        <i class="fa-regular fa-clock" style="color: #f59e0b;"></i> Expected Processing Time (Days)
-                    </label>
-                    <input type="number" name="sub_services[${index}][expected_processing_days]" class="form-control" required min="1" value="7"
-                           placeholder="7" style="height: 44px; font-weight: 700;">
-                    <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
-                        Estimated processing time required for this sub-service (in days).
-                    </small>
-                </div>
+        <div class="erp-card-body" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+            <!-- 1. Sub-Service Name -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label required" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-tag" style="color: #4f46e5;"></i> Sub-Service Name
+                </label>
+                <input type="text" name="sub_services[${index}][sub_service_name]" class="form-control sub-service-name-input" required 
+                       placeholder="e.g. New PAN Application Form 49A / Correction / Duplicate" 
+                       style="height: 44px; font-weight: 600; width: 100%;">
+                <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
+                    Specific application or form type under this main service.
+                </small>
             </div>
 
-            <!-- Row 2: Fee Structure -->
-            <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 16px 18px; margin-bottom: 18px;">
-                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #166534; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <!-- 2. Expected Processing Days -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label required" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-regular fa-clock" style="color: #f59e0b;"></i> Expected Processing Time (Days)
+                </label>
+                <input type="number" name="sub_services[${index}][expected_processing_days]" class="form-control" required min="1" value="7"
+                       placeholder="7" style="height: 44px; font-weight: 700; width: 100%;">
+                <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
+                    Estimated processing time required for this sub-service (in days).
+                </small>
+            </div>
+
+            <!-- 3. Fee Structure & Margin (Vertical Layout) -->
+            <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 18px 20px;">
+                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #166534; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-indian-rupee-sign"></i> Fee Structure & Margin
                 </div>
-                <div class="form-grid-3" style="gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label required" style="font-size: 12px; font-weight: 700;">Government Fee (₹)</label>
+                        <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #334155;">Government Fee (₹)</label>
                         <input type="number" step="0.01" name="sub_services[${index}][govt_fee]" class="form-control govt-fee-input" required min="0" value="0.00"
-                               placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700;">
+                               placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700; width: 100%;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label required" style="font-size: 12px; font-weight: 700;">Service Charge / Kendra Margin (₹)</label>
+                        <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #334155;">Service Charge / Kendra Margin (₹)</label>
                         <input type="number" step="0.01" name="sub_services[${index}][service_charge]" class="form-control service-charge-input" required min="0" value="0.00"
-                               placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700;">
+                               placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 700; width: 100%;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label required" style="font-size: 12px; font-weight: 700; color: #166534;">Total Customer Price (₹)</label>
+                        <label class="form-label required" style="font-size: 12px; font-weight: 800; color: #166534;">Total Customer Price (₹)</label>
                         <input type="number" step="0.01" name="sub_services[${index}][price]" class="form-control total-price-input" required min="0" value="0.00"
-                               placeholder="0.00" style="height: 42px; font-family: var(--font-mono); font-weight: 800; font-size: 15px; color: #166534; background: #f0fdf4;">
+                               placeholder="0.00" style="height: 44px; font-family: var(--font-mono); font-weight: 800; font-size: 16px; color: #166534; background: #f0fdf4; border: 1.5px solid #86efac; width: 100%;">
                     </div>
                 </div>
             </div>
 
-            <!-- Row 3: Required Documents -->
-            <div class="form-group" style="margin-bottom: 18px;">
+            <!-- 4. Required Documents -->
+            <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-file-circle-check" style="color: #4f46e5;"></i> 
                     Required Documents (One per line)
                 </label>
                 <textarea name="sub_services[${index}][required_documents]" class="form-control" rows="3" 
-                          placeholder="Aadhaar Card&#10;Passport Photo&#10;Signature / Thumb Impression" style="font-size: 13px; border-radius: 6px;"></textarea>
-                <small style="color: #64748b; font-size: 11px;">
+                          placeholder="Aadhaar Card&#10;Passport Photo&#10;Signature / Thumb Impression" style="font-size: 13px; border-radius: 6px; width: 100%;"></textarea>
+                <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
                     These documents will automatically appear when an operator selects this sub-service at the desk.
                 </small>
             </div>
 
-            <!-- Row 4: Operator Links -->
-            <div style="background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 16px 18px;">
-                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e40af; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <!-- 5. Operator Links (Vertical Layout) -->
+            <div style="background-color: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 18px 20px;">
+                <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e40af; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-link"></i> Operator Links (Portal & Tutorial Links)
                 </div>
-                <div class="form-grid-2" style="gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Work Portal Link -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-globe" style="color: #2563eb;"></i> Operator Work Portal Link
                         </label>
                         <input type="text" name="sub_services[${index}][work_portal_link]" class="form-control" 
                                placeholder="https://aaplesarkar.mahaonline.gov.in or relevant portal link" 
-                               style="height: 40px; font-size: 12.5px; background: white;">
+                               style="height: 42px; font-size: 13px; background: white; width: 100%;">
                     </div>
 
+                    <!-- Video Tutorial Link -->
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" style="font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-brands fa-youtube" style="color: #dc2626;"></i> Watch Tutorial Video Link
                         </label>
                         <input type="text" name="sub_services[${index}][video_instruction_link]" class="form-control" 
                                placeholder="https://www.youtube.com/watch?v=... or training link" 
-                               style="height: 40px; font-size: 12.5px; background: white;">
+                               style="height: 42px; font-size: 13px; background: white; width: 100%;">
                     </div>
                 </div>
             </div>

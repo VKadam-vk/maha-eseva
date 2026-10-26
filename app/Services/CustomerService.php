@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class CustomerService
 {
     /**
-     * Search for duplicate customer by mobile number within tenant.
+     * Search for duplicate or existing customer by mobile or alternate mobile number within tenant.
      */
     public function findByMobile(int $tenantId, string $mobile): ?Customer
     {
@@ -18,7 +18,15 @@ class CustomerService
         return Customer::where('tenant_id', $tenantId)
             ->where(function ($query) use ($cleanedMobile, $mobile) {
                 $query->where('mobile', $mobile)
-                      ->orWhere('mobile', $cleanedMobile);
+                      ->orWhere('mobile', $cleanedMobile)
+                      ->orWhere('alternate_mobile', $mobile)
+                      ->orWhere('alternate_mobile', $cleanedMobile);
+
+                if (strlen($cleanedMobile) >= 10) {
+                    $last10 = substr($cleanedMobile, -10);
+                    $query->orWhere('mobile', 'like', "%{$last10}%")
+                          ->orWhere('alternate_mobile', 'like', "%{$last10}%");
+                }
             })
             ->first();
     }

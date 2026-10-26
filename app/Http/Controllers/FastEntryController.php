@@ -138,7 +138,8 @@ class FastEntryController extends Controller
                     'application_number' => $app->application_number,
                     'service_name' => $app->service?->main_service_name ?? 'Government Service',
                     'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
-                    'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : $app->created_at->format('d-m-Y'),
+                    'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : ($app->created_at ? $app->created_at->format('d-m-Y') : date('d-m-Y')),
+                    'formatted_date_time' => $app->created_at ? $app->created_at->format('d-m-Y h:i A') : ($app->application_date ? date('d-m-Y h:i A', strtotime($app->application_date)) : date('d-m-Y h:i A')),
                     'rate' => (float) $app->total_amount,
                     'received' => (float) $app->received_amount,
                     'remaining' => (float) $app->remaining_amount,
@@ -154,6 +155,7 @@ class FastEntryController extends Controller
                     'assigned_employee_id' => $app->assigned_employee_id,
                     'operator' => $app->assignedEmployee?->user?->name ?? 'Counter Desk',
                     'show_url' => route('applications.show', $app->id),
+                    'receipt_url' => route('applications.receipt', $app->id),
                 ];
             });
 
@@ -175,6 +177,8 @@ class FastEntryController extends Controller
                 'occupation' => $customer->occupation ?: '',
                 'email' => $customer->email ?: '',
                 'star_rating' => (int) ($customer->star_rating ?? 5),
+                'is_blacklisted' => (bool) $customer->is_blacklisted,
+                'blacklist_reason' => $customer->blacklist_reason ?: '',
                 'total_services' => $applications->count(),
                 'total_billed' => (float) $customer->total_billed,
                 'total_paid' => (float) $customer->total_paid,
@@ -186,7 +190,7 @@ class FastEntryController extends Controller
     }
 
     /**
-     * Update customer optional details (gender, DOB, rating, email, occupation) from right panel.
+     * Update customer optional details (gender, DOB, rating, email, occupation, blacklist) from right panel.
      */
     public function updateCustomerDetails(Request $request): JsonResponse
     {
@@ -199,6 +203,8 @@ class FastEntryController extends Controller
             'occupation' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:255'],
             'star_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'is_blacklisted' => ['nullable', 'boolean'],
+            'blacklist_reason' => ['nullable', 'string', 'max:500'],
         ]);
 
         $customer = Customer::findOrFail($validated['customer_id']);
@@ -210,6 +216,8 @@ class FastEntryController extends Controller
         if (array_key_exists('alternate_mobile', $validated)) $updates['alternate_mobile'] = $validated['alternate_mobile'];
         if (array_key_exists('occupation', $validated)) $updates['occupation'] = $validated['occupation'];
         if (array_key_exists('email', $validated)) $updates['email'] = $validated['email'];
+        if (array_key_exists('is_blacklisted', $validated)) $updates['is_blacklisted'] = (bool) $validated['is_blacklisted'];
+        if (array_key_exists('blacklist_reason', $validated)) $updates['blacklist_reason'] = $validated['blacklist_reason'];
 
         $customer->update($updates);
 
@@ -225,7 +233,35 @@ class FastEntryController extends Controller
                 'occupation' => $customer->occupation ?: '',
                 'email' => $customer->email ?: '',
                 'star_rating' => (int) $customer->star_rating,
+                'is_blacklisted' => (bool) $customer->is_blacklisted,
+                'blacklist_reason' => $customer->blacklist_reason ?: '',
             ]
+        ]);
+    }
+
+    /**
+     * Toggle Customer Blacklist Status with optional reason.
+     */
+    public function toggleBlacklist(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'exists:customers,id'],
+            'is_blacklisted' => ['required', 'boolean'],
+            'blacklist_reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $isBlacklisted = (bool) $validated['is_blacklisted'];
+        $customer->update([
+            'is_blacklisted' => $isBlacklisted,
+            'blacklist_reason' => $isBlacklisted ? ($validated['blacklist_reason'] ?? 'Flagged by operator') : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $customer->is_blacklisted ? "Customer marked as BLACKLISTED." : "Customer removed from Blacklist.",
+            'is_blacklisted' => (bool) $customer->is_blacklisted,
+            'blacklist_reason' => $customer->blacklist_reason ?: '',
         ]);
     }
 
@@ -342,7 +378,8 @@ class FastEntryController extends Controller
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('customer_code', 'like', "%{$query}%");
                 if ($cleanedMobile) {
-                    $q->orWhere('mobile', 'like', "%{$cleanedMobile}%");
+                    $q->orWhere('mobile', 'like', "%{$cleanedMobile}%")
+                      ->orWhere('alternate_mobile', 'like', "%{$cleanedMobile}%");
                 }
             })
             ->latest('id')
@@ -355,8 +392,10 @@ class FastEntryController extends Controller
                 'customer_code' => $c->customer_code,
                 'name' => $c->name,
                 'mobile' => $c->mobile,
+                'alternate_mobile' => $c->alternate_mobile ?: '',
                 'gender' => $c->gender,
                 'star_rating' => $c->star_rating ?? 5,
+                'is_blacklisted' => (bool) $c->is_blacklisted,
                 'occupation' => $c->occupation ?: '-',
             ];
         }));
@@ -528,6 +567,37 @@ class FastEntryController extends Controller
                 'created_at' => now(),
             ]);
 
+            $applications = Application::where('customer_id', $customer->id)
+                ->with(['service', 'assignedEmployee.user'])
+                ->latest('id')
+                ->get()
+                ->map(function ($app) {
+                    return [
+                        'id' => $app->id,
+                        'application_number' => $app->application_number,
+                        'service_name' => $app->service?->main_service_name ?? 'Government Service',
+                        'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
+                        'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : ($app->created_at ? $app->created_at->format('d-m-Y') : date('d-m-Y')),
+                        'formatted_date_time' => $app->created_at ? $app->created_at->format('d-m-Y h:i A') : ($app->application_date ? date('d-m-Y h:i A', strtotime($app->application_date)) : date('d-m-Y h:i A')),
+                        'rate' => (float) $app->total_amount,
+                        'received' => (float) $app->received_amount,
+                        'remaining' => (float) $app->remaining_amount,
+                        'status' => $app->work_status,
+                        'service_id' => $app->service_id,
+                        'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
+                        'main_service_name' => $app->service?->main_service_name ?? 'Service',
+                        'work_details' => $app->work_details ?? '',
+                        'payment_remarks' => $app->payment_remarks ?? '',
+                        'follow_up_date' => $app->follow_up_date ? date('Y-m-d', strtotime($app->follow_up_date)) : '',
+                        'portal_link' => $app->service?->work_portal_link ?: $app->service?->service_portal_link,
+                        'tutorial_link' => $app->service?->video_instruction_link,
+                        'assigned_employee_id' => $app->assigned_employee_id,
+                        'operator' => $app->assignedEmployee?->user?->name ?? 'Counter Desk',
+                        'show_url' => route('applications.show', $app->id),
+                        'receipt_url' => route('applications.receipt', $app->id),
+                    ];
+                });
+
             return response()->json([
                 'success' => true,
                 'message' => "Service Entry Recorded: {$service->main_service_name} for {$customer->name} (SR: {$application->application_number})",
@@ -536,8 +606,11 @@ class FastEntryController extends Controller
                     'application_number' => $application->application_number,
                     'customer_name' => $customer->name,
                     'customer_url' => route('customers.show', $customer->id),
+                    'service_id' => $application->service_id,
                     'service_name' => $service->main_service_name,
-                    'sub_service' => $application->sub_service,
+                    'sub_service' => $application->sub_service ?: ($service->sub_service_name ?? '-'),
+                    'application_date' => $application->application_date ? date('d-m-Y', strtotime($application->application_date)) : now()->format('d-m-Y'),
+                    'formatted_date_time' => $application->created_at ? $application->created_at->format('d-m-Y h:i A') : now()->format('d-m-Y h:i A'),
                     'rate' => number_format($application->total_amount, 2),
                     'received' => number_format($application->received_amount, 2),
                     'remaining' => number_format($application->remaining_amount, 2),
@@ -549,9 +622,14 @@ class FastEntryController extends Controller
                     'follow_up_date' => $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : '',
                     'portal_link' => $service->work_portal_link ?: $service->service_portal_link,
                     'tutorial_link' => $service->video_instruction_link,
-                    'operator' => $application->assignedEmployee?->user?->name ?? 'Unassigned',
+                    'assigned_employee_id' => $application->assigned_employee_id,
+                    'operator' => $application->assignedEmployee?->user?->name ?? 'Counter Desk',
                     'show_url' => route('applications.show', $application->id),
+                    'receipt_url' => route('applications.receipt', $application->id),
+                    'customer_total_outstanding' => (float) $customer->fresh()->total_outstanding,
+                    'total_services' => $applications->count(),
                 ],
+                'applications' => $applications,
             ]);
         } catch (\Exception $e) {
             return response()->json([

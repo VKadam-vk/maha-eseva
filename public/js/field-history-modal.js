@@ -342,30 +342,30 @@
                     </div>
 
                     ${isCreation ? `
-                        <div class="history-diff-grid" style="background: #f0fdf4; border-color: #86efac; padding: 6px 10px;">
-                            <div class="history-val-box">
-                                <span class="history-val-title" style="color: #166534;">Registration Event</span>
-                                <div class="history-val-text" style="color: #166534; font-size: 12px;">
+                        <div class="history-diff-vertical" style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 8px 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="history-val-title" style="color: #166534; font-weight: 700; font-size: 10.5px;">Registration Event</span>
+                                <span style="color: #166534; font-size: 11.5px; font-weight: 700; background: #dcfce7; padding: 2px 8px; border-radius: 4px; border: 1px solid #86efac;">
                                     ${escapeHtml(item.new_display)}
-                                </div>
+                                </span>
                             </div>
                         </div>
                     ` : `
-                        <div class="history-diff-grid" style="padding: 6px 10px;">
-                            <div class="history-val-box history-val-old">
-                                <span class="history-val-title">Previous</span>
-                                <div class="history-val-text" style="font-size: 11.5px;">
+                        <div class="history-diff-vertical" style="display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span class="history-val-title" style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Previous</span>
+                                <span style="font-size: 11.5px; font-weight: 600; color: #dc2626; text-decoration: line-through; background: #fee2e2; padding: 2px 8px; border-radius: 4px; border: 1px solid #fca5a5;">
                                     ${escapeHtml(item.old_display || item.old_value || '-')}
-                                </div>
+                                </span>
                             </div>
-                            <div class="history-diff-arrow">
-                                <i class="fa-solid fa-arrow-right" style="font-size: 11px;"></i>
+                            <div style="text-align: center; color: #94a3b8; font-size: 11px; line-height: 1; margin: -1px 0;">
+                                <i class="fa-solid fa-arrow-down"></i>
                             </div>
-                            <div class="history-val-box history-val-new">
-                                <span class="history-val-title">Updated</span>
-                                <div class="history-val-text" style="font-size: 11.5px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span class="history-val-title" style="font-size: 10.5px; font-weight: 700; color: #166534; text-transform: uppercase;">Updated</span>
+                                <span style="font-size: 11.5px; font-weight: 700; color: #166534; background: #dcfce7; padding: 2px 8px; border-radius: 4px; border: 1px solid #86efac;">
                                     ${escapeHtml(item.new_display || item.new_value || '-')}
-                                </div>
+                                </span>
                             </div>
                         </div>
                     `}

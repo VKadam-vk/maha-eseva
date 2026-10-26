@@ -16,16 +16,19 @@
 <!-- Filters Bar -->
 <div class="erp-card" style="margin-bottom: 20px;">
     <div class="erp-card-body" style="padding: 16px 20px;">
-        <form action="{{ route('services.index') }}" method="GET" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
+        <form action="{{ route('services.index') }}" method="GET" id="servicesFilterForm" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
             <div style="flex-grow: 1; min-width: 250px;">
                 <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Search Service Name</label>
-                <input type="text" name="search" class="form-control" placeholder="e.g. PAN CARD, Rent Agreement, Domicile..." value="{{ request('search') }}">
+                <input type="text" name="search" id="serviceSearchInput" class="form-control"
+                       placeholder="Type service name to search automatically..."
+                       value="{{ request('search') }}"
+                       oninput="autoFilterServices(this.value)" autocomplete="off">
             </div>
 
             @if(isset($mainServices) && count($mainServices) > 0)
             <div style="min-width: 220px;">
                 <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Main Service Filter</label>
-                <select name="main_service" class="form-select">
+                <select name="main_service" id="mainServiceSelect" class="form-select" onchange="this.form.submit()">
                     <option value="">All Main Services</option>
                     @foreach($mainServices as $ms)
                         <option value="{{ $ms }}" {{ request('main_service') == $ms ? 'selected' : '' }}>{{ $ms }}</option>
@@ -34,8 +37,8 @@
             </div>
             @endif
 
-            <div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn btn-primary" style="display: none;"><i class="fa-solid fa-filter"></i> Filter</button>
                 <a href="{{ route('services.index') }}" class="btn btn-secondary">Reset</a>
             </div>
         </form>
@@ -45,7 +48,7 @@
 <!-- Services Grid / Table -->
 <div class="erp-card">
     <div class="table-responsive">
-        <table class="erp-table">
+        <table class="erp-table" id="servicesTable">
             <thead>
                 <tr>
                     <th>Main Service</th>
@@ -60,9 +63,9 @@
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="servicesTableBody">
                 @forelse($services as $s)
-                    <tr>
+                    <tr class="service-table-row" data-search="{{ strtolower(trim($s->main_service_name . ' ' . $s->sub_service_name . ' ' . $s->service_variant)) }}">
                         <td>
                             <strong style="color: #0f172a; font-size: 14.5px;">{{ $s->main_service_name }}</strong>
                         </td>
@@ -109,17 +112,9 @@
                             </form>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                <a href="{{ route('services.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit Sub-Service" style="padding: 4px 8px;">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </a>
-                                <a href="{{ route('services.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Configure Fields" style="padding: 4px 8px;">
-                                    <i class="fa-solid fa-gear"></i>
-                                </a>
-                                <a href="{{ route('applications.create', ['service_id' => $s->id]) }}" class="btn btn-primary btn-sm" title="Apply Service" style="padding: 4px 8px;">
-                                    <i class="fa-solid fa-plus"></i> Apply
-                                </a>
-                            </div>
+                            <a href="{{ route('services.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit Sub-Service" style="padding: 4px 10px;">
+                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                            </a>
                         </td>
                     </tr>
                 @empty
@@ -136,4 +131,36 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+let searchDebounceTimer = null;
+
+function autoFilterServices(val) {
+    const query = (val || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#servicesTableBody tr.service-table-row');
+    
+    // Instant real-time DOM filtering
+    rows.forEach(r => {
+        const text = r.dataset.search || '';
+        if (!query || text.includes(query)) {
+            r.style.display = '';
+        } else {
+            r.style.display = 'none';
+        }
+    });
+
+    // Auto submit form with debounce for full database pagination
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+        const form = document.getElementById('servicesFilterForm');
+        if (form && query.length >= 2) {
+            form.submit();
+        } else if (form && query.length === 0 && '{{ request("search") }}'.length > 0) {
+            form.submit();
+        }
+    }, 600);
+}
+</script>
+@endpush
 @endsection
