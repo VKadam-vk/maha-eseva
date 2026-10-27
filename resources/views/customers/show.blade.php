@@ -1233,8 +1233,6 @@ function filterServicesTableByActiveMember() {
     if (!tbody) return;
 
     const committedRows = tbody.querySelectorAll('tr.committed-row');
-    let visibleCount = 0;
-    const totalCount = committedRows.length;
 
     committedRows.forEach(row => {
         const appId = row.dataset.appId || row.id.replace('committed-row-', '');
@@ -1251,15 +1249,23 @@ function filterServicesTableByActiveMember() {
         }
 
         if (isMatch) {
+            delete row.dataset.familyHidden;
             row.style.display = '';
-            visibleCount++;
         } else {
+            row.dataset.familyHidden = 'true';
             row.style.display = 'none';
         }
     });
 
+    if (window.customerShowFilter) {
+        window.customerShowFilter.refresh();
+    }
+
+    // Now check actually visible rows after both family filter and column filters applied
+    const visibleCount = Array.from(committedRows).filter(r => r.style.display !== 'none').length;
+
     let emptyRow = document.getElementById('member-empty-services-row');
-    if (visibleCount === 0 && totalCount > 0) {
+    if (visibleCount === 0) {
         if (!emptyRow) {
             emptyRow = document.createElement('tr');
             emptyRow.id = 'member-empty-services-row';
@@ -1271,6 +1277,8 @@ function filterServicesTableByActiveMember() {
         } else if (currentFamilyMembers) {
             const m = currentFamilyMembers.find(x => x.id == window.activeFamilyFilter);
             if (m) memName = `${m.name} (${m.relation_label || m.relation})`;
+        } else if (window.activeFamilyFilter === 'ALL') {
+            memName = 'कुटुंबासाठी';
         }
         emptyRow.innerHTML = `
             <td colspan="15" style="text-align: center; padding: 22px 12px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0;">
@@ -1298,10 +1306,6 @@ function filterServicesTableByActiveMember() {
         } else {
             badge.innerText = `${visibleCount} SERVICES (${filterName.toUpperCase()})`;
         }
-    }
-
-    if (window.customerShowFilter) {
-        window.customerShowFilter.refresh();
     }
 }
 

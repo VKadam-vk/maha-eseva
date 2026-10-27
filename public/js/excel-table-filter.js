@@ -141,7 +141,7 @@
          * Collect distinct values & row counts for column colKey across visible / data rows
          */
         getDistinctValues(colKey) {
-            const rows = this.getDataRows();
+            const rows = this.getDataRows().filter(r => r.dataset.familyHidden !== 'true');
             const counts = new Map();
 
             rows.forEach(row => {
@@ -503,11 +503,17 @@
         applyFilters() {
             const rows = this.getDataRows();
             let visibleCount = 0;
-            const totalCount = rows.length;
+            let familyScopeCount = 0;
 
             const activeFilterKeys = Object.keys(this.activeFilters).filter(k => this.activeFilters[k] !== null);
 
             rows.forEach(row => {
+                if (row.dataset.familyHidden === 'true') {
+                    row.style.display = 'none';
+                    return;
+                }
+
+                familyScopeCount++;
                 let matches = true;
 
                 for (const colKey of activeFilterKeys) {
@@ -548,7 +554,7 @@
             if (typeof this.config.onFilterChange === 'function') {
                 this.config.onFilterChange({
                     visibleCount: visibleCount,
-                    totalCount: totalCount,
+                    totalCount: familyScopeCount,
                     activeFilterCount: activeFilterKeys.length,
                     activeFilters: this.activeFilters
                 });
