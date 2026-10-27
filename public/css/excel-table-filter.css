@@ -859,7 +859,7 @@
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22) !important;
     border-color: #0284c7 !important;
     background-color: #ffffff !important;
-    z-index: 10 !important;
+    z-index: 2 !important;
     position: relative !important;
 }
 

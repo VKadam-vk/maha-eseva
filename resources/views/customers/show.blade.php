@@ -327,39 +327,41 @@
     .sticky-status-th,
     .sticky-status-td {
         position: sticky;
-        right: 260px;
-        background: #ffffff;
-        z-index: 2;
+        right: 210px;
+        background: #ffffff !important;
+        z-index: 80 !important;
+        border-left: 2px solid #cbd5e1 !important;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
         width: 145px;
         min-width: 145px;
         max-width: 145px;
         box-sizing: border-box;
     }
     .pocket-excel-table thead th.sticky-status-th {
-        background: #0f172a;
-        z-index: 3;
+        background: #0f172a !important;
+        z-index: 85 !important;
     }
     .pocket-excel-table tr.active-entry-row td.sticky-status-td {
-        background: #fffbeb;
+        background: #fffbeb !important;
     }
 
     .sticky-action-th,
     .sticky-action-td {
         position: sticky;
         right: 0;
-        background: #ffffff;
-        z-index: 2;
-        width: 260px;
-        min-width: 260px;
-        max-width: 260px;
+        background: #ffffff !important;
+        z-index: 90 !important;
+        width: 210px;
+        min-width: 210px;
+        max-width: 210px;
         box-sizing: border-box;
     }
     .pocket-excel-table thead th.sticky-action-th {
-        background: #0f172a;
-        z-index: 3;
+        background: #0f172a !important;
+        z-index: 95 !important;
     }
     .pocket-excel-table tr.active-entry-row td.sticky-action-td {
-        background: #fffbeb;
+        background: #fffbeb !important;
     }
 
     /* Sub-Service Eye Icon Button */
@@ -735,7 +737,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th" style="width: 260px; min-width: 260px; max-width: 260px; text-align: center;">Actions & Quick Links</th>
+                        <th class="sticky-action-th" style="width: 210px; min-width: 210px; max-width: 210px; text-align: center;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="services-tbody">

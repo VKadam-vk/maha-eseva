@@ -133,7 +133,8 @@
 
     .sheet-table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         font-size: 12.5px;
         table-layout: auto;
     }
@@ -166,10 +167,11 @@
     /* Sticky Right Columns: Status & Actions */
     .sticky-status-th {
         position: sticky;
-        right: 260px;
+        right: 210px;
         background: #f8fafc !important;
-        z-index: 5;
-        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+        z-index: 85 !important;
+        border-left: 2px solid #cbd5e1 !important;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
         min-width: 145px;
         width: 145px;
         max-width: 145px;
@@ -177,10 +179,11 @@
 
     .sticky-status-td {
         position: sticky;
-        right: 260px;
-        background: #ffffff;
-        z-index: 5;
-        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+        right: 210px;
+        background: #ffffff !important;
+        z-index: 80 !important;
+        border-left: 2px solid #cbd5e1 !important;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
         min-width: 145px;
         width: 145px;
         max-width: 145px;
@@ -194,23 +197,23 @@
         position: sticky;
         right: 0;
         background: #f8fafc !important;
-        z-index: 6;
-        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 260px;
-        width: 260px;
-        max-width: 260px;
+        z-index: 95 !important;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.04);
+        min-width: 210px;
+        width: 210px;
+        max-width: 210px;
         text-align: center;
     }
 
     .sticky-action-td {
         position: sticky;
         right: 0;
-        background: #ffffff;
-        z-index: 6;
-        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
-        min-width: 260px;
-        width: 260px;
-        max-width: 260px;
+        background: #ffffff !important;
+        z-index: 90 !important;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.04);
+        min-width: 210px;
+        width: 210px;
+        max-width: 210px;
         text-align: center;
     }
 
@@ -652,7 +655,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th" style="text-align: center; width: 260px; min-width: 260px; max-width: 260px;">Actions & Quick Links</th>
+                        <th class="sticky-action-th" style="text-align: center; width: 210px; min-width: 210px; max-width: 210px;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="recent-services-tbody">
