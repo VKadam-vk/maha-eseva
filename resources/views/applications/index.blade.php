@@ -896,7 +896,7 @@
                                     <button type="button" id="btn-edit-recent-{{ $app->id }}" class="btn-row-action btn-row-edit"
                                             onclick="toggleEditRecentRow({{ $app->id }})"
                                             title="Click to edit service details">
-                                        <i class="fa-solid fa-pencil"></i> Edit
+                                        <i class="fa-solid fa-pencil"></i>
                                     </button>
 
                                     <!-- Apply Button (Official Portal Link) -->
@@ -930,7 +930,7 @@
                                     <a href="{{ $portalLink }}" target="_blank"
                                        class="btn-row-action btn-row-apply"
                                        title="Open Official Portal">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                     </a>
 
                                     <!-- Tutorial Button (YouTube Video Link) -->
@@ -944,7 +944,7 @@
                                     <button type="button" class="btn-row-action btn-row-receipt"
                                             onclick='window.showReceiptModal({!! $appDataJson !!})'
                                             title="View & Print Citizen Receipt (पावती)">
-                                        <i class="fa-solid fa-receipt"></i> Receipt
+                                        <i class="fa-solid fa-receipt"></i>
                                     </button>
 
                                     <span id="saved-indicator-{{ $app->id }}" class="saved-pulse-badge" style="display: none;">
@@ -1248,7 +1248,7 @@
             row.classList.add('recent-row-unlocked');
 
             btn.className = 'btn-row-action btn-row-done';
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i>';
             btn.title = 'Save and Lock this service row';
 
             row.querySelectorAll('input, select, textarea').forEach(el => {
@@ -1284,7 +1284,7 @@
 
         if (btn) {
             btn.className = 'btn-row-action btn-row-edit';
-            btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+            btn.innerHTML = '<i class="fa-solid fa-pencil"></i>';
             btn.title = 'Click to edit service details';
         }
 

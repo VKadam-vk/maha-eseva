@@ -416,20 +416,34 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 3px;
-        padding: 3px 6px;
-        border-radius: 4px;
-        font-size: 11px;
+        gap: 0;
+        width: 27px;
+        min-width: 27px;
+        height: 25px;
+        padding: 0;
+        border-radius: 5px;
+        font-size: 11.5px;
         font-weight: 700;
         text-decoration: none;
-        border: none;
-        line-height: 1.2;
+        border: 1px solid transparent;
+        line-height: 1;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+    .btn-row-action i {
+        font-size: 11.5px;
     }
 
+    .btn-row-edit { background: #eff6ff; color: #0284c7 !important; border: 1.5px solid #bae6fd !important; }
+    .btn-row-edit:hover { background: #0284c7; color: #ffffff !important; }
+    .btn-row-done { background: #16a34a !important; color: #ffffff !important; }
+    .btn-row-done:hover { background: #15803d !important; }
     .btn-row-apply { background: #0284c7; color: #ffffff !important; }
     .btn-row-apply:hover { background: #0369a1; }
     .btn-row-tutorial { background: #dc2626; color: #ffffff !important; }
     .btn-row-tutorial:hover { background: #b91c1c; }
+    .btn-row-receipt { background: #16a34a; color: #ffffff !important; }
+    .btn-row-receipt:hover { background: #15803d; }
     .btn-row-view { background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; }
     .btn-row-view:hover { background: #e2e8f0; }
 
@@ -963,7 +977,7 @@
                                     <i class="fa-solid fa-check"></i> Save
                                 </button>
                                 <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" style="display: none;" title="Apply on Portal">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 </a>
                                 <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" style="display: none;" title="Watch Tutorial Video">
                                     <i class="fa-solid fa-video"></i>
@@ -1853,16 +1867,16 @@ function getCommittedRowInnerHtml(app) {
         <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCustomerRow(${app.id})" title="Click to edit service details">
-                    <i class="fa-solid fa-pencil"></i> Edit
+                    <i class="fa-solid fa-pencil"></i>
                 </button>
                 <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Online">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Video Tutorial">
                     <i class="fa-solid fa-video"></i>
                 </a>
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)">
-                    <i class="fa-solid fa-receipt"></i> Receipt
+                    <i class="fa-solid fa-receipt"></i>
                 </button>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
@@ -1884,7 +1898,7 @@ function toggleEditCustomerRow(appId) {
         row.classList.add('committed-row-unlocked');
 
         btn.className = 'btn-row-action btn-row-done';
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
         btn.title = 'Save and Lock this service row';
 
         // Enable inputs for tabbing
@@ -1921,7 +1935,7 @@ function saveCustomerRowAndLock(appId) {
 
     if (btn) {
         btn.className = 'btn-row-action btn-row-edit';
-        btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+        btn.innerHTML = '<i class="fa-solid fa-pencil"></i>';
         btn.title = 'Click to edit service details';
     }
 

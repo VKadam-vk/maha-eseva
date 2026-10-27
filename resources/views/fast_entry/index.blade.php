@@ -964,12 +964,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 3.5px;
-        font-size: 10.5px;
+        gap: 0;
+        font-size: 11.5px;
         font-weight: 700;
-        padding: 2.5px 6.5px;
-        height: 24px;
-        border-radius: 4px;
+        padding: 0;
+        width: 27px;
+        min-width: 27px;
+        height: 25px;
+        border-radius: 5px;
         text-decoration: none;
         cursor: pointer;
         transition: all 0.15s ease;
@@ -980,7 +982,7 @@
     }
 
     .btn-row-action i {
-        font-size: 10px;
+        font-size: 11.5px;
     }
 
     .btn-row-apply {
@@ -1760,7 +1762,7 @@
                                         <i class="fa-solid fa-check"></i> Save
                                     </button>
                                     <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal" style="display: none;">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                     </a>
                                     <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
                                         <i class="fa-solid fa-video"></i>
@@ -3471,7 +3473,7 @@ function toggleEditCommittedRow(appId) {
         const btn = document.getElementById('btn-edit-row-' + appId);
         if (btn) {
             btn.className = 'btn-row-action btn-row-done';
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
+            btn.innerHTML = '<i class="fa-solid fa-check"></i>';
             btn.title = 'Save and Lock this service row';
         }
         const rateInput = document.getElementById(`crow_rate_${appId}`);
@@ -3494,7 +3496,7 @@ function saveAndLockCommittedRow(appId) {
     const btn = document.getElementById('btn-edit-row-' + appId);
     if (btn) {
         btn.className = 'btn-row-action btn-row-edit';
-        btn.innerHTML = '<i class="fa-solid fa-pencil"></i> Edit';
+        btn.innerHTML = '<i class="fa-solid fa-pencil"></i>';
         btn.title = 'Click to edit service details';
     }
     updateCommittedRowViewTexts(appId);
@@ -3743,17 +3745,17 @@ function getCommittedRowInnerHtml(app) {
         <td class="sticky-col-actions" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 260px; min-width: 260px; max-width: 260px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 3.5px; flex-wrap: nowrap;">
                 <button type="button" id="btn-edit-row-${app.id}" class="btn-row-action btn-row-edit" onclick="toggleEditCommittedRow(${app.id})" title="Click to edit service details">
-                    <i class="fa-solid fa-pencil"></i> Edit
+                    <i class="fa-solid fa-pencil"></i>
                 </button>
                 <a href="${getAppPortalLink(app)}" target="_blank" class="btn-row-action btn-row-apply" title="Apply Now on Official Portal">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video">
                     <i class="fa-solid fa-video"></i>
                 </a>
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openQuickReceiptModal(${app.id})"
                    title="View & Print Citizen Receipt (पावती)">
-                    <i class="fa-solid fa-receipt"></i> Receipt
+                    <i class="fa-solid fa-receipt"></i>
                 </button>
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
