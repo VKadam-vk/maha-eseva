@@ -866,8 +866,8 @@
                                 <a id="row-btn-apply" href="#" target="_blank" class="btn-row-action btn-row-apply" style="display: none;" title="Apply on Portal">
                                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                                 </a>
-                                <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" style="display: none;" title="Watch Tutorial">
-                                    <i class="fa-brands fa-youtube"></i> Tutorial
+                                <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" style="display: none;" title="Watch Tutorial Video">
+                                    <i class="fa-solid fa-video"></i>
                                 </a>
                             </div>
                         </td>
@@ -1280,7 +1280,7 @@ function getCommittedRowInnerHtml(app) {
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Video Tutorial">
-                    <i class="fa-brands fa-youtube"></i> Tutorial
+                    <i class="fa-solid fa-video"></i>
                 </a>
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i> Receipt

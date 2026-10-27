@@ -927,7 +927,7 @@
                                     <a href="{{ $tutLink }}" target="_blank"
                                        class="btn-row-action btn-row-tutorial"
                                        title="Watch Tutorial Video">
-                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                        <i class="fa-solid fa-video"></i>
                                     </a>
 
                                     <!-- Receipt Button (Quick Thermal Modal) -->

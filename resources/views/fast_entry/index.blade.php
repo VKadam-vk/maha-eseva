@@ -1674,7 +1674,7 @@
                                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                                     </a>
                                     <a id="row-btn-tutorial" href="#" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video" style="display: none;">
-                                        <i class="fa-brands fa-youtube"></i> Tutorial
+                                        <i class="fa-solid fa-video"></i>
                                     </a>
                                 </div>
                             </td>
@@ -3144,7 +3144,7 @@ function getCommittedRowInnerHtml(app) {
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply
                 </a>
                 <a href="${getAppTutorialLink(app)}" target="_blank" class="btn-row-action btn-row-tutorial" title="Watch Tutorial Video">
-                    <i class="fa-brands fa-youtube"></i> Tutorial
+                    <i class="fa-solid fa-video"></i>
                 </a>
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openQuickReceiptModal(${app.id})"
                    title="View & Print Citizen Receipt (पावती)">
