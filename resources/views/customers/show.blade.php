@@ -1139,18 +1139,7 @@ let loadedApplications = {};
 const initialApps = @json($formattedApps);
 const currentCustomerName = @json($customer->name);
 const currentCustomerMobile = @json($customer->mobile);
-let currentFamilyMembers = @json($customer->familyMembers->map(function($fm) {
-    return [
-        'id' => $fm->id,
-        'name' => $fm->name,
-        'relation' => $fm->relation,
-        'relation_label' => $fm->relation_label,
-        'gender' => $fm->gender,
-        'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
-        'age' => $fm->age,
-        'mobile' => $fm->mobile ?: '',
-    ];
-}));
+let currentFamilyMembers = @json($formattedFamilyMembers ?? []);
 window.activeBeneficiaryMemberId = null;
 
 // ==========================================

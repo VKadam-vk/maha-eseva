@@ -164,7 +164,20 @@ class CustomerController extends Controller
         $activeServices = Service::where('is_active', true)->with('category')->get();
         $employees = Auth::user()->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
 
-        return view('customers.show', compact('customer', 'activityTimeline', 'activeServices', 'employees'));
+        $formattedFamilyMembers = $customer->familyMembers->map(function ($fm) {
+            return [
+                'id' => $fm->id,
+                'name' => $fm->name,
+                'relation' => $fm->relation,
+                'relation_label' => $fm->relation_label,
+                'gender' => $fm->gender,
+                'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
+                'age' => $fm->age,
+                'mobile' => $fm->mobile ?: '',
+            ];
+        })->values();
+
+        return view('customers.show', compact('customer', 'activityTimeline', 'activeServices', 'employees', 'formattedFamilyMembers'));
     }
 
     /**
