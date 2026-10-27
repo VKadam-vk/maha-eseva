@@ -44,7 +44,7 @@
 
                 <a href="{{ route('applications.index') }}" class="erp-nav-link {{ request()->routeIs('applications.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-clock-rotate-left"></i>
-                    <span>All Services</span>
+                    <span>All Entries</span>
                 </a>
 
                 <a href="{{ route('services.index') }}" class="erp-nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}">

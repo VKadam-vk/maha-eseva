@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'All Services Desk')
+@section('title', 'All Entries Desk')
 
 @section('content')
 <style>
@@ -461,10 +461,10 @@
         <div class="desk-title-block">
             <h1>
                 <i class="fa-solid fa-clock-rotate-left" style="color: #0284c7;"></i>
-                All Services Desk
+                All Entries Desk
             </h1>
             <p>
-                All service records (Latest on top, older below) &bull; Inline changes auto-save immediately
+                All entry records (Latest on top, older below) &bull; Inline changes auto-save immediately
             </p>
         </div>
 
@@ -591,7 +591,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-table-list" style="color: #0284c7; font-size: 15px;"></i>
                 <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
-                    All Services (Newest at Top)
+                    All Entries (Newest at Top)
                 </span>
                 <span id="recent-count-badge" class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
                     Showing {{ $applications->count() }} of {{ $totalCount }}
