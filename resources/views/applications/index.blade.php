@@ -608,7 +608,7 @@
             <table id="recent-services-table" class="sheet-table">
                 <thead>
                     <tr>
-                        <th style="min-width: 170px; width: 175px;">Customer (Name & Contact)</th>
+                        <th style="min-width: 210px; width: 220px;">Customer (Name & Contact)</th>
                         <th style="min-width: 230px; width: 240px;">
                             <div class="excel-th-inner">
                                 <span>Service & Sub Service</span>
@@ -623,7 +623,6 @@
                             </div>
                         </th>
                         <th style="text-align: center; min-width: 70px; width: 75px;">Days</th>
-                        <th style="text-align: center; min-width: 80px; width: 85px;">Date</th>
                         <th style="text-align: right; min-width: 80px; width: 85px;">Rate (₹)</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
@@ -665,7 +664,7 @@
                             $cust = $app->customer;
                             $serv = $app->service;
                             $expDays = (int) ($serv?->expected_processing_days ?? 7);
-                            $appDate = $app->created_at ? $app->created_at->format('d M') : ($app->application_date ? date('d M', strtotime($app->application_date)) : '-');
+                            $appDateTime = $app->created_at ? $app->created_at->format('d M Y, h:i A') : ($app->application_date ? date('d M Y', strtotime($app->application_date)) : '-');
                             $followDate = $app->follow_up_date ? \Carbon\Carbon::parse($app->follow_up_date)->format('Y-m-d') : '';
                             $opName = $app->assignedEmployee?->user?->name ?? ($app->assignedEmployee?->name ?? '');
                             $stVal = strtoupper(trim($app->work_status ?? 'PENDING'));
@@ -680,7 +679,7 @@
                             data-status="{{ $stVal }}"
                             data-operator="{{ strtoupper(trim($opName)) }}"
                             data-followup_date="{{ $followDate }}">
-                            <!-- 1. Customer Name & Contact (One Below One) -->
+                            <!-- 1. Customer Name & Contact (With Date & Time) -->
                             <td style="padding: 6px 8px;">
                                 @if($cust)
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
@@ -702,11 +701,23 @@
                                             <span style="font-size: 10.5px; color: #64748b; margin-left: 4px;">(Alt: {{ $cust->alternate_mobile }})</span>
                                         @endif
                                     </div>
-                                    <div style="font-size: 11px; color: #ea580c; font-family: var(--font-mono); font-weight: 700; margin-top: 2px;">
-                                        {{ $cust->customer_code }}
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
+                                        <span style="font-size: 11px; color: #ea580c; font-family: var(--font-mono); font-weight: 700;">
+                                            {{ $cust->customer_code }}
+                                        </span>
+                                        <span style="color: #475569; font-size: 10px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
+                                            <i class="fa-regular fa-clock" style="font-size: 9.5px; color: #0284c7;"></i>
+                                            {{ $appDateTime }}
+                                        </span>
                                     </div>
                                 @else
-                                    <span style="color: #94a3b8; font-style: italic;">No Customer</span>
+                                    <div style="font-size: 11.5px; color: #94a3b8; font-style: italic;">No Customer</div>
+                                    <div style="margin-top: 3px;">
+                                        <span style="color: #475569; font-size: 10px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
+                                            <i class="fa-regular fa-clock" style="font-size: 9.5px; color: #0284c7;"></i>
+                                            {{ $appDateTime }}
+                                        </span>
+                                    </div>
                                 @endif
                             </td>
 
@@ -741,14 +752,7 @@
                                 </span>
                             </td>
 
-                            <!-- 4. Date (Created / Booking Date) -->
-                            <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
-                                <span style="font-size: 11.5px; font-weight: 700; color: #475569; font-family: var(--font-mono);">
-                                    {{ $appDate }}
-                                </span>
-                            </td>
-
-                            <!-- 5. Rate (₹) -->
+                            <!-- 4. Rate (₹) -->
                             <td>
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <input type="number" step="0.01" class="excel-input font-mono font-bold"
