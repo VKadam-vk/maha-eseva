@@ -1131,6 +1131,20 @@
         background: rgba(255, 255, 255, 0.25);
         color: #ffffff;
     }
+    .fm-pill .fm-count-badge {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        color: #0f172a;
+        font-family: var(--font-mono, monospace);
+        letter-spacing: 0.3px;
+    }
+    .fm-pill.active .fm-count-badge {
+        background: #ffffff;
+        color: #0284c7;
+    }
     .fm-pill .fm-delete-btn {
         background: none;
         border: none;
@@ -2015,7 +2029,9 @@ let currentLoadedCustomer = null;
 let loadedApplications = {};
 const allServices = @json($services);
 const allEmployees = @json($employees);
+window.activeFamilyFilter = 'ALL';
 window.activeBeneficiaryMemberId = null;
+let currentCustomerAllApplications = [];
 
 // ==========================================
 // FAMILY MEMBERS / BENEFICIARY MANAGEMENT
@@ -2029,25 +2045,37 @@ function renderFamilyMembers(members) {
     const totalCount = 1 + (members ? members.length : 0);
     if (countBadge) countBadge.textContent = `${totalCount} Members`;
 
-    const isHeadActive = (window.activeBeneficiaryMemberId === null);
+    const totalAppsCount = currentCustomerAllApplications.length;
+    const headAppsCount = currentCustomerAllApplications.filter(a => !a.family_member_id || a.family_member_id == 0).length;
+
+    const isAllActive = (window.activeFamilyFilter === 'ALL');
+    const isHeadActive = (window.activeFamilyFilter === 'HEAD');
 
     let html = `
-        <div class="fm-pill ${isHeadActive ? 'active' : ''}" id="fm-pill-head" onclick="selectFamilyBeneficiary(null)" title="Services will be recorded for Head (Self)">
+        <div class="fm-pill ${isAllActive ? 'active' : ''}" id="fm-pill-all" onclick="selectFamilyBeneficiary('ALL')" title="सर्व कुटुंबाच्या सेवा दाखवा (Show all family services)">
+            <i class="fa-solid fa-users-viewfinder"></i>
+            <span>सर्व कुटुंब (All)</span>
+            <span class="fm-count-badge">${totalAppsCount}</span>
+        </div>
+        <div class="fm-pill ${isHeadActive ? 'active' : ''}" id="fm-pill-head" onclick="selectFamilyBeneficiary('HEAD')" title="Services for Head (Self)">
             <i class="fa-solid fa-user-tie"></i>
             <span id="fm-head-name">${escapeHtml(custName)}</span>
             <span class="fm-relation-tag">Head (Self)</span>
+            <span class="fm-count-badge">${headAppsCount}</span>
         </div>
     `;
 
     if (members && members.length > 0) {
         members.forEach(m => {
-            const isActive = (window.activeBeneficiaryMemberId == m.id);
+            const isActive = (window.activeFamilyFilter == m.id);
             const relationLabel = m.relation_label || m.relation;
+            const mAppsCount = currentCustomerAllApplications.filter(a => a.family_member_id == m.id).length;
             html += `
-                <div class="fm-pill ${isActive ? 'active' : ''}" id="fm-pill-${m.id}" onclick="selectFamilyBeneficiary(${m.id})" title="Click to record services for ${escapeHtml(m.name)}">
+                <div class="fm-pill ${isActive ? 'active' : ''}" id="fm-pill-${m.id}" onclick="selectFamilyBeneficiary(${m.id})" title="Click to view & record services for ${escapeHtml(m.name)}">
                     <i class="fa-solid fa-user"></i>
                     <span>${escapeHtml(m.name)}</span>
                     <span class="fm-relation-tag">${escapeHtml(relationLabel)}</span>
+                    <span class="fm-count-badge">${mAppsCount}</span>
                     <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
                 </div>
             `;
@@ -2058,10 +2086,100 @@ function renderFamilyMembers(members) {
     updateActiveBeneficiaryIndicator();
 }
 
-function selectFamilyBeneficiary(memberId) {
-    window.activeBeneficiaryMemberId = memberId ? parseInt(memberId) : null;
+function selectFamilyBeneficiary(filterKey) {
+    if (filterKey === 'ALL') {
+        window.activeFamilyFilter = 'ALL';
+        window.activeBeneficiaryMemberId = null;
+    } else if (filterKey === 'HEAD' || filterKey === null) {
+        window.activeFamilyFilter = 'HEAD';
+        window.activeBeneficiaryMemberId = null;
+    } else {
+        const memId = parseInt(filterKey);
+        window.activeFamilyFilter = memId;
+        window.activeBeneficiaryMemberId = memId;
+    }
+
     if (currentLoadedCustomer) {
         renderFamilyMembers(currentLoadedCustomer.family_members || []);
+    }
+    updateActiveBeneficiaryIndicator();
+    filterServicesTableByActiveMember();
+}
+
+function filterServicesTableByActiveMember() {
+    const tbody = document.getElementById('services-tbody');
+    if (!tbody) return;
+
+    const committedRows = tbody.querySelectorAll('tr.committed-row');
+    let visibleCount = 0;
+    const totalCount = committedRows.length;
+
+    committedRows.forEach(row => {
+        const appId = row.dataset.appId || row.id.replace('committed-row-', '');
+        const app = loadedApplications[appId];
+        if (!app) return;
+
+        let isMatch = false;
+        if (window.activeFamilyFilter === 'ALL') {
+            isMatch = true;
+        } else if (window.activeFamilyFilter === 'HEAD') {
+            isMatch = (!app.family_member_id || app.family_member_id == 0);
+        } else {
+            isMatch = (app.family_member_id == window.activeFamilyFilter);
+        }
+
+        if (isMatch) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    let emptyRow = document.getElementById('member-empty-services-row');
+    if (visibleCount === 0 && totalCount > 0) {
+        if (!emptyRow) {
+            emptyRow = document.createElement('tr');
+            emptyRow.id = 'member-empty-services-row';
+            tbody.appendChild(emptyRow);
+        }
+        let memName = 'या सदस्यासाठी';
+        if (window.activeFamilyFilter === 'HEAD') {
+            memName = (currentLoadedCustomer ? currentLoadedCustomer.name : 'मुख्य ग्राहक');
+        } else if (currentLoadedCustomer && currentLoadedCustomer.family_members) {
+            const m = currentLoadedCustomer.family_members.find(x => x.id == window.activeFamilyFilter);
+            if (m) memName = `${m.name} (${m.relation_label || m.relation})`;
+        }
+        emptyRow.innerHTML = `
+            <td colspan="15" style="text-align: center; padding: 22px 12px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0;">
+                <i class="fa-solid fa-folder-open" style="font-size: 24px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                <div style="font-size: 13px; color: #1e293b;"><strong>${escapeHtml(memName)}</strong> यांच्यासाठी अजून कोणतीही सेवा नोंदवलेली नाही.</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 3px;">नवीन सेवा जोडण्यासाठी वरील पिवळ्या रो (New Row) मध्ये सेवा निवडून सेव्ह (Enter) करा.</div>
+            </td>
+        `;
+        emptyRow.style.display = '';
+    } else if (emptyRow) {
+        emptyRow.style.display = 'none';
+    }
+
+    const badge = document.getElementById('services-badge');
+    if (badge) {
+        let filterName = 'सर्व कुटुंब';
+        if (window.activeFamilyFilter === 'HEAD') {
+            filterName = (currentLoadedCustomer ? currentLoadedCustomer.name : 'Self');
+        } else if (window.activeFamilyFilter !== 'ALL' && currentLoadedCustomer && currentLoadedCustomer.family_members) {
+            const m = currentLoadedCustomer.family_members.find(x => x.id == window.activeFamilyFilter);
+            if (m) filterName = m.name;
+        }
+        if (window.activeFamilyFilter === 'ALL') {
+            badge.innerText = `${visibleCount} Services (All Family)`;
+        } else {
+            badge.innerText = `${visibleCount} Services (${filterName})`;
+        }
+    }
+
+    if (window.fastEntryFilter) {
+        window.fastEntryFilter.refresh();
     }
 }
 
@@ -2222,9 +2340,12 @@ function submitAddFamilyMember(e) {
             closeAddFamilyMemberModal();
             if (currentLoadedCustomer) {
                 currentLoadedCustomer.family_members = res.family_members || [];
-                // Auto-select newly created family member as active beneficiary!
-                window.activeBeneficiaryMemberId = res.member ? res.member.id : null;
+                // Auto-select newly created family member as active beneficiary & filter!
+                const newMemId = res.member ? res.member.id : null;
+                window.activeBeneficiaryMemberId = newMemId;
+                window.activeFamilyFilter = newMemId ? newMemId : 'ALL';
                 renderFamilyMembers(currentLoadedCustomer.family_members);
+                filterServicesTableByActiveMember();
             }
             showAlert('Family Member Added!', `${res.member.name} (${res.member.relation_label}) added and selected for new service entries.`);
             // Focus on service row to begin typing immediately
@@ -2265,9 +2386,13 @@ function deleteFamilyMember(memberId, e) {
             if (window.activeBeneficiaryMemberId == memberId) {
                 window.activeBeneficiaryMemberId = null;
             }
+            if (window.activeFamilyFilter == memberId) {
+                window.activeFamilyFilter = 'ALL';
+            }
             if (currentLoadedCustomer) {
                 currentLoadedCustomer.family_members = res.family_members || [];
                 renderFamilyMembers(currentLoadedCustomer.family_members);
+                filterServicesTableByActiveMember();
             }
             showAlert('Member Removed', res.message || 'Family member removed.');
         } else {
@@ -2835,9 +2960,13 @@ function renderCommittedServices(apps) {
     oldRows.forEach(r => r.remove());
 
     loadedApplications = {};
-    document.getElementById('services-badge').innerText = `${apps.length} Services`;
+    currentCustomerAllApplications = apps || [];
 
     if (!apps || apps.length === 0) {
+        document.getElementById('services-badge').innerText = '0 Services';
+        if (currentLoadedCustomer) {
+            renderFamilyMembers(currentLoadedCustomer.family_members || []);
+        }
         if (window.fastEntryFilter) {
             window.fastEntryFilter.refresh();
         }
@@ -2850,9 +2979,10 @@ function renderCommittedServices(apps) {
         tbody.appendChild(tr);
     });
 
-    if (window.fastEntryFilter) {
-        window.fastEntryFilter.refresh();
+    if (currentLoadedCustomer) {
+        renderFamilyMembers(currentLoadedCustomer.family_members || []);
     }
+    filterServicesTableByActiveMember();
 }
 
 function escapeHtml(str) {
@@ -4163,7 +4293,9 @@ function resetEntireDesk() {
     updateBlacklistUI(null);
 
     // Reset Family Members
+    window.activeFamilyFilter = 'ALL';
     window.activeBeneficiaryMemberId = null;
+    currentCustomerAllApplications = [];
     const fmPills = document.getElementById('family-members-pills');
     if (fmPills) fmPills.innerHTML = '';
     const fmTag = document.getElementById('se-active-beneficiary-tag');
@@ -4174,6 +4306,7 @@ function resetEntireDesk() {
     // Remove committed rows from Unified Table
     const tbody = document.getElementById('services-tbody');
     tbody.querySelectorAll('tr.committed-row').forEach(r => r.remove());
+    document.getElementById('member-empty-services-row')?.remove();
     document.getElementById('services-badge').innerText = '0 Services';
 
     // Reset active row

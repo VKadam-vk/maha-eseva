@@ -568,6 +568,20 @@
         background: rgba(255, 255, 255, 0.25);
         color: #ffffff;
     }
+    .fm-pill .fm-count-badge {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        color: #0f172a;
+        font-family: var(--font-mono, monospace);
+        letter-spacing: 0.3px;
+    }
+    .fm-pill.active .fm-count-badge {
+        background: #ffffff;
+        color: #0284c7;
+    }
     .fm-pill .fm-delete-btn {
         background: none;
         border: none;
@@ -1140,7 +1154,9 @@ const initialApps = @json($formattedApps);
 const currentCustomerName = @json($customer->name);
 const currentCustomerMobile = @json($customer->mobile);
 let currentFamilyMembers = @json($formattedFamilyMembers ?? []);
+window.activeFamilyFilter = 'ALL';
 window.activeBeneficiaryMemberId = null;
+let currentCustomerAllApplications = [...initialApps];
 
 // ==========================================
 // FAMILY MEMBERS / BENEFICIARY MANAGEMENT
@@ -1153,25 +1169,37 @@ function renderFamilyMembers(members) {
     const totalCount = 1 + (members ? members.length : 0);
     if (countBadge) countBadge.textContent = `${totalCount} Members`;
 
-    const isHeadActive = (window.activeBeneficiaryMemberId === null);
+    const totalAppsCount = currentCustomerAllApplications.length;
+    const headAppsCount = currentCustomerAllApplications.filter(a => !a.family_member_id || a.family_member_id == 0).length;
+
+    const isAllActive = (window.activeFamilyFilter === 'ALL');
+    const isHeadActive = (window.activeFamilyFilter === 'HEAD');
 
     let html = `
-        <div class="fm-pill ${isHeadActive ? 'active' : ''}" id="fm-pill-head" onclick="selectFamilyBeneficiary(null)" title="Services will be recorded for Head (Self)">
+        <div class="fm-pill ${isAllActive ? 'active' : ''}" id="fm-pill-all" onclick="selectFamilyBeneficiary('ALL')" title="सर्व कुटुंबाच्या सेवा दाखवा (Show all family services)">
+            <i class="fa-solid fa-users-viewfinder"></i>
+            <span>सर्व कुटुंब (All)</span>
+            <span class="fm-count-badge">${totalAppsCount}</span>
+        </div>
+        <div class="fm-pill ${isHeadActive ? 'active' : ''}" id="fm-pill-head" onclick="selectFamilyBeneficiary('HEAD')" title="Services for Head (Self)">
             <i class="fa-solid fa-user-tie"></i>
             <span id="fm-head-name">${escapeHtml(currentCustomerName)}</span>
             <span class="fm-relation-tag">Head (Self)</span>
+            <span class="fm-count-badge">${headAppsCount}</span>
         </div>
     `;
 
     if (members && members.length > 0) {
         members.forEach(m => {
-            const isActive = (window.activeBeneficiaryMemberId == m.id);
+            const isActive = (window.activeFamilyFilter == m.id);
             const relationLabel = m.relation_label || m.relation;
+            const mAppsCount = currentCustomerAllApplications.filter(a => a.family_member_id == m.id).length;
             html += `
-                <div class="fm-pill ${isActive ? 'active' : ''}" id="fm-pill-${m.id}" onclick="selectFamilyBeneficiary(${m.id})" title="Click to record services for ${escapeHtml(m.name)}">
+                <div class="fm-pill ${isActive ? 'active' : ''}" id="fm-pill-${m.id}" onclick="selectFamilyBeneficiary(${m.id})" title="Click to view & record services for ${escapeHtml(m.name)}">
                     <i class="fa-solid fa-user"></i>
                     <span>${escapeHtml(m.name)}</span>
                     <span class="fm-relation-tag">${escapeHtml(relationLabel)}</span>
+                    <span class="fm-count-badge">${mAppsCount}</span>
                     <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
                 </div>
             `;
@@ -1182,9 +1210,99 @@ function renderFamilyMembers(members) {
     updateActiveBeneficiaryIndicator();
 }
 
-function selectFamilyBeneficiary(memberId) {
-    window.activeBeneficiaryMemberId = memberId ? parseInt(memberId) : null;
+function selectFamilyBeneficiary(filterKey) {
+    if (filterKey === 'ALL') {
+        window.activeFamilyFilter = 'ALL';
+        window.activeBeneficiaryMemberId = null;
+    } else if (filterKey === 'HEAD' || filterKey === null) {
+        window.activeFamilyFilter = 'HEAD';
+        window.activeBeneficiaryMemberId = null;
+    } else {
+        const memId = parseInt(filterKey);
+        window.activeFamilyFilter = memId;
+        window.activeBeneficiaryMemberId = memId;
+    }
+
     renderFamilyMembers(currentFamilyMembers || []);
+    updateActiveBeneficiaryIndicator();
+    filterServicesTableByActiveMember();
+}
+
+function filterServicesTableByActiveMember() {
+    const tbody = document.getElementById('services-tbody');
+    if (!tbody) return;
+
+    const committedRows = tbody.querySelectorAll('tr.committed-row');
+    let visibleCount = 0;
+    const totalCount = committedRows.length;
+
+    committedRows.forEach(row => {
+        const appId = row.dataset.appId || row.id.replace('committed-row-', '');
+        const app = loadedApplications[appId];
+        if (!app) return;
+
+        let isMatch = false;
+        if (window.activeFamilyFilter === 'ALL') {
+            isMatch = true;
+        } else if (window.activeFamilyFilter === 'HEAD') {
+            isMatch = (!app.family_member_id || app.family_member_id == 0);
+        } else {
+            isMatch = (app.family_member_id == window.activeFamilyFilter);
+        }
+
+        if (isMatch) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    let emptyRow = document.getElementById('member-empty-services-row');
+    if (visibleCount === 0 && totalCount > 0) {
+        if (!emptyRow) {
+            emptyRow = document.createElement('tr');
+            emptyRow.id = 'member-empty-services-row';
+            tbody.appendChild(emptyRow);
+        }
+        let memName = 'या सदस्यासाठी';
+        if (window.activeFamilyFilter === 'HEAD') {
+            memName = currentCustomerName;
+        } else if (currentFamilyMembers) {
+            const m = currentFamilyMembers.find(x => x.id == window.activeFamilyFilter);
+            if (m) memName = `${m.name} (${m.relation_label || m.relation})`;
+        }
+        emptyRow.innerHTML = `
+            <td colspan="15" style="text-align: center; padding: 22px 12px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0;">
+                <i class="fa-solid fa-folder-open" style="font-size: 24px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                <div style="font-size: 13px; color: #1e293b;"><strong>${escapeHtml(memName)}</strong> यांच्यासाठी अजून कोणतीही सेवा नोंदवलेली नाही.</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 3px;">नवीन सेवा जोडण्यासाठी वरील पिवळ्या रो (New Row) मध्ये सेवा निवडून सेव्ह (Enter) करा.</div>
+            </td>
+        `;
+        emptyRow.style.display = '';
+    } else if (emptyRow) {
+        emptyRow.style.display = 'none';
+    }
+
+    const badge = document.getElementById('services-count-badge');
+    if (badge) {
+        let filterName = 'सर्व कुटुंब';
+        if (window.activeFamilyFilter === 'HEAD') {
+            filterName = currentCustomerName;
+        } else if (window.activeFamilyFilter !== 'ALL' && currentFamilyMembers) {
+            const m = currentFamilyMembers.find(x => x.id == window.activeFamilyFilter);
+            if (m) filterName = m.name;
+        }
+        if (window.activeFamilyFilter === 'ALL') {
+            badge.innerText = `${visibleCount} SERVICES (ALL FAMILY)`;
+        } else {
+            badge.innerText = `${visibleCount} SERVICES (${filterName.toUpperCase()})`;
+        }
+    }
+
+    if (window.customerShowFilter) {
+        window.customerShowFilter.refresh();
+    }
 }
 
 function updateActiveBeneficiaryIndicator() {
@@ -1326,9 +1444,12 @@ function submitAddFamilyMember(e) {
         if (res.success) {
             closeAddFamilyMemberModal();
             currentFamilyMembers = res.family_members || [];
-            // Auto-select newly created family member as active beneficiary!
-            window.activeBeneficiaryMemberId = res.member ? res.member.id : null;
+            // Auto-select newly created family member as active beneficiary & filter!
+            const newMemId = res.member ? res.member.id : null;
+            window.activeBeneficiaryMemberId = newMemId;
+            window.activeFamilyFilter = newMemId ? newMemId : 'ALL';
             renderFamilyMembers(currentFamilyMembers);
+            filterServicesTableByActiveMember();
             // Focus on service row to begin typing immediately
             document.getElementById('se_main_service')?.focus();
         } else {
@@ -1367,8 +1488,12 @@ function deleteFamilyMember(memberId, e) {
             if (window.activeBeneficiaryMemberId == memberId) {
                 window.activeBeneficiaryMemberId = null;
             }
+            if (window.activeFamilyFilter == memberId) {
+                window.activeFamilyFilter = 'ALL';
+            }
             currentFamilyMembers = res.family_members || [];
             renderFamilyMembers(currentFamilyMembers);
+            filterServicesTableByActiveMember();
         } else {
             alert('Error: ' + (res.message || 'Failed to remove member.'));
         }
@@ -2181,15 +2306,15 @@ function saveActiveServiceRow() {
             };
 
             loadedApplications[newApp.id] = newApp;
+            currentCustomerAllApplications.unshift(newApp);
 
             // Insert committed row right below active input row
             const tr = createCommittedRowElement(newApp);
             const activeRow = document.getElementById('active-service-row');
             activeRow.parentNode.insertBefore(tr, activeRow.nextSibling);
 
-            if (window.customerShowFilter) {
-                window.customerShowFilter.refresh();
-            }
+            renderFamilyMembers(currentFamilyMembers);
+            filterServicesTableByActiveMember();
 
             // Reset active row
             document.getElementById('se_main_service').value = '';
@@ -2493,6 +2618,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.appendChild(tr);
         });
     }
+
+    filterServicesTableByActiveMember();
 
     updateStatusDatalistForService('DEFAULT');
     const seStatus = document.getElementById('se_status');
