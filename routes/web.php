@@ -135,6 +135,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/update-service-row', [FastEntryController::class, 'updateServiceRow'])->name('update_service_row')->middleware('permission:applications.edit');
         Route::post('/toggle-blacklist', [FastEntryController::class, 'toggleBlacklist'])->name('toggle_blacklist')->middleware('permission:customers.edit');
         Route::post('/family-members', [FastEntryController::class, 'storeFamilyMember'])->name('family_members.store')->middleware('permission:customers.edit');
+        Route::match(['put', 'patch', 'post'], '/family-members/{familyMember}', [FastEntryController::class, 'updateFamilyMember'])->name('family_members.update')->middleware('permission:customers.edit');
         Route::delete('/family-members/{familyMember}', [FastEntryController::class, 'destroyFamilyMember'])->name('family_members.destroy')->middleware('permission:customers.edit');
     });
 

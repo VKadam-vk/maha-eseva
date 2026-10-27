@@ -174,6 +174,7 @@ class CustomerController extends Controller
                 'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
                 'age' => $fm->age,
                 'mobile' => $fm->mobile ?: '',
+                'notes' => $fm->notes ?: '',
             ];
         })->values();
 

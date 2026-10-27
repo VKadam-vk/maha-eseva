@@ -667,6 +667,12 @@
                     {{ $totalCount }} Records
                 </span>
                 <div id="followup-filter-toolbar" style="display: inline-flex;"></div>
+                <div style="position: relative; display: inline-flex; align-items: center; margin-left: 6px;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 9px; color: #94a3b8; font-size: 11px; pointer-events: none;"></i>
+                    <input type="text" id="followup-instant-search" placeholder="Quick search rows (type to filter)..."
+                           oninput="instantFilterFollowups(this.value)"
+                           style="padding: 4px 10px 4px 28px; font-size: 11.5px; font-weight: 600; border: 1.5px solid #cbd5e1; border-radius: 6px; width: 230px; outline: none; background: #ffffff;">
+                </div>
             </div>
 
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
@@ -1503,6 +1509,28 @@
                 modal.style.setProperty('visibility', 'hidden', 'important');
             }
         }
+    }
+
+    // Instant Live Search on typing without having to click any button
+    let followupSearchTimer = null;
+    function instantFilterFollowups(query) {
+        clearTimeout(followupSearchTimer);
+        followupSearchTimer = setTimeout(() => {
+            const q = (query || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#followup-sheet-tbody tr[data-app-id]');
+            let visibleCount = 0;
+            rows.forEach(r => {
+                const txt = r.innerText.toLowerCase();
+                const match = !q || txt.includes(q);
+                r.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+            const countBadge = document.getElementById('followup-count-badge');
+            if (countBadge) countBadge.innerText = `${visibleCount} Records`;
+            if (typeof recalculateFollowupMetrics === 'function') {
+                recalculateFollowupMetrics();
+            }
+        }, 120);
     }
 </script>
 @endpush

@@ -708,6 +708,7 @@ class FastEntryController extends Controller
                 'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
                 'age' => $fm->age,
                 'mobile' => $fm->mobile ?: '',
+                'notes' => $fm->notes ?: '',
             ];
         });
 
@@ -720,6 +721,71 @@ class FastEntryController extends Controller
                 'relation' => $member->relation,
                 'relation_label' => $member->relation_label,
                 'gender' => $member->gender,
+                'birth_date' => $member->birth_date ? $member->birth_date->format('Y-m-d') : '',
+                'age' => $member->age,
+                'mobile' => $member->mobile ?: '',
+                'notes' => $member->notes ?: '',
+            ],
+            'family_members' => $allMembers,
+        ]);
+    }
+
+    /**
+     * Update an existing Family Member details.
+     */
+    public function updateFamilyMember(Request $request, FamilyMember $familyMember): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'relation' => ['required', 'string', 'max:50'],
+            'gender' => ['nullable', 'in:MALE,FEMALE,OTHER'],
+            'birth_date' => ['nullable', 'date'],
+            'age' => ['nullable', 'integer', 'min:0', 'max:130'],
+            'mobile' => ['nullable', 'string', 'max:20'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'name.required' => 'Member Name is required.',
+            'relation.required' => 'Relationship is required.',
+        ]);
+
+        $familyMember->update([
+            'name' => trim($validated['name']),
+            'relation' => strtoupper(trim($validated['relation'])),
+            'gender' => $validated['gender'] ?? $familyMember->gender,
+            'birth_date' => $validated['birth_date'] ?? null,
+            'age' => $validated['age'] ?? null,
+            'mobile' => $validated['mobile'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $customer = $familyMember->customer;
+        $allMembers = $customer ? $customer->familyMembers()->get()->map(function ($fm) {
+            return [
+                'id' => $fm->id,
+                'name' => $fm->name,
+                'relation' => $fm->relation,
+                'relation_label' => $fm->relation_label,
+                'gender' => $fm->gender,
+                'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
+                'age' => $fm->age,
+                'mobile' => $fm->mobile ?: '',
+                'notes' => $fm->notes ?: '',
+            ];
+        }) : [];
+
+        return response()->json([
+            'success' => true,
+            'message' => "Family member {$familyMember->name} updated successfully.",
+            'member' => [
+                'id' => $familyMember->id,
+                'name' => $familyMember->name,
+                'relation' => $familyMember->relation,
+                'relation_label' => $familyMember->relation_label,
+                'gender' => $familyMember->gender,
+                'birth_date' => $familyMember->birth_date ? $familyMember->birth_date->format('Y-m-d') : '',
+                'age' => $familyMember->age,
+                'mobile' => $familyMember->mobile ?: '',
+                'notes' => $familyMember->notes ?: '',
             ],
             'family_members' => $allMembers,
         ]);
@@ -744,6 +810,7 @@ class FastEntryController extends Controller
                 'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
                 'age' => $fm->age,
                 'mobile' => $fm->mobile ?: '',
+                'notes' => $fm->notes ?: '',
             ];
         }) : [];
 

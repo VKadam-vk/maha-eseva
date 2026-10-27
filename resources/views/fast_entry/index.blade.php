@@ -1161,6 +1161,28 @@
         align-items: center;
         justify-content: center;
     }
+    .fm-pill .fm-edit-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        opacity: 0.65;
+        font-size: 10px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 2px 4px;
+        margin-left: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+    }
+    .fm-pill .fm-edit-btn:hover {
+        opacity: 1;
+        color: #0284c7;
+        background: rgba(255, 255, 255, 0.45);
+        transform: scale(1.15);
+    }
     .fm-pill .fm-delete-btn:hover {
         opacity: 1;
         color: #ef4444;
@@ -1902,18 +1924,18 @@
     </div>
 </div>
 
-<!-- Modal: Add Family Member Popup -->
+<!-- Modal: Add / Edit Family Member Popup -->
 <div id="modal-add-family-member" class="modal-overlay" style="display: none;" onclick="closeAddFamilyMemberModal(event)">
-    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 480px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
+    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 490px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-user-plus"></i>
+                    <i id="fm-modal-icon" class="fa-solid fa-user-plus"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Add Family Member</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">कुटुंब सदस्य / नवीन लाभार्थी जोडा</p>
+                    <h3 id="fm-modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Add Family Member</h3>
+                    <p id="fm-modal-subtitle" style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">कुटुंब सदस्य / नवीन लाभार्थी जोडा</p>
                 </div>
             </div>
             <button type="button" class="modal-close-btn" onclick="closeAddFamilyMemberModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px;">
@@ -1923,6 +1945,8 @@
 
         <!-- Body -->
         <form id="form-add-family-member" onsubmit="submitAddFamilyMember(event)" style="padding: 20px 22px;">
+            <input type="hidden" id="fm_edit_id" value="">
+
             <!-- Customer Head Banner -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                 <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
@@ -1999,13 +2023,23 @@
             </div>
 
             <!-- Member Mobile (Optional) -->
-            <div style="margin-bottom: 18px;">
+            <div style="margin-bottom: 14px;">
                 <label for="fm_mobile" style="display: block; font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
                     Mobile Number (ऐच्छिक - स्वतंत्र असल्यास)
                 </label>
                 <input type="tel" id="fm_mobile" class="form-control font-mono" maxlength="15"
                        placeholder="उदा. 9822012345 (रिकामे ठेवल्यास मुख्य नंबर वापरला जाईल)"
                        style="height: 40px; font-size: 13px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+            </div>
+
+            <!-- Member Notes (Optional) -->
+            <div style="margin-bottom: 18px;">
+                <label for="fm_notes" style="display: block; font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                    Notes / Remarks (टीप - ऐच्छिक)
+                </label>
+                <input type="text" id="fm_notes" class="form-control"
+                       placeholder="उदा. आधार कार्ड क्रमांक किंवा इतर तपशील..."
+                       style="height: 38px; font-size: 12.5px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
             </div>
 
             <!-- Action Buttons -->
@@ -2015,7 +2049,7 @@
                 </button>
                 <button type="submit" id="btn-submit-family-member" class="btn btn-primary"
                         style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 20px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-                    <i class="fa-solid fa-check"></i> Save & Select Member
+                    <i id="fm-submit-icon" class="fa-solid fa-check"></i> <span id="fm-submit-label">Save & Select Member</span>
                 </button>
             </div>
         </form>
@@ -2078,6 +2112,9 @@ function renderFamilyMembers(members) {
                     <span>${escapeHtml(m.name)}</span>
                     <span class="fm-relation-tag">${escapeHtml(relationLabel)}</span>
                     <span class="fm-count-badge">${mAppsCount}</span>
+                    <button type="button" class="fm-edit-btn" onclick="openEditFamilyMemberModal(${m.id}, event)" title="Edit / View details of ${escapeHtml(m.name)}">
+                        <i class="fa-solid fa-pencil"></i>
+                    </button>
                     <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
                 </div>
             `;
@@ -2225,8 +2262,20 @@ function openAddFamilyMemberModal() {
     if (headNameEl) headNameEl.textContent = currentLoadedCustomer.name;
     if (headMobEl) headMobEl.textContent = currentLoadedCustomer.mobile;
 
-    // Reset form
+    // Reset form & mode
     document.getElementById('form-add-family-member')?.reset();
+    const editIdEl = document.getElementById('fm_edit_id');
+    if (editIdEl) editIdEl.value = '';
+
+    const titleEl = document.getElementById('fm-modal-title');
+    const subEl = document.getElementById('fm-modal-subtitle');
+    const iconEl = document.getElementById('fm-modal-icon');
+    const submitLabel = document.getElementById('fm-submit-label');
+
+    if (titleEl) titleEl.textContent = 'Add Family Member';
+    if (subEl) subEl.textContent = 'कुटुंब सदस्य / नवीन लाभार्थी जोडा';
+    if (iconEl) iconEl.className = 'fa-solid fa-user-plus';
+    if (submitLabel) submitLabel.textContent = 'Save & Select Member';
 
     const modal = document.getElementById('modal-add-family-member');
     if (modal) {
@@ -2237,6 +2286,62 @@ function openAddFamilyMemberModal() {
         modal.style.setProperty('z-index', '999999999', 'important');
         setTimeout(() => {
             document.getElementById('fm_name')?.focus();
+        }, 100);
+    }
+}
+
+function openEditFamilyMemberModal(memberId, e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (!currentLoadedCustomer || !currentLoadedCustomer.family_members) {
+        return;
+    }
+
+    const member = currentLoadedCustomer.family_members.find(m => m.id == memberId);
+    if (!member) {
+        alert('Family member details not found.');
+        return;
+    }
+
+    const headNameEl = document.getElementById('fm-modal-head-name');
+    const headMobEl = document.getElementById('fm-modal-head-mobile');
+    if (headNameEl) headNameEl.textContent = currentLoadedCustomer.name;
+    if (headMobEl) headMobEl.textContent = currentLoadedCustomer.mobile;
+
+    // Set Edit Mode & pre-fill existing values
+    const editIdEl = document.getElementById('fm_edit_id');
+    if (editIdEl) editIdEl.value = member.id;
+    document.getElementById('fm_name').value = member.name || '';
+    document.getElementById('fm_relation').value = member.relation || '';
+    document.getElementById('fm_gender').value = member.gender || 'MALE';
+    document.getElementById('fm_dob').value = member.birth_date || '';
+    document.getElementById('fm_age').value = member.age || '';
+    document.getElementById('fm_mobile').value = member.mobile || '';
+    const notesEl = document.getElementById('fm_notes');
+    if (notesEl) notesEl.value = member.notes || '';
+
+    const titleEl = document.getElementById('fm-modal-title');
+    const subEl = document.getElementById('fm-modal-subtitle');
+    const iconEl = document.getElementById('fm-modal-icon');
+    const submitLabel = document.getElementById('fm-submit-label');
+
+    if (titleEl) titleEl.textContent = 'Edit Family Member';
+    if (subEl) subEl.textContent = 'सदस्य माहिती संपादित करा (Update Details)';
+    if (iconEl) iconEl.className = 'fa-solid fa-user-pen';
+    if (submitLabel) submitLabel.textContent = 'Save Changes (बदल जतन करा)';
+
+    const modal = document.getElementById('modal-add-family-member');
+    if (modal) {
+        modal.classList.add('open');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('z-index', '999999999', 'important');
+        setTimeout(() => {
+            document.getElementById('fm_name')?.focus();
+            document.getElementById('fm_name')?.select();
         }, 100);
     }
 }
@@ -2287,12 +2392,14 @@ function submitAddFamilyMember(e) {
         return;
     }
 
+    const editId = document.getElementById('fm_edit_id')?.value;
     const name = document.getElementById('fm_name')?.value?.trim();
     const relation = document.getElementById('fm_relation')?.value;
     const gender = document.getElementById('fm_gender')?.value || 'MALE';
     const dob = document.getElementById('fm_dob')?.value || null;
     const age = document.getElementById('fm_age')?.value || null;
     const mobile = document.getElementById('fm_mobile')?.value?.trim() || null;
+    const notes = document.getElementById('fm_notes')?.value?.trim() || null;
 
     if (!name) {
         alert('Please enter member full name.');
@@ -2311,8 +2418,12 @@ function submitAddFamilyMember(e) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     }
 
-    fetch('{{ route("fast_entry.family_members.store") }}', {
-        method: 'POST',
+    const isEdit = Boolean(editId);
+    const url = isEdit ? `/fast-entry/family-members/${editId}` : '{{ route("fast_entry.family_members.store") }}';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -2325,13 +2436,14 @@ function submitAddFamilyMember(e) {
             gender: gender,
             birth_date: dob,
             age: age ? parseInt(age) : null,
-            mobile: mobile
+            mobile: mobile,
+            notes: notes
         })
     })
     .then(async res => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Select Member';
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> <span id="fm-submit-label">${isEdit ? 'Save Changes' : 'Save & Select Member'}</span>`;
         }
         if (res.status === 401) {
             alert('Your session has expired. Please log in again.');
@@ -2346,24 +2458,26 @@ function submitAddFamilyMember(e) {
             closeAddFamilyMemberModal();
             if (currentLoadedCustomer) {
                 currentLoadedCustomer.family_members = res.family_members || [];
-                // Auto-select newly created family member as active beneficiary & filter!
-                const newMemId = res.member ? res.member.id : null;
-                window.activeBeneficiaryMemberId = newMemId;
-                window.activeFamilyFilter = newMemId ? newMemId : 'ALL';
+                if (!isEdit) {
+                    const newMemId = res.member ? res.member.id : null;
+                    window.activeBeneficiaryMemberId = newMemId;
+                    window.activeFamilyFilter = newMemId ? newMemId : 'ALL';
+                }
                 renderFamilyMembers(currentLoadedCustomer.family_members);
                 filterServicesTableByActiveMember();
             }
-            showAlert('Family Member Added!', `${res.member.name} (${res.member.relation_label}) added and selected for new service entries.`);
-            // Focus on service row to begin typing immediately
-            document.getElementById('se_main_service')?.focus();
+            showAlert(isEdit ? 'Family Member Updated!' : 'Family Member Added!', res.message || 'Details saved successfully.');
+            if (!isEdit) {
+                document.getElementById('se_main_service')?.focus();
+            }
         } else {
-            alert('Error: ' + (res.message || 'Failed to add family member.'));
+            alert('Error: ' + (res.message || 'Failed to save family member.'));
         }
     })
     .catch(err => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Select Member';
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> <span id="fm-submit-label">${isEdit ? 'Save Changes' : 'Save & Select Member'}</span>`;
         }
         alert('Network error while saving family member.');
     });

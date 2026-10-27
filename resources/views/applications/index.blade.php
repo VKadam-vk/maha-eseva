@@ -1482,6 +1482,27 @@
             }
         }
     }
+
+    // Instant Live Search on typing without having to click Search button
+    let autoFilterTimer = null;
+    function autoFilterApplications(query) {
+        clearTimeout(autoFilterTimer);
+        autoFilterTimer = setTimeout(() => {
+            const q = (query || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#recent-services-tbody tr[id^="row-app-"]');
+            let visibleCount = 0;
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const match = !q || text.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+            const badge = document.getElementById('recent-count-badge');
+            if (badge) {
+                badge.innerText = `${visibleCount} Records`;
+            }
+        }, 120);
+    }
 </script>
 @endpush
 @endsection

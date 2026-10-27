@@ -333,9 +333,10 @@
                 }
             });
 
-            // Live Search Input inside popup
+            // Live Search Input inside popup with instant live table filtering
             const searchInput = card.querySelector('.excel-filter-search-input');
             const searchClear = card.querySelector('.excel-filter-search-clear');
+            let searchDebounceTimer = null;
 
             searchInput.addEventListener('input', () => {
                 const q = searchInput.value.trim().toLowerCase();
@@ -344,10 +345,23 @@
                 const rows = container.querySelectorAll('.item-row');
                 rows.forEach(r => {
                     const txt = r.dataset.text || '';
-                    r.style.display = txt.includes(q) ? 'flex' : 'none';
+                    const isMatch = txt.includes(q);
+                    r.style.display = isMatch ? 'flex' : 'none';
+                    const chk = r.querySelector('.item-chk');
+                    if (chk && q) {
+                        chk.checked = isMatch;
+                    } else if (chk && !q) {
+                        chk.checked = true;
+                    }
                 });
 
                 syncSelectAllState();
+
+                // Auto-apply filter instantly on typing without needing to click Apply button!
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    this.applyFromPopup(colKey, container, distinctItems.length, true);
+                }, 200);
             });
 
             searchClear.addEventListener('click', () => {
@@ -386,14 +400,14 @@
 
             // Apply button
             card.querySelector('.btn-filter-footer-apply').addEventListener('click', () => {
-                this.applyFromPopup(colKey, container, distinctItems.length);
+                this.applyFromPopup(colKey, container, distinctItems.length, false);
             });
 
-            // Press Enter in search to apply immediately
+            // Press Enter in search to apply immediately and close
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    this.applyFromPopup(colKey, container, distinctItems.length);
+                    this.applyFromPopup(colKey, container, distinctItems.length, false);
                 }
             });
 
@@ -406,7 +420,7 @@
             }, 30);
         }
 
-        applyFromPopup(colKey, container, totalDistinctCount) {
+        applyFromPopup(colKey, container, totalDistinctCount, keepOpen = false) {
             const allItemRows = Array.from(container.querySelectorAll('.item-row'));
             const checkedRows = allItemRows.filter(r => r.querySelector('.item-chk').checked);
 
@@ -421,7 +435,9 @@
             }
 
             this.applyFilters();
-            this.closeDropdown();
+            if (!keepOpen) {
+                this.closeDropdown();
+            }
         }
 
         positionDropdown(card, triggerBtn) {
@@ -832,5 +848,46 @@
     window.openReceiptModal = window.openServiceReceiptModal;
 
     window.ExcelTableFilter = ExcelTableFilter;
+
+    // =========================================================================
+    // UNIVERSAL KEYBOARD DOWN ARROW (↓) DROPDOWN OPENER
+    // When user presses Down Arrow key on any select or datalist input in tables,
+    // immediately expand/open the full native dropdown options menu.
+    // =========================================================================
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown' || (e.altKey && e.key === 'ArrowDown')) {
+            const target = e.target;
+            if (!target) return;
+
+            // 1. Target itself is a SELECT element
+            if (target.tagName === 'SELECT') {
+                if (typeof target.showPicker === 'function') {
+                    try {
+                        target.showPicker();
+                    } catch(err) {}
+                }
+            }
+            // 2. Target is an INPUT with a datalist (e.g. status)
+            else if (target.tagName === 'INPUT' && target.hasAttribute('list')) {
+                if (typeof target.showPicker === 'function') {
+                    try {
+                        target.showPicker();
+                    } catch(err) {}
+                }
+            }
+            // 3. Target is inside a table row cell that contains a select or datalist input
+            else if (target.closest && target.closest('tr')) {
+                const cell = target.closest('td');
+                if (cell) {
+                    const sel = cell.querySelector('select, input[list]');
+                    if (sel && typeof sel.showPicker === 'function') {
+                        try {
+                            sel.showPicker();
+                        } catch(err) {}
+                    }
+                }
+            }
+        }
+    }, true);
 
 })(window);
