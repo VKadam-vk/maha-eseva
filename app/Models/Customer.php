@@ -72,6 +72,11 @@ class Customer extends Model
         return $this->hasMany(Application::class);
     }
 
+    public function familyMembers(): HasMany
+    {
+        return $this->hasMany(FamilyMember::class)->orderBy('id');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);

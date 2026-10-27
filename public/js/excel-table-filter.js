@@ -715,6 +715,7 @@
                             <div style="margin: 4px 0;">
                                 <span style="color: #64748b;">CITIZEN:</span>
                                 <div style="font-weight: 700; color: #0f172a;" id="qrm-citizen">-</div>
+                                <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px; display: none;" id="qrm-beneficiary"></div>
                             </div>
                             <div style="margin: 4px 0;">
                                 <span style="color: #64748b;">SERVICE:</span>
@@ -775,6 +776,16 @@
         document.getElementById('qrm-date').textContent = app.formatted_date_time || app.application_date_time || app.application_date || 'Today';
         document.getElementById('qrm-status').textContent = (app.status || 'IN_PROGRESS').toUpperCase();
         document.getElementById('qrm-citizen').textContent = app.customer_name ? (app.customer_name + (app.customer_mobile ? ' (' + app.customer_mobile + ')' : '')) : (window.CURRENT_CUSTOMER_NAME || 'Citizen');
+        const benEl = document.getElementById('qrm-beneficiary');
+        if (benEl) {
+            if (app.beneficiary_name && (!app.customer_name || app.beneficiary_name !== app.customer_name)) {
+                benEl.textContent = '👤 For: ' + app.beneficiary_name + (app.beneficiary_relation ? ' (' + app.beneficiary_relation + ')' : '');
+                benEl.style.display = 'block';
+            } else {
+                benEl.textContent = '';
+                benEl.style.display = 'none';
+            }
+        }
         document.getElementById('qrm-service').textContent = app.main_service_name || app.service_name || 'Government Service';
         document.getElementById('qrm-subservice').textContent = app.sub_service || '';
         document.getElementById('qrm-rate').textContent = '₹ ' + rate.toFixed(2);

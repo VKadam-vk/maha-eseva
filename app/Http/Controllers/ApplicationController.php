@@ -31,7 +31,7 @@ class ApplicationController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $query = Application::with(['customer', 'service', 'assignedEmployee.user', 'branch']);
+        $query = Application::with(['customer', 'service', 'assignedEmployee.user', 'branch', 'familyMember']);
 
         if ($request->filled('search')) {
             $s = trim($request->search);

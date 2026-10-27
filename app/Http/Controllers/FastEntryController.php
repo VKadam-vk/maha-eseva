@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\ApplicationFieldHistory;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\FamilyMember;
 use App\Models\FollowUp;
 use App\Models\Payment;
 use App\Models\Service;
@@ -129,13 +130,16 @@ class FastEntryController extends Controller
 
         // Fetch customer's full applications & services history
         $applications = Application::where('customer_id', $customer->id)
-            ->with(['service', 'assignedEmployee.user'])
+            ->with(['service', 'assignedEmployee.user', 'familyMember'])
             ->latest('id')
             ->get()
-            ->map(function ($app) {
+            ->map(function ($app) use ($customer) {
                 return [
                     'id' => $app->id,
                     'application_number' => $app->application_number,
+                    'family_member_id' => $app->family_member_id,
+                    'beneficiary_name' => $app->familyMember ? $app->familyMember->name : $customer->name,
+                    'beneficiary_relation' => $app->familyMember ? $app->familyMember->relation_label : 'स्वतः (Head)',
                     'service_name' => $app->service?->main_service_name ?? 'Government Service',
                     'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
                     'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : ($app->created_at ? $app->created_at->format('d-m-Y') : date('d-m-Y')),
@@ -158,6 +162,19 @@ class FastEntryController extends Controller
                     'receipt_url' => route('applications.receipt', $app->id),
                 ];
             });
+
+        $familyMembers = $customer->familyMembers()->get()->map(function ($fm) {
+            return [
+                'id' => $fm->id,
+                'name' => $fm->name,
+                'relation' => $fm->relation,
+                'relation_label' => $fm->relation_label,
+                'gender' => $fm->gender,
+                'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
+                'age' => $fm->age,
+                'mobile' => $fm->mobile ?: '',
+            ];
+        });
 
         return response()->json([
             'success' => true,
@@ -184,6 +201,7 @@ class FastEntryController extends Controller
                 'total_paid' => (float) $customer->total_paid,
                 'total_outstanding' => (float) $customer->total_outstanding,
                 'profile_url' => route('customers.show', $customer->id),
+                'family_members' => $familyMembers,
             ],
             'applications' => $applications,
         ]);
@@ -494,6 +512,7 @@ class FastEntryController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
+            'family_member_id' => ['nullable', 'exists:family_members,id'],
             'service_id' => ['required', 'exists:services,id'],
             'sub_service' => ['nullable', 'string', 'max:100'],
             'rate' => ['required', 'numeric', 'min:0'],
@@ -525,6 +544,7 @@ class FastEntryController extends Controller
             $application = DB::transaction(function () use ($validated, $user, $customer, $service, $rate, $received, $workStatus) {
                 $app = $this->applicationService->createApplication([
                     'customer_id' => $customer->id,
+                    'family_member_id' => $validated['family_member_id'] ?? null,
                     'service_id' => $service->id,
                     'sub_service' => $validated['sub_service'] ?? $service->sub_service_name,
                     'branch_id' => $customer->branch_id ?? $user->branch_id,
@@ -540,7 +560,7 @@ class FastEntryController extends Controller
                     'follow_up_date' => $validated['follow_up_date'] ?? null,
                 ], $user);
 
-                return $app->load(['service', 'customer', 'assignedEmployee.user']);
+                return $app->load(['service', 'customer', 'assignedEmployee.user', 'familyMember']);
             });
 
             // Automatically synchronize with CRM Follow-ups
@@ -567,13 +587,16 @@ class FastEntryController extends Controller
             ]);
 
             $applications = Application::where('customer_id', $customer->id)
-                ->with(['service', 'assignedEmployee.user'])
+                ->with(['service', 'assignedEmployee.user', 'familyMember'])
                 ->latest('id')
                 ->get()
-                ->map(function ($app) {
+                ->map(function ($app) use ($customer) {
                     return [
                         'id' => $app->id,
                         'application_number' => $app->application_number,
+                        'family_member_id' => $app->family_member_id,
+                        'beneficiary_name' => $app->familyMember ? $app->familyMember->name : $customer->name,
+                        'beneficiary_relation' => $app->familyMember ? $app->familyMember->relation_label : 'स्वतः (Head)',
                         'service_name' => $app->service?->main_service_name ?? 'Government Service',
                         'sub_service' => $app->sub_service ?: ($app->service?->sub_service_name ?? '-'),
                         'application_date' => $app->application_date ? date('d-m-Y', strtotime($app->application_date)) : ($app->created_at ? $app->created_at->format('d-m-Y') : date('d-m-Y')),
@@ -599,11 +622,14 @@ class FastEntryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Service Entry Recorded: {$service->main_service_name} for {$customer->name} (SR: {$application->application_number})",
+                'message' => "Service Entry Recorded: {$service->main_service_name} for " . ($application->familyMember ? "{$application->familyMember->name} ({$application->familyMember->relation_label})" : $customer->name) . " (SR: {$application->application_number})",
                 'data' => [
                     'id' => $application->id,
                     'application_number' => $application->application_number,
                     'customer_name' => $customer->name,
+                    'family_member_id' => $application->family_member_id,
+                    'beneficiary_name' => $application->familyMember ? $application->familyMember->name : $customer->name,
+                    'beneficiary_relation' => $application->familyMember ? $application->familyMember->relation_label : 'स्वतः (Head)',
                     'customer_url' => route('customers.show', $customer->id),
                     'service_id' => $application->service_id,
                     'service_name' => $service->main_service_name,
@@ -636,6 +662,96 @@ class FastEntryController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Store new Family Member under Customer.
+     */
+    public function storeFamilyMember(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'exists:customers,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'relation' => ['required', 'string', 'max:50'],
+            'gender' => ['nullable', 'in:MALE,FEMALE,OTHER'],
+            'birth_date' => ['nullable', 'date'],
+            'age' => ['nullable', 'integer', 'min:0', 'max:130'],
+            'mobile' => ['nullable', 'string', 'max:20'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'name.required' => 'Member Name is required.',
+            'relation.required' => 'Relationship is required.',
+        ]);
+
+        $user = Auth::user();
+        $customer = Customer::findOrFail($validated['customer_id']);
+
+        $member = FamilyMember::create([
+            'tenant_id' => $customer->tenant_id ?? $user->tenant_id,
+            'customer_id' => $customer->id,
+            'name' => trim($validated['name']),
+            'relation' => strtoupper(trim($validated['relation'])),
+            'gender' => $validated['gender'] ?? 'MALE',
+            'birth_date' => $validated['birth_date'] ?? null,
+            'age' => $validated['age'] ?? null,
+            'mobile' => $validated['mobile'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        $allMembers = $customer->familyMembers()->get()->map(function ($fm) {
+            return [
+                'id' => $fm->id,
+                'name' => $fm->name,
+                'relation' => $fm->relation,
+                'relation_label' => $fm->relation_label,
+                'gender' => $fm->gender,
+                'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
+                'age' => $fm->age,
+                'mobile' => $fm->mobile ?: '',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "Family member added: {$member->name} ({$member->relation_label})",
+            'member' => [
+                'id' => $member->id,
+                'name' => $member->name,
+                'relation' => $member->relation,
+                'relation_label' => $member->relation_label,
+                'gender' => $member->gender,
+            ],
+            'family_members' => $allMembers,
+        ]);
+    }
+
+    /**
+     * Delete a Family Member.
+     */
+    public function destroyFamilyMember(FamilyMember $familyMember): JsonResponse
+    {
+        $customer = $familyMember->customer;
+        $name = $familyMember->name;
+        $familyMember->delete();
+
+        $allMembers = $customer ? $customer->familyMembers()->get()->map(function ($fm) {
+            return [
+                'id' => $fm->id,
+                'name' => $fm->name,
+                'relation' => $fm->relation,
+                'relation_label' => $fm->relation_label,
+                'gender' => $fm->gender,
+                'birth_date' => $fm->birth_date ? $fm->birth_date->format('Y-m-d') : '',
+                'age' => $fm->age,
+                'mobile' => $fm->mobile ?: '',
+            ];
+        }) : [];
+
+        return response()->json([
+            'success' => true,
+            'message' => "Family member {$name} removed.",
+            'family_members' => $allMembers,
+        ]);
     }
 
     /**

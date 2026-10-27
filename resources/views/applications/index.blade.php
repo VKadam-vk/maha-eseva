@@ -713,6 +713,13 @@
                                             {{ $appDateTime }}
                                         </span>
                                     </div>
+                                    @if($app->familyMember)
+                                        <div style="margin-top: 4px;">
+                                            <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="Beneficiary: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})">
+                                                <i class="fa-solid fa-users" style="font-size: 9px;"></i> For: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})
+                                            </span>
+                                        </div>
+                                    @endif
                                 @else
                                     <div style="font-size: 11.5px; color: #94a3b8; font-style: italic;">No Customer</div>
                                     <div style="margin-top: 3px;">

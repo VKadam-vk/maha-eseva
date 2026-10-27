@@ -75,6 +75,7 @@ class ApplicationService
                 'tenant_id' => $tenantId,
                 'branch_id' => $branchId,
                 'customer_id' => $data['customer_id'],
+                'family_member_id' => $data['family_member_id'] ?? null,
                 'service_id' => $service->id,
                 'sub_service' => $data['sub_service'] ?? $service->sub_service_name,
                 'application_number' => $appNumber,

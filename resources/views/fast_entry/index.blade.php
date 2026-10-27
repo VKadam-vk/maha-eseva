@@ -1092,9 +1092,62 @@
         animation: fadeIn 0.3s ease;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-6px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* Family Members / Beneficiaries Pills & Section */
+    .fm-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        color: #334155;
+        transition: all 0.15s ease-in-out;
+        user-select: none;
+    }
+    .fm-pill:hover {
+        border-color: #0284c7;
+        background: #f0f9ff;
+        color: #0369a1;
+    }
+    .fm-pill.active {
+        background: #0284c7;
+        border-color: #0284c7;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+    }
+    .fm-pill .fm-relation-tag {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .fm-pill.active .fm-relation-tag {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .fm-pill .fm-delete-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        opacity: 0.6;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 2px;
+        margin-left: 3px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .fm-pill .fm-delete-btn:hover {
+        opacity: 1;
+        color: #ef4444;
     }
 </style>
 
@@ -1433,6 +1486,27 @@
                         </div>
                     </div>
 
+                    <!-- FAMILY MEMBERS / BENEFICIARIES STRIP (कुटुंब सदस्य / लाभार्थी) -->
+                    <div id="cd-family-section" style="margin-top: 12px; padding: 10px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                            <div style="font-size: 12px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-users" style="color: #0284c7;"></i>
+                                <span>Family Members (कुटुंब सदस्य / लाभार्थी)</span>
+                                <span id="family-members-count-badge" class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px;">
+                                    1 (Self)
+                                </span>
+                            </div>
+                            <button type="button" onclick="openAddFamilyMemberModal()" class="btn btn-sm"
+                                    style="background: #0284c7; color: #ffffff; border: none; font-weight: 700; font-size: 11px; border-radius: 6px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <i class="fa-solid fa-user-plus"></i> Add Family Member
+                            </button>
+                        </div>
+                        
+                        <div id="family-members-pills" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                            <!-- Populated dynamically via JS: Head (Self) + Family Member pills -->
+                        </div>
+                    </div>
+
                     <!-- Footer Actions -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
                         <button type="button" id="btn-toggle-blacklist" onclick="promptCustomerBlacklist()" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
@@ -1553,6 +1627,7 @@
                                 <div style="font-size: 10.5px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 3px;">
                                     {{ now()->format('d-m-Y h:i A') }}
                                 </div>
+                                <div id="se-active-beneficiary-tag" style="margin-top: 4px;"></div>
                             </td>
 
                             <!-- 1. Main Service -->
@@ -1811,6 +1886,126 @@
     </div>
 </div>
 
+<!-- Modal: Add Family Member Popup -->
+<div id="modal-add-family-member" class="modal-overlay" style="display: none;" onclick="closeAddFamilyMemberModal(event)">
+    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 480px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Add Family Member</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">कुटुंब सदस्य / नवीन लाभार्थी जोडा</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeAddFamilyMemberModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px;">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <form id="form-add-family-member" onsubmit="submitAddFamilyMember(event)" style="padding: 20px 22px;">
+            <!-- Customer Head Banner -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
+                    HEAD OF FAMILY: <strong style="color: #0f172a;" id="fm-modal-head-name">-</strong>
+                </div>
+                <div style="font-size: 11.5px; color: #64748b; font-family: monospace;" id="fm-modal-head-mobile">-</div>
+            </div>
+
+            <!-- Member Full Name -->
+            <div style="margin-bottom: 14px;">
+                <label for="fm_name" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                    Member Full Name (पूर्ण नाव) <span style="color: #dc2626;">*</span>
+                </label>
+                <input type="text" id="fm_name" required class="form-control"
+                       placeholder="उदा. राहुल राजेश पाटील"
+                       style="height: 40px; font-size: 13.5px; font-weight: 700; text-transform: uppercase; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+            </div>
+
+            <!-- Relation & Gender Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <!-- Relation -->
+                <div>
+                    <label for="fm_relation" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Relationship (नाते) <span style="color: #dc2626;">*</span>
+                    </label>
+                    <select id="fm_relation" required class="form-control" onchange="onFamilyRelationChange(this.value)"
+                            style="height: 40px; font-size: 13px; font-weight: 700; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+                        <option value="">-- नाते निवडा --</option>
+                        <option value="SON">Son (मुलगा)</option>
+                        <option value="DAUGHTER">Daughter (मुलगी)</option>
+                        <option value="WIFE">Wife (पत्नी)</option>
+                        <option value="HUSBAND">Husband (पती)</option>
+                        <option value="FATHER">Father (वडील)</option>
+                        <option value="MOTHER">Mother (आई)</option>
+                        <option value="BROTHER">Brother (भाऊ)</option>
+                        <option value="SISTER">Sister (बहीण)</option>
+                        <option value="OTHER">Other (इतर)</option>
+                    </select>
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label for="fm_gender" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Gender (लिंग)
+                    </label>
+                    <select id="fm_gender" class="form-control"
+                            style="height: 40px; font-size: 13px; font-weight: 600; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+                        <option value="MALE">Male (पुरुष)</option>
+                        <option value="FEMALE">Female (स्त्री)</option>
+                        <option value="OTHER">Other (इतर)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Birth Date & Age Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <!-- Birth Date -->
+                <div>
+                    <label for="fm_dob" style="display: block; font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Birth Date (जन्मतारीख)
+                    </label>
+                    <input type="date" id="fm_dob" class="form-control" onchange="onFamilyDobChange(this.value)"
+                           style="height: 40px; font-size: 12.5px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+                </div>
+
+                <!-- Age -->
+                <div>
+                    <label for="fm_age" style="display: block; font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Age (वय)
+                    </label>
+                    <input type="number" id="fm_age" min="0" max="130" class="form-control" placeholder="उदा. 24"
+                           style="height: 40px; font-size: 13px; font-weight: 600; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+                </div>
+            </div>
+
+            <!-- Member Mobile (Optional) -->
+            <div style="margin-bottom: 18px;">
+                <label for="fm_mobile" style="display: block; font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                    Mobile Number (ऐच्छिक - स्वतंत्र असल्यास)
+                </label>
+                <input type="tel" id="fm_mobile" class="form-control font-mono" maxlength="15"
+                       placeholder="उदा. 9822012345 (रिकामे ठेवल्यास मुख्य नंबर वापरला जाईल)"
+                       style="height: 40px; font-size: 13px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+                <button type="button" class="btn btn-secondary" onclick="closeAddFamilyMemberModal()" style="font-weight: 600; padding: 9px 16px; font-size: 12.5px; border-radius: 8px;">
+                    Cancel
+                </button>
+                <button type="submit" id="btn-submit-family-member" class="btn btn-primary"
+                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 20px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                    <i class="fa-solid fa-check"></i> Save & Select Member
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // ==========================================
@@ -1820,6 +2015,267 @@ let currentLoadedCustomer = null;
 let loadedApplications = {};
 const allServices = @json($services);
 const allEmployees = @json($employees);
+window.activeBeneficiaryMemberId = null;
+
+// ==========================================
+// FAMILY MEMBERS / BENEFICIARY MANAGEMENT
+// ==========================================
+function renderFamilyMembers(members) {
+    const container = document.getElementById('family-members-pills');
+    const countBadge = document.getElementById('family-members-count-badge');
+    if (!container) return;
+
+    const custName = currentLoadedCustomer ? currentLoadedCustomer.name : 'Head (Self)';
+    const totalCount = 1 + (members ? members.length : 0);
+    if (countBadge) countBadge.textContent = `${totalCount} Members`;
+
+    const isHeadActive = (window.activeBeneficiaryMemberId === null);
+
+    let html = `
+        <div class="fm-pill ${isHeadActive ? 'active' : ''}" id="fm-pill-head" onclick="selectFamilyBeneficiary(null)" title="Services will be recorded for Head (Self)">
+            <i class="fa-solid fa-user-tie"></i>
+            <span id="fm-head-name">${escapeHtml(custName)}</span>
+            <span class="fm-relation-tag">Head (Self)</span>
+        </div>
+    `;
+
+    if (members && members.length > 0) {
+        members.forEach(m => {
+            const isActive = (window.activeBeneficiaryMemberId == m.id);
+            const relationLabel = m.relation_label || m.relation;
+            html += `
+                <div class="fm-pill ${isActive ? 'active' : ''}" id="fm-pill-${m.id}" onclick="selectFamilyBeneficiary(${m.id})" title="Click to record services for ${escapeHtml(m.name)}">
+                    <i class="fa-solid fa-user"></i>
+                    <span>${escapeHtml(m.name)}</span>
+                    <span class="fm-relation-tag">${escapeHtml(relationLabel)}</span>
+                    <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
+                </div>
+            `;
+        });
+    }
+
+    container.innerHTML = html;
+    updateActiveBeneficiaryIndicator();
+}
+
+function selectFamilyBeneficiary(memberId) {
+    window.activeBeneficiaryMemberId = memberId ? parseInt(memberId) : null;
+    if (currentLoadedCustomer) {
+        renderFamilyMembers(currentLoadedCustomer.family_members || []);
+    }
+}
+
+function updateActiveBeneficiaryIndicator() {
+    const tag = document.getElementById('se-active-beneficiary-tag');
+    if (!tag) return;
+
+    if (window.activeBeneficiaryMemberId && currentLoadedCustomer && currentLoadedCustomer.family_members) {
+        const mem = currentLoadedCustomer.family_members.find(m => m.id == window.activeBeneficiaryMemberId);
+        if (mem) {
+            tag.innerHTML = `
+                <span class="badge" style="background: #0284c7; color: white; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="This service will be recorded for ${escapeHtml(mem.name)}">
+                    <i class="fa-solid fa-users"></i> For: ${escapeHtml(mem.name)} (${escapeHtml(mem.relation_label || mem.relation)})
+                </span>
+            `;
+            return;
+        }
+    }
+
+    // Default: Head (Self)
+    const custName = currentLoadedCustomer ? currentLoadedCustomer.name : 'Self';
+    tag.innerHTML = `
+        <span class="badge" style="background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="This service will be recorded for Head of Family">
+            <i class="fa-solid fa-user-check"></i> For: ${escapeHtml(custName)} (Self)
+        </span>
+    `;
+}
+
+function openAddFamilyMemberModal() {
+    if (!currentLoadedCustomer) {
+        alert('Please select or create a customer first.');
+        return;
+    }
+
+    const headNameEl = document.getElementById('fm-modal-head-name');
+    const headMobEl = document.getElementById('fm-modal-head-mobile');
+    if (headNameEl) headNameEl.textContent = currentLoadedCustomer.name;
+    if (headMobEl) headMobEl.textContent = currentLoadedCustomer.mobile;
+
+    // Reset form
+    document.getElementById('form-add-family-member')?.reset();
+
+    const modal = document.getElementById('modal-add-family-member');
+    if (modal) {
+        modal.classList.add('open');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.setProperty('opacity', '1', 'important');
+        modal.style.setProperty('visibility', 'visible', 'important');
+        modal.style.setProperty('z-index', '999999999', 'important');
+        setTimeout(() => {
+            document.getElementById('fm_name')?.focus();
+        }, 100);
+    }
+}
+
+function closeAddFamilyMemberModal(e) {
+    if (e && e.target && e.target.id !== 'modal-add-family-member' && !e.target.classList.contains('modal-close-btn') && !e.target.closest('.modal-close-btn') && e.target.tagName !== 'BUTTON') {
+        return;
+    }
+    const modal = document.getElementById('modal-add-family-member');
+    if (modal) {
+        modal.classList.remove('open');
+        modal.style.setProperty('display', 'none', 'important');
+        modal.style.setProperty('opacity', '0', 'important');
+        modal.style.setProperty('visibility', 'hidden', 'important');
+    }
+}
+
+function onFamilyRelationChange(relation) {
+    const genderSel = document.getElementById('fm_gender');
+    if (!genderSel) return;
+    if (['SON', 'HUSBAND', 'FATHER', 'BROTHER'].includes(relation)) {
+        genderSel.value = 'MALE';
+    } else if (['DAUGHTER', 'WIFE', 'MOTHER', 'SISTER'].includes(relation)) {
+        genderSel.value = 'FEMALE';
+    }
+}
+
+function onFamilyDobChange(dobStr) {
+    if (!dobStr) return;
+    const dob = new Date(dobStr);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+    }
+    if (age >= 0 && age <= 130) {
+        const ageInput = document.getElementById('fm_age');
+        if (ageInput) ageInput.value = age;
+    }
+}
+
+function submitAddFamilyMember(e) {
+    if (e) e.preventDefault();
+
+    if (!currentLoadedCustomer) {
+        alert('No active customer loaded.');
+        return;
+    }
+
+    const name = document.getElementById('fm_name')?.value?.trim();
+    const relation = document.getElementById('fm_relation')?.value;
+    const gender = document.getElementById('fm_gender')?.value || 'MALE';
+    const dob = document.getElementById('fm_dob')?.value || null;
+    const age = document.getElementById('fm_age')?.value || null;
+    const mobile = document.getElementById('fm_mobile')?.value?.trim() || null;
+
+    if (!name) {
+        alert('Please enter member full name.');
+        document.getElementById('fm_name')?.focus();
+        return;
+    }
+    if (!relation) {
+        alert('Please select relationship.');
+        document.getElementById('fm_relation')?.focus();
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit-family-member');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    fetch('{{ route("fast_entry.family_members.store") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            customer_id: currentLoadedCustomer.id,
+            name: name,
+            relation: relation,
+            gender: gender,
+            birth_date: dob,
+            age: age ? parseInt(age) : null,
+            mobile: mobile
+        })
+    })
+    .then(async res => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Select Member';
+        }
+        if (res.status === 401) {
+            alert('Your session has expired. Please log in again.');
+            window.location.href = '{{ route("login") }}';
+            return null;
+        }
+        return await res.json();
+    })
+    .then(res => {
+        if (!res) return;
+        if (res.success) {
+            closeAddFamilyMemberModal();
+            if (currentLoadedCustomer) {
+                currentLoadedCustomer.family_members = res.family_members || [];
+                // Auto-select newly created family member as active beneficiary!
+                window.activeBeneficiaryMemberId = res.member ? res.member.id : null;
+                renderFamilyMembers(currentLoadedCustomer.family_members);
+            }
+            showAlert('Family Member Added!', `${res.member.name} (${res.member.relation_label}) added and selected for new service entries.`);
+            // Focus on service row to begin typing immediately
+            document.getElementById('se_main_service')?.focus();
+        } else {
+            alert('Error: ' + (res.message || 'Failed to add family member.'));
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Save & Select Member';
+        }
+        alert('Network error while saving family member.');
+    });
+}
+
+function deleteFamilyMember(memberId, e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (!confirm('Are you sure you want to remove this family member?')) {
+        return;
+    }
+
+    fetch(`/fast-entry/family-members/${memberId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(async res => res.json())
+    .then(res => {
+        if (res.success) {
+            if (window.activeBeneficiaryMemberId == memberId) {
+                window.activeBeneficiaryMemberId = null;
+            }
+            if (currentLoadedCustomer) {
+                currentLoadedCustomer.family_members = res.family_members || [];
+                renderFamilyMembers(currentLoadedCustomer.family_members);
+            }
+            showAlert('Member Removed', res.message || 'Family member removed.');
+        } else {
+            alert('Error: ' + (res.message || 'Failed to remove member.'));
+        }
+    })
+    .catch(() => alert('Network error while deleting member.'));
+}
 
 // ==========================================
 // 2. QUICK GO: SEARCH / PROMPT TO CREATE IN CRM
@@ -2052,6 +2508,10 @@ function populateCustomerUI(cust, isNew) {
     document.getElementById('cd-inline-dob').value = cust.birth_date || '';
     document.getElementById('cd-full-profile-link').href = cust.profile_url;
 
+    // Render Family Members
+    window.activeBeneficiaryMemberId = null;
+    renderFamilyMembers(cust.family_members || []);
+
     // Update Blacklist Status UI
     updateBlacklistUI(cust);
 
@@ -2179,6 +2639,10 @@ function autoSaveCustomerField(fieldName, fieldValue) {
                     setTimeout(() => ind.style.display = 'none', 1500);
                 }
                 document.getElementById('fe_name').value = fieldValue;
+                if (currentLoadedCustomer) currentLoadedCustomer.name = fieldValue;
+                const headNameEl = document.getElementById('fm-head-name');
+                if (headNameEl) headNameEl.textContent = fieldValue;
+                updateActiveBeneficiaryIndicator();
             } else if (fieldName === 'alternate_mobile') {
                 const ind = document.getElementById('ind-alt-mobile');
                 if (ind) {
@@ -2986,6 +3450,13 @@ function getCommittedRowInnerHtml(app) {
             <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">
                 ${escapeHtml(app.formatted_date_time || (app.application_date ? app.application_date : 'Today'))}
             </div>
+            ${app.beneficiary_name && (!currentLoadedCustomer || app.beneficiary_name !== currentLoadedCustomer.name) ? `
+                <div style="margin-top: 4px;">
+                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Beneficiary: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})">
+                        <i class="fa-solid fa-users" style="font-size: 9px;"></i> For: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})
+                    </span>
+                </div>
+            ` : ''}
         </td>
         <td style="font-weight: 700; color: #0f172a;">
             ${escapeHtml(app.service_name)}
@@ -3520,6 +3991,7 @@ function saveActiveServiceRow() {
     const payload = {
         _token: '{{ csrf_token() }}',
         customer_id: custId,
+        family_member_id: window.activeBeneficiaryMemberId || null,
         service_id: serviceId,
         sub_service: document.getElementById('se_sub_service').value.trim() || null,
         rate: rate,
@@ -3600,6 +4072,9 @@ function saveActiveServiceRow() {
                     tutorial_link: d.tutorial_link,
                     assigned_employee_id: payload.assigned_employee_id,
                     operator: d.operator,
+                    family_member_id: d.family_member_id || window.activeBeneficiaryMemberId || null,
+                    beneficiary_name: d.beneficiary_name || (currentLoadedCustomer ? currentLoadedCustomer.name : ''),
+                    beneficiary_relation: d.beneficiary_relation || 'Head (Self)',
                     show_url: d.show_url || '#'
                 };
                 loadedApplications[d.id] = newApp;
@@ -3686,6 +4161,15 @@ function resetEntireDesk() {
     document.getElementById('cd-status-badge').className = 'pocket-badge-neutral';
     document.getElementById('cd-status-badge').innerText = 'No Customer Selected';
     updateBlacklistUI(null);
+
+    // Reset Family Members
+    window.activeBeneficiaryMemberId = null;
+    const fmPills = document.getElementById('family-members-pills');
+    if (fmPills) fmPills.innerHTML = '';
+    const fmTag = document.getElementById('se-active-beneficiary-tag');
+    if (fmTag) fmTag.innerHTML = '';
+    const fmCount = document.getElementById('family-members-count-badge');
+    if (fmCount) fmCount.textContent = '1 (Self)';
 
     // Remove committed rows from Unified Table
     const tbody = document.getElementById('services-tbody');

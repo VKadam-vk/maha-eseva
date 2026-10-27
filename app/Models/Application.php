@@ -40,6 +40,7 @@ class Application extends Model
         'tenant_id',
         'branch_id',
         'customer_id',
+        'family_member_id',
         'service_id',
         'sub_service',
         'application_number',
@@ -103,6 +104,11 @@ class Application extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function familyMember(): BelongsTo
+    {
+        return $this->belongsTo(FamilyMember::class);
     }
 
     public function service(): BelongsTo

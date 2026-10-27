@@ -134,6 +134,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/store-service-entry', [FastEntryController::class, 'storeServiceEntry'])->name('store_service_entry')->middleware('permission:customers.create');
         Route::post('/update-service-row', [FastEntryController::class, 'updateServiceRow'])->name('update_service_row')->middleware('permission:applications.edit');
         Route::post('/toggle-blacklist', [FastEntryController::class, 'toggleBlacklist'])->name('toggle_blacklist')->middleware('permission:customers.edit');
+        Route::post('/family-members', [FastEntryController::class, 'storeFamilyMember'])->name('family_members.store')->middleware('permission:customers.edit');
+        Route::delete('/family-members/{familyMember}', [FastEntryController::class, 'destroyFamilyMember'])->name('family_members.destroy')->middleware('permission:customers.edit');
     });
 
     // Staff & Employee Management
