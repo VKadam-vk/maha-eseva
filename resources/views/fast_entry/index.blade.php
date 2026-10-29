@@ -432,42 +432,73 @@
 
     /* ========================================================================= */
     /* ========================================================================= */
-    /* STATUS & ACTIONS COLUMNS (NATURAL FLOW - PREVENTS OVERLAPPING)            */
+    /* STICKY RIGHT STATUS & ACTIONS COLUMNS (FREEZE PANES ON RIGHT SIDE)        */
     /* ========================================================================= */
     .pocket-excel-table .sticky-col-status {
-        position: static !important;
-        min-width: 140px !important;
-        width: 140px !important;
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 260px !important;
+        min-width: 155px !important;
+        width: 155px !important;
+        max-width: 155px !important;
         box-sizing: border-box !important;
     }
 
     .pocket-excel-table .sticky-col-actions {
-        position: static !important;
-        min-width: 210px !important;
-        width: 210px !important;
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 0 !important;
+        min-width: 260px !important;
+        width: 260px !important;
+        max-width: 260px !important;
         box-sizing: border-box !important;
     }
 
     .pocket-excel-table th.sticky-col-status {
+        z-index: 34 !important;
         background: #0f172a !important;
         color: #f59e0b !important;
+        border-left: 1.5px solid #334155 !important;
+        border-right: 1.5px solid #334155 !important;
+        box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.4) !important;
     }
 
     .pocket-excel-table th.sticky-col-actions {
+        z-index: 35 !important;
         background: #0f172a !important;
         color: #ffffff !important;
+        border-left: 1.5px solid #334155 !important;
     }
 
-    .pocket-excel-table tr.active-entry-row td.sticky-col-status,
-    .pocket-excel-table tr.active-entry-row td.sticky-col-actions {
+    .pocket-excel-table tr.active-entry-row td.sticky-col-status {
+        z-index: 24 !important;
         background: #fffbeb !important;
+        border-left: 1.5px solid #f59e0b !important;
+        border-right: 1.5px solid #fde68a !important;
         border-top: 2px solid #f59e0b !important;
         border-bottom: 2px solid #f59e0b !important;
     }
 
-    .pocket-excel-table tbody tr.committed-row td.sticky-col-status,
+    .pocket-excel-table tr.active-entry-row td.sticky-col-actions {
+        z-index: 25 !important;
+        background: #fffbeb !important;
+        border-left: 1.5px solid #fde68a !important;
+        border-top: 2px solid #f59e0b !important;
+        border-bottom: 2px solid #f59e0b !important;
+    }
+
+    .pocket-excel-table tbody tr.committed-row td.sticky-col-status {
+        z-index: 19 !important;
+        background: #ffffff !important;
+        border-left: 1.5px solid #cbd5e1 !important;
+        border-right: 1.5px solid #e2e8f0 !important;
+        box-shadow: -4px 0 8px -2px rgba(15, 23, 42, 0.08) !important;
+    }
+
     .pocket-excel-table tbody tr.committed-row td.sticky-col-actions {
-        background: inherit;
+        z-index: 20 !important;
+        background: #ffffff !important;
+        border-left: 1.5px solid #e2e8f0 !important;
     }
 
     .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-status,
@@ -1567,13 +1598,6 @@
                 <option value="REJECTED">REJECTED</option>
             </datalist>
 
-            <!-- PAYMENT MODE COMBOBOX DATALIST (Supports Standard + Custom Typed Modes) -->
-            <datalist id="payment_mode_datalist">
-                @foreach($existingPaymentModes ?? ['Cash', 'Online', 'UPI', 'Google Pay', 'PhonePe', 'Cheque', 'Bank Transfer'] as $pmode)
-                    <option value="{{ $pmode }}">{{ $pmode }}</option>
-                @endforeach
-            </datalist>
-
             <!-- UNIFIED EXCEL TABLE (Commited Rows + Live Input Row) -->
             <div class="excel-table-scroll-wrapper" style="border: none; border-radius: 0;">
                 <table id="fast-entry-table" class="pocket-excel-table">
@@ -1600,12 +1624,11 @@
                             <th style="min-width: 90px;">3. Rate (₹) *</th>
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
                             <th style="min-width: 95px;">5. Remaining (₹)</th>
-                            <th style="min-width: 120px; color: #c084fc; text-align: center;">6. Payment Mode</th>
-                            <th style="min-width: 180px; color: #38bdf8;">7. Work Details</th>
-                            <th style="min-width: 160px; color: #10b981;">8. Pending Remark</th>
+                            <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
+                            <th style="min-width: 160px; color: #10b981;">7. Pending Remark</th>
                             <th style="min-width: 145px;">
                                 <div class="excel-th-inner">
-                                    <span>9. Operator</span>
+                                    <span>8. Operator</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1613,16 +1636,16 @@
                             </th>
                             <th style="min-width: 145px; color: #fbbf24;">
                                 <div class="excel-th-inner">
-                                    <span>10. Follow-Up Date</span>
+                                    <span>9. Follow-Up Date</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
-                            <!-- 11. Status (Sticky Right, Left of Actions) -->
+                            <!-- 10. Status (Sticky Right, Left of Actions) -->
                             <th class="sticky-col-status" style="width: 155px; min-width: 155px; max-width: 155px; text-align: center;">
                                 <div class="excel-th-inner" style="justify-content: center; gap: 5px;">
-                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 10px; transform: rotate(45deg); color: #f59e0b;"></i> 11. Status</span>
+                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 10px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1701,17 +1724,7 @@
                                        style="font-weight: 800; font-size: 13.5px; background: #f8fafc; color: #0f172a;">
                             </td>
 
-                            <!-- 6. Payment Mode (Datalist dropdown + manual typing) -->
-                            <td style="padding: 4px 6px;">
-                                <input type="text" id="se_payment_mode" list="payment_mode_datalist" class="excel-input"
-                                       value="Cash" placeholder="Cash / Online..."
-                                       style="font-weight: 700; font-size: 13px; color: #4338ca; text-align: center; text-transform: capitalize;"
-                                       onchange="registerCustomPaymentMode(this.value)"
-                                       onkeydown="handleRowKeyDown(event)"
-                                       title="Select or type Payment Mode (Cash, Online, GPay, etc.)">
-                            </td>
-
-                            <!-- 7. Work Details (Auto-expandable & Resizable) -->
+                            <!-- 6. Work Details (Auto-expandable & Resizable) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_work_details" class="excel-work-details"
                                           placeholder="Work details, notes, ack no..."
@@ -1721,7 +1734,7 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 8. Pending Remark (Auto-expandable & Resizable) -->
+                            <!-- 7. Pending Remark (Auto-expandable & Resizable) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_payment_remarks" class="excel-work-details"
                                           placeholder="Pending remark / notes..."
@@ -3147,58 +3160,6 @@ function initCustomStatuses() {
     }
 }
 
-function getPaymentModeBadgeStyle(mode) {
-    const m = (mode || '').toUpperCase().trim();
-    if (m === 'CASH') {
-        return 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
-    } else if (m === 'ONLINE' || m === 'UPI' || m === 'GPAY' || m === 'GOOGLE PAY' || m === 'PHONEPE' || m === 'PAYTM') {
-        return 'background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
-    } else {
-        return 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
-    }
-}
-
-function registerCustomPaymentMode(mode) {
-    if (!mode) return;
-    const val = mode.trim();
-    if (!val) return;
-
-    let storedModes = [];
-    try {
-        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
-        if (stored) storedModes = JSON.parse(stored);
-    } catch(e) {}
-
-    if (!storedModes.some(m => m.toLowerCase() === val.toLowerCase())) {
-        storedModes.push(val);
-        try {
-            localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(storedModes));
-        } catch(e) {}
-    }
-
-    document.querySelectorAll('datalist[id*="payment_mode"]').forEach(dl => {
-        let exists = Array.from(dl.options).some(o => o.value.toLowerCase() === val.toLowerCase());
-        if (!exists) {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.textContent = val;
-            dl.appendChild(opt);
-        }
-    });
-}
-
-function initStoredPaymentModes() {
-    try {
-        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
-        if (stored) {
-            const list = JSON.parse(stored);
-            if (Array.isArray(list)) {
-                list.forEach(m => registerCustomPaymentMode(m));
-            }
-        }
-    } catch(e) {}
-}
-
 function recordCustomStatus(val) {
     const mainService = document.getElementById('se_main_service')?.value || 'DEFAULT';
     recordCustomStatusForService(mainService, val);
@@ -3826,23 +3787,6 @@ function getCommittedRowInnerHtml(app) {
                 ₹ ${remNum.toFixed(2)}
             </span>
         </td>
-        <td style="padding: 4px 6px; text-align: center;">
-            <div class="crow-view-mode">
-                <span id="crow_view_pm_${app.id}" class="badge" style="${getPaymentModeBadgeStyle(app.payment_mode || 'Cash')}">
-                    ${escapeHtml(app.payment_mode || 'Cash')}
-                </span>
-            </div>
-            <div class="crow-edit-mode">
-                <input type="text" list="payment_mode_datalist" id="crow_payment_mode_${app.id}"
-                       class="excel-cell-input font-bold"
-                       value="${escapeHtml(app.payment_mode || 'Cash')}"
-                       style="text-align: center; font-size: 12.5px; color: #4338ca; text-transform: capitalize;"
-                       title="Payment Mode (Cash, Online, GPay, etc.)"
-                       placeholder="Cash / Online"
-                       onchange="registerCustomPaymentMode(this.value); autoSaveCommittedRow(${app.id})"
-                       onkeydown="handleCommittedKey(event, ${app.id})">
-            </div>
-        </td>
         <td style="padding: 4px 6px;">
             <div class="crow-view-mode">
                 <div id="crow_view_wd_${app.id}" class="crow-view-notes" title="${escapeHtml(app.work_details || '')}">${escapeHtml(app.work_details || '-')}</div>
@@ -4090,8 +4034,6 @@ function autoSaveCommittedRow(appId) {
     const serviceId = subOpt ? (subOpt.value || null) : null;
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
-    const paymentModeInput = document.getElementById(`crow_payment_mode_${appId}`);
-    const paymentMode = paymentModeInput ? paymentModeInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
 
     const rowEl = document.getElementById(`committed-row-${appId}`);
@@ -4125,7 +4067,6 @@ function autoSaveCommittedRow(appId) {
         sub_service: subService || null,
         work_details: workDetails,
         payment_remarks: paymentRemarks,
-        payment_mode: paymentMode,
         follow_up_date: followupDate,
     };
 
@@ -4168,19 +4109,9 @@ function autoSaveCommittedRow(appId) {
                     expected_days: d.expected_days,
                     work_details: d.work_details,
                     payment_remarks: d.payment_remarks,
-                    payment_mode: d.payment_mode || 'Cash',
                     follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
-            }
-
-            if (d.payment_mode) {
-                registerCustomPaymentMode(d.payment_mode);
-                const viewPm = document.getElementById(`crow_view_pm_${appId}`);
-                if (viewPm) {
-                    viewPm.textContent = d.payment_mode;
-                    viewPm.setAttribute('style', getPaymentModeBadgeStyle(d.payment_mode));
-                }
             }
 
             const viewSub = document.getElementById(`crow_view_sub_${appId}`);
@@ -4346,7 +4277,6 @@ function resetActiveRowFields() {
     document.getElementById('se_rate').value = '';
     document.getElementById('se_received').value = '';
     document.getElementById('se_remaining').value = '';
-    if (document.getElementById('se_payment_mode')) document.getElementById('se_payment_mode').value = 'Cash';
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '34px';
     document.getElementById('se_payment_remarks').value = '';
@@ -4412,7 +4342,6 @@ function saveActiveServiceRow() {
         sub_service: document.getElementById('se_sub_service').value.trim() || null,
         rate: rate,
         received: document.getElementById('se_received').value || 0,
-        payment_mode: document.getElementById('se_payment_mode') ? document.getElementById('se_payment_mode').value.trim() : 'Cash',
         work_details: document.getElementById('se_work_details').value.trim() || null,
         payment_remarks: document.getElementById('se_payment_remarks').value.trim() || null,
         documents_list: document.getElementById('se_docs_list').value.trim() || null,
@@ -4458,9 +4387,6 @@ function saveActiveServiceRow() {
 
             // Record custom status to datalist & local storage
             recordCustomStatus(payload.work_status);
-            if (payload.payment_mode) {
-                registerCustomPaymentMode(payload.payment_mode);
-            }
 
             // 1. If backend returned the full applications array, render all committed services!
             if (res.applications && Array.isArray(res.applications)) {
@@ -4482,7 +4408,6 @@ function saveActiveServiceRow() {
                     rate: typeof d.rate === 'string' ? d.rate.replace(/,/g, '') : d.rate,
                     received: typeof d.received === 'string' ? d.received.replace(/,/g, '') : d.received,
                     remaining: typeof d.remaining === 'string' ? d.remaining.replace(/,/g, '') : d.remaining,
-                    payment_mode: d.payment_mode || payload.payment_mode || 'Cash',
                     status: payload.work_status || 'READY',
                     expected_days: d.expected_days || 7,
                     main_service_name: d.main_service_name || d.service_name,
@@ -4658,7 +4583,6 @@ document.addEventListener('keydown', function(e) {
 // Initialize Status Datalist & Excel Table Column Filter on boot
 document.addEventListener('DOMContentLoaded', function() {
     initCustomStatuses();
-    initStoredPaymentModes();
 
     // Auto-detect mobile query parameter from URL (e.g. if page was reloaded or linked)
     const urlParams = new URLSearchParams(window.location.search);
