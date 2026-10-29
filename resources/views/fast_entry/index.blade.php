@@ -1624,11 +1624,12 @@
                             <th style="min-width: 90px;">3. Rate (₹) *</th>
                             <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
                             <th style="min-width: 95px;">5. Remaining (₹)</th>
-                            <th style="min-width: 180px; color: #38bdf8;">6. Work Details</th>
-                            <th style="min-width: 160px; color: #10b981;">7. Pending Remark</th>
+                            <th style="min-width: 120px; color: #c084fc; text-align: center;">6. Payment Mode</th>
+                            <th style="min-width: 180px; color: #38bdf8;">7. Work Details</th>
+                            <th style="min-width: 160px; color: #10b981;">8. Pending Remark</th>
                             <th style="min-width: 145px;">
                                 <div class="excel-th-inner">
-                                    <span>8. Operator</span>
+                                    <span>9. Operator</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1636,16 +1637,16 @@
                             </th>
                             <th style="min-width: 145px; color: #fbbf24;">
                                 <div class="excel-th-inner">
-                                    <span>9. Follow-Up Date</span>
+                                    <span>10. Follow-Up Date</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
                                 </div>
                             </th>
-                            <!-- 10. Status (Sticky Right, Left of Actions) -->
+                            <!-- 11. Status (Sticky Right, Left of Actions) -->
                             <th class="sticky-col-status" style="width: 155px; min-width: 155px; max-width: 155px; text-align: center;">
                                 <div class="excel-th-inner" style="justify-content: center; gap: 5px;">
-                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 10px; transform: rotate(45deg); color: #f59e0b;"></i> 10. Status</span>
+                                    <span><i class="fa-solid fa-thumbtack" style="font-size: 10px; transform: rotate(45deg); color: #f59e0b;"></i> 11. Status</span>
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
@@ -1724,7 +1725,20 @@
                                        style="font-weight: 800; font-size: 13.5px; background: #f8fafc; color: #0f172a;">
                             </td>
 
-                            <!-- 6. Work Details (Auto-expandable & Resizable) -->
+                            <!-- 6. Payment Mode (Cash, Online, plus Add Custom...) -->
+                            <td style="padding: 4px 6px;">
+                                <select id="se_payment_mode" class="excel-select font-bold"
+                                        onchange="onPaymentModeSelectChange(this)"
+                                        onkeydown="handleRowKeyDown(event)"
+                                        style="width: 100%; height: 34px; font-size: 12px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 2px 6px; cursor: pointer; background: #ffffff;"
+                                        title="Payment Mode: Cash, Online, or Add Custom...">
+                                    <option value="Cash" selected>Cash</option>
+                                    <option value="Online">Online</option>
+                                    <option value="__NEW_PAYMENT_MODE__" style="color: #0284c7; font-weight: 800;">➕ नवीन जोडा (Add New)...</option>
+                                </select>
+                            </td>
+
+                            <!-- 7. Work Details (Auto-expandable & Resizable) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_work_details" class="excel-work-details"
                                           placeholder="Work details, notes, ack no..."
@@ -1734,7 +1748,7 @@
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 7. Pending Remark (Auto-expandable & Resizable) -->
+                            <!-- 8. Pending Remark (Auto-expandable & Resizable) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_payment_remarks" class="excel-work-details"
                                           placeholder="Pending remark / notes..."
@@ -3160,6 +3174,109 @@ function initCustomStatuses() {
     }
 }
 
+// ==========================================
+// PAYMENT MODE DROPDOWN & DYNAMIC PERSISTENCE
+// ==========================================
+const DEFAULT_PAYMENT_MODES = ['Cash', 'Online'];
+
+function getSavedPaymentModes() {
+    let customList = [];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+        if (stored) customList = JSON.parse(stored);
+    } catch(e) {}
+    if (!Array.isArray(customList)) customList = [];
+
+    return Array.from(new Set([
+        ...DEFAULT_PAYMENT_MODES,
+        ...customList
+    ])).filter(Boolean);
+}
+
+function recordCustomPaymentMode(mode) {
+    if (!mode) return;
+    const val = mode.trim();
+    if (!val || val === '__NEW_PAYMENT_MODE__') return;
+
+    let customList = [];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+        if (stored) customList = JSON.parse(stored);
+    } catch(e) {}
+    if (!Array.isArray(customList)) customList = [];
+
+    if (!customList.some(m => m.toLowerCase() === val.toLowerCase())) {
+        customList.push(val);
+        try {
+            localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(customList));
+        } catch(e) {}
+    }
+}
+
+function getPaymentModeOptionsHtml(selectedVal = 'Cash') {
+    const list = getSavedPaymentModes();
+    const current = (selectedVal || 'Cash').trim();
+
+    if (current && !list.some(m => m.toLowerCase() === current.toLowerCase())) {
+        list.push(current);
+    }
+
+    let html = '';
+    list.forEach(m => {
+        const isSel = (m.toLowerCase() === current.toLowerCase()) ? 'selected' : '';
+        html += `<option value="${escapeHtml(m)}" ${isSel}>${escapeHtml(m)}</option>`;
+    });
+    html += '<option value="__NEW_PAYMENT_MODE__" style="color: #0284c7; font-weight: 800;">➕ नवीन जोडा (Add New)...</option>';
+    return html;
+}
+
+function renderActivePaymentModeOptions(selectedVal = 'Cash') {
+    const selectEl = document.getElementById('se_payment_mode');
+    if (!selectEl) return;
+    selectEl.innerHTML = getPaymentModeOptionsHtml(selectedVal);
+    selectEl.dataset.prev = selectedVal;
+}
+
+function onPaymentModeSelectChange(selectEl, appId = null) {
+    if (!selectEl) return;
+    if (selectEl.value === '__NEW_PAYMENT_MODE__') {
+        const custom = prompt('नवीन Payment Mode चे नाव टाका (उदा. PhonePe, Google Pay, Cheque, UPI):');
+        if (custom && custom.trim()) {
+            const clean = custom.trim();
+            recordCustomPaymentMode(clean);
+            if (appId) {
+                selectEl.innerHTML = getPaymentModeOptionsHtml(clean);
+                selectEl.value = clean;
+                selectEl.dataset.prev = clean;
+                autoSaveCommittedRow(appId);
+            } else {
+                renderActivePaymentModeOptions(clean);
+                selectEl.value = clean;
+                selectEl.dataset.prev = clean;
+            }
+        } else {
+            selectEl.value = selectEl.dataset.prev || 'Cash';
+            return;
+        }
+    } else {
+        selectEl.dataset.prev = selectEl.value;
+        if (appId) {
+            autoSaveCommittedRow(appId);
+        }
+    }
+}
+
+function getPaymentModeBadgeStyle(mode) {
+    const m = (mode || '').toUpperCase().trim();
+    if (m === 'CASH') {
+        return 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
+    } else if (m === 'ONLINE') {
+        return 'background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
+    } else {
+        return 'background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block;';
+    }
+}
+
 function recordCustomStatus(val) {
     const mainService = document.getElementById('se_main_service')?.value || 'DEFAULT';
     recordCustomStatusForService(mainService, val);
@@ -3660,6 +3777,12 @@ function updateCommittedRowViewTexts(appId) {
 
     const fuEl = document.getElementById(`crow_view_fu_${appId}`);
     if (fuEl) fuEl.textContent = app.follow_up_date || '-';
+
+    const pmEl = document.getElementById(`crow_view_pm_${appId}`);
+    if (pmEl) {
+        pmEl.textContent = app.payment_mode || 'Cash';
+        pmEl.setAttribute('style', getPaymentModeBadgeStyle(app.payment_mode || 'Cash'));
+    }
 }
 
 function createCommittedRowElement(app) {
@@ -3786,6 +3909,20 @@ function getCommittedRowInnerHtml(app) {
             <span id="crow_rem_${app.id}" style="color: ${remColor}; font-size: 13.5px;">
                 ₹ ${remNum.toFixed(2)}
             </span>
+        </td>
+        <td style="padding: 4px 6px; text-align: center;">
+            <div class="crow-view-mode">
+                <span id="crow_view_pm_${app.id}" class="badge" style="${getPaymentModeBadgeStyle(app.payment_mode || 'Cash')}">
+                    ${escapeHtml(app.payment_mode || 'Cash')}
+                </span>
+            </div>
+            <div class="crow-edit-mode" style="display: none;">
+                <select id="crow_payment_mode_${app.id}" class="excel-select font-bold"
+                        style="width: 100%; height: 28px; font-size: 11.5px; font-weight: 700; color: #4338ca; padding: 2px 4px; border: 1.5px solid #cbd5e1; border-radius: 4px;"
+                        onchange="onPaymentModeSelectChange(this, ${app.id})">
+                    ${getPaymentModeOptionsHtml(app.payment_mode || 'Cash')}
+                </select>
+            </div>
         </td>
         <td style="padding: 4px 6px;">
             <div class="crow-view-mode">
@@ -4034,6 +4171,8 @@ function autoSaveCommittedRow(appId) {
     const serviceId = subOpt ? (subOpt.value || null) : null;
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
+    const paymentModeSelect = document.getElementById(`crow_payment_mode_${appId}`);
+    const paymentMode = paymentModeSelect ? paymentModeSelect.value : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
 
     const rowEl = document.getElementById(`committed-row-${appId}`);
@@ -4067,6 +4206,7 @@ function autoSaveCommittedRow(appId) {
         sub_service: subService || null,
         work_details: workDetails,
         payment_remarks: paymentRemarks,
+        payment_mode: paymentMode,
         follow_up_date: followupDate,
     };
 
@@ -4109,9 +4249,19 @@ function autoSaveCommittedRow(appId) {
                     expected_days: d.expected_days,
                     work_details: d.work_details,
                     payment_remarks: d.payment_remarks,
+                    payment_mode: d.payment_mode || paymentMode || 'Cash',
                     follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
+            }
+
+            if (d.payment_mode) {
+                recordCustomPaymentMode(d.payment_mode);
+                const viewPm = document.getElementById(`crow_view_pm_${appId}`);
+                if (viewPm) {
+                    viewPm.textContent = d.payment_mode;
+                    viewPm.setAttribute('style', getPaymentModeBadgeStyle(d.payment_mode));
+                }
             }
 
             const viewSub = document.getElementById(`crow_view_sub_${appId}`);
@@ -4296,6 +4446,7 @@ function resetActiveRowFields() {
     document.getElementById('se_rate').value = '';
     document.getElementById('se_received').value = '';
     document.getElementById('se_remaining').value = '';
+    renderActivePaymentModeOptions('Cash');
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '34px';
     document.getElementById('se_payment_remarks').value = '';
@@ -4361,6 +4512,7 @@ function saveActiveServiceRow() {
         sub_service: document.getElementById('se_sub_service').value.trim() || null,
         rate: rate,
         received: document.getElementById('se_received').value || 0,
+        payment_mode: document.getElementById('se_payment_mode') ? document.getElementById('se_payment_mode').value : 'Cash',
         work_details: document.getElementById('se_work_details').value.trim() || null,
         payment_remarks: document.getElementById('se_payment_remarks').value.trim() || null,
         documents_list: document.getElementById('se_docs_list').value.trim() || null,
@@ -4406,6 +4558,9 @@ function saveActiveServiceRow() {
 
             // Record custom status to datalist & local storage
             recordCustomStatus(payload.work_status);
+            if (payload.payment_mode) {
+                recordCustomPaymentMode(payload.payment_mode);
+            }
 
             // 1. If backend returned the full applications array, render all committed services!
             if (res.applications && Array.isArray(res.applications)) {
@@ -4427,6 +4582,7 @@ function saveActiveServiceRow() {
                     rate: typeof d.rate === 'string' ? d.rate.replace(/,/g, '') : d.rate,
                     received: typeof d.received === 'string' ? d.received.replace(/,/g, '') : d.received,
                     remaining: typeof d.remaining === 'string' ? d.remaining.replace(/,/g, '') : d.remaining,
+                    payment_mode: d.payment_mode || payload.payment_mode || 'Cash',
                     status: payload.work_status || 'READY',
                     expected_days: d.expected_days || 7,
                     main_service_name: d.main_service_name || d.service_name,
@@ -4602,6 +4758,7 @@ document.addEventListener('keydown', function(e) {
 // Initialize Status Datalist & Excel Table Column Filter on boot
 document.addEventListener('DOMContentLoaded', function() {
     initCustomStatuses();
+    renderActivePaymentModeOptions('Cash');
 
     // Auto-detect mobile query parameter from URL (e.g. if page was reloaded or linked)
     const urlParams = new URLSearchParams(window.location.search);
