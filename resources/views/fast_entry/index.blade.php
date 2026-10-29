@@ -15,18 +15,14 @@
     /* Top Grid (Pocket Pay Inspired 2-Column Split) */
     .pocket-top-grid {
         display: grid;
-        grid-template-columns: minmax(360px, 460px);
+        grid-template-columns: 380px 1fr;
         gap: 20px;
         align-items: stretch;
         transition: all 0.25s ease;
     }
 
-    .pocket-top-grid.has-customer {
-        grid-template-columns: 370px 1fr;
-    }
-
     @media (max-width: 1024px) {
-        .pocket-top-grid.has-customer {
+        .pocket-top-grid {
             grid-template-columns: 1fr;
         }
     }
@@ -1344,7 +1340,7 @@
             </div>
 
             <div class="pocket-card-body">
-                <form id="quick-go-form" onsubmit="executeQuickGo(event)">
+                <form id="quick-go-form" action="javascript:void(0);" method="POST" onsubmit="executeQuickGo(event); return false;">
                     @csrf
                     <!-- 1. Customer Name -->
                     <div style="margin-bottom: 14px;">
@@ -1353,7 +1349,8 @@
                         </label>
                         <input type="text" id="fe_name" name="customer_name" class="pocket-input" 
                                placeholder="e.g. VINOD KADAM" autocomplete="off"
-                               style="text-transform: uppercase;" autofocus>
+                               style="text-transform: uppercase;" autofocus
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); event.stopPropagation(); executeQuickGo(event);}">
                     </div>
 
                     <!-- 2. Mobile Number -->
@@ -1362,12 +1359,13 @@
                             Mobile Number
                         </label>
                         <input type="tel" id="fe_mobile" name="mobile" class="pocket-input font-mono" required 
-                               placeholder="10 Digits (e.g. 9527667881)" maxlength="10" pattern="[0-9]{10}" autocomplete="off">
+                               placeholder="10 Digits (e.g. 9527667881)" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); event.stopPropagation(); executeQuickGo(event);}">
                     </div>
 
                     <!-- Action Buttons: Go & Reset -->
                     <div class="pocket-btn-group">
-                        <button type="submit" id="btn-go" class="btn-go" onclick="executeQuickGo(event)">
+                        <button type="button" id="btn-go" class="btn-go" onclick="executeQuickGo(event)">
                             <i class="fa-solid fa-arrow-right"></i> Go
                         </button>
                         <button type="button" id="btn-reset" class="btn-reset" onclick="resetEntireDesk()">
@@ -1384,7 +1382,7 @@
         </div>
 
         <!-- RIGHT BOX: Customer Details (Click-To-Edit + Instant AutoSave) -->
-        <div class="pocket-card" id="right-customer-card" style="display: none;">
+        <div class="pocket-card" id="right-customer-card">
             <div class="pocket-card-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div class="card-title">
                     <i class="fa-solid fa-address-card" style="color: #38bdf8;"></i>
@@ -1566,7 +1564,7 @@
         $uniqueMainServices = $services->pluck('main_service_name')->filter()->unique()->sort()->values();
     @endphp
 
-    <div class="pocket-card" id="bottom-services-card" style="border: 1.5px solid #cbd5e1; display: none;">
+    <div class="pocket-card" id="bottom-services-card" style="border: 1.5px solid #cbd5e1;">
         <div class="pocket-card-header" style="background: #0f172a; display: flex; justify-content: space-between; align-items: center;">
             <div class="card-title">
                 <i class="fa-solid fa-table-cells" style="color: #38bdf8;"></i>
@@ -2544,7 +2542,10 @@ function deleteFamilyMember(memberId, e) {
 // 2. QUICK GO: SEARCH / PROMPT TO CREATE IN CRM
 // ==========================================
 function executeQuickGo(e, confirmCreate = false) {
-    if (e) e.preventDefault();
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
 
     const mobileInput = document.getElementById('fe_mobile');
     const nameInput = document.getElementById('fe_name');
@@ -4593,15 +4594,19 @@ function resetEntireDesk() {
     document.getElementById('fe_name').value = '';
     document.getElementById('fe_mobile').value = '';
 
-    // Hide Right Card & Bottom Services Card
+    // Reset Right Card & Keep Bottom Services Card visible
     const grid = document.getElementById('pocket-top-grid');
     if (grid) grid.classList.remove('has-customer');
 
     const rightCard = document.getElementById('right-customer-card');
-    if (rightCard) rightCard.style.display = 'none';
+    if (rightCard) rightCard.style.display = 'flex';
+    const emptyState = document.getElementById('cust-empty-state');
+    if (emptyState) emptyState.style.display = 'block';
+    const loadedState = document.getElementById('cust-loaded-state');
+    if (loadedState) loadedState.style.display = 'none';
 
     const bottomCard = document.getElementById('bottom-services-card');
-    if (bottomCard) bottomCard.style.display = 'none';
+    if (bottomCard) bottomCard.style.display = 'flex';
 
     document.getElementById('current_cust_id').value = '';
     document.getElementById('cd-status-badge').className = 'pocket-badge-neutral';
@@ -4680,6 +4685,21 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     initCustomStatuses();
     initStoredPaymentModes();
+
+    // Auto-detect mobile query parameter from URL (e.g. if page was reloaded or linked)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMobile = urlParams.get('mobile');
+    const urlName = urlParams.get('customer_name');
+    if (urlMobile && urlMobile.replace(/[^0-9]/g, '').length === 10) {
+        const cleanMob = urlMobile.replace(/[^0-9]/g, '');
+        const mobInput = document.getElementById('fe_mobile');
+        if (mobInput) mobInput.value = cleanMob;
+        if (urlName && document.getElementById('fe_name')) {
+            document.getElementById('fe_name').value = urlName;
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setTimeout(() => { executeQuickGo(null); }, 150);
+    }
 
     if (window.ExcelTableFilter) {
         window.fastEntryFilter = new ExcelTableFilter({
