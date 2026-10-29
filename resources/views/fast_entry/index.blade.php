@@ -15,14 +15,19 @@
     /* Top Grid (Pocket Pay Inspired 2-Column Split) */
     .pocket-top-grid {
         display: grid;
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: minmax(360px, 460px);
         gap: 20px;
         align-items: stretch;
         transition: all 0.25s ease;
     }
 
+    .pocket-top-grid.has-customer {
+        grid-template-columns: 380px 1fr;
+    }
+
     @media (max-width: 1024px) {
-        .pocket-top-grid {
+        .pocket-top-grid,
+        .pocket-top-grid.has-customer {
             grid-template-columns: 1fr;
         }
     }
@@ -427,73 +432,42 @@
 
     /* ========================================================================= */
     /* ========================================================================= */
-    /* STICKY RIGHT STATUS & ACTIONS COLUMNS (FREEZE PANES ON RIGHT SIDE)        */
+    /* STATUS & ACTIONS COLUMNS (NATURAL FLOW - PREVENTS OVERLAPPING)            */
     /* ========================================================================= */
     .pocket-excel-table .sticky-col-status {
-        position: -webkit-sticky !important;
-        position: sticky !important;
-        right: 260px !important;
-        min-width: 155px !important;
-        width: 155px !important;
-        max-width: 155px !important;
+        position: static !important;
+        min-width: 140px !important;
+        width: 140px !important;
         box-sizing: border-box !important;
     }
 
     .pocket-excel-table .sticky-col-actions {
-        position: -webkit-sticky !important;
-        position: sticky !important;
-        right: 0 !important;
-        min-width: 260px !important;
-        width: 260px !important;
-        max-width: 260px !important;
+        position: static !important;
+        min-width: 210px !important;
+        width: 210px !important;
         box-sizing: border-box !important;
     }
 
     .pocket-excel-table th.sticky-col-status {
-        z-index: 34 !important;
         background: #0f172a !important;
         color: #f59e0b !important;
-        border-left: 1.5px solid #334155 !important;
-        border-right: 1.5px solid #334155 !important;
-        box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.4) !important;
     }
 
     .pocket-excel-table th.sticky-col-actions {
-        z-index: 35 !important;
         background: #0f172a !important;
         color: #ffffff !important;
-        border-left: 1.5px solid #334155 !important;
     }
 
-    .pocket-excel-table tr.active-entry-row td.sticky-col-status {
-        z-index: 24 !important;
-        background: #fffbeb !important;
-        border-left: 1.5px solid #f59e0b !important;
-        border-right: 1.5px solid #fde68a !important;
-        border-top: 2px solid #f59e0b !important;
-        border-bottom: 2px solid #f59e0b !important;
-    }
-
+    .pocket-excel-table tr.active-entry-row td.sticky-col-status,
     .pocket-excel-table tr.active-entry-row td.sticky-col-actions {
-        z-index: 25 !important;
         background: #fffbeb !important;
-        border-left: 1.5px solid #fde68a !important;
         border-top: 2px solid #f59e0b !important;
         border-bottom: 2px solid #f59e0b !important;
     }
 
-    .pocket-excel-table tbody tr.committed-row td.sticky-col-status {
-        z-index: 19 !important;
-        background: #ffffff !important;
-        border-left: 1.5px solid #cbd5e1 !important;
-        border-right: 1.5px solid #e2e8f0 !important;
-        box-shadow: -4px 0 8px -2px rgba(15, 23, 42, 0.08) !important;
-    }
-
+    .pocket-excel-table tbody tr.committed-row td.sticky-col-status,
     .pocket-excel-table tbody tr.committed-row td.sticky-col-actions {
-        z-index: 20 !important;
-        background: #ffffff !important;
-        border-left: 1.5px solid #e2e8f0 !important;
+        background: inherit;
     }
 
     .pocket-excel-table tbody tr.committed-row:hover td.sticky-col-status,
@@ -1382,7 +1356,7 @@
         </div>
 
         <!-- RIGHT BOX: Customer Details (Click-To-Edit + Instant AutoSave) -->
-        <div class="pocket-card" id="right-customer-card">
+        <div class="pocket-card" id="right-customer-card" style="display: none;">
             <div class="pocket-card-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div class="card-title">
                     <i class="fa-solid fa-address-card" style="color: #38bdf8;"></i>
@@ -1564,7 +1538,7 @@
         $uniqueMainServices = $services->pluck('main_service_name')->filter()->unique()->sort()->values();
     @endphp
 
-    <div class="pocket-card" id="bottom-services-card" style="border: 1.5px solid #cbd5e1;">
+    <div class="pocket-card" id="bottom-services-card" style="border: 1.5px solid #cbd5e1; display: none;">
         <div class="pocket-card-header" style="background: #0f172a; display: flex; justify-content: space-between; align-items: center;">
             <div class="card-title">
                 <i class="fa-solid fa-table-cells" style="color: #38bdf8;"></i>
@@ -1864,8 +1838,8 @@
 </div>
 
 <!-- Modal: New Customer Confirmation Popup -->
-<div id="new-customer-confirm-modal" class="modal-overlay">
-    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 490px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+<div id="new-customer-confirm-modal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeNewCustomerModal()">
+    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 490px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1873,8 +1847,8 @@
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
                 <div>
-                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Customer Not Found</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; font-weight: 500;">Register New Customer Confirmation</p>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">नवीन ग्राहक नोंदणी (Customer Not Found)</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8; font-weight: 500;">नवीन प्रोफाईल तयार करण्यासाठी कन्फर्मेशन</p>
                 </div>
             </div>
             <button type="button" class="modal-close-btn" onclick="closeNewCustomerModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px;">
@@ -1890,7 +1864,7 @@
                     <i class="fa-solid fa-phone-volume"></i>
                 </div>
                 <div>
-                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Mobile Number</div>
+                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Mobile Number / मोबाईल क्रमांक</div>
                     <div style="font-size: 17px; font-weight: 800; color: #0f172a; font-family: monospace;" id="confirm-modal-mobile-text">
                         9876543210
                     </div>
@@ -1898,30 +1872,30 @@
             </div>
 
             <p style="font-size: 13.5px; color: #334155; margin: 0 0 16px 0; line-height: 1.5;">
-                This mobile number is <strong>not registered</strong> in the customer database. Would you like to create a new customer profile?
+                हा मोबाईल नंबर सिस्टीममध्ये आधीपासून नोंदणीकृत नाही. <strong>या ग्राहकाचे नवीन प्रोफाईल तयार करायचे आहे का?</strong>
             </p>
 
             <!-- Customer Name Input -->
             <div style="margin-bottom: 14px;">
                 <label for="confirm-modal-name-input" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-                    Customer Full Name
+                    ग्राहकाचे पूर्ण नाव (Customer Full Name)
                 </label>
                 <input type="text" id="confirm-modal-name-input" class="form-control"
-                       placeholder="e.g. VINOD KADAM"
+                       placeholder="उदा. VINOD KADAM"
                        style="height: 44px; font-size: 14px; font-weight: 700; text-transform: uppercase; border: 2px solid #cbd5e1; border-radius: 8px;"
                        onkeydown="if(event.key === 'Enter'){ event.preventDefault(); confirmAndCreateCustomer(); }">
                 <small style="color: #64748b; font-size: 11.5px; margin-top: 4px; display: block;">
-                    Verify or type the customer's full name before registering.
+                    नाव तपासून किंवा बदलून 'हो, प्रोफाईल बनवा' वर क्लिक करा.
                 </small>
             </div>
 
             <!-- Alternate Mobile (Optional) -->
             <div style="margin-bottom: 20px;">
                 <label for="confirm-modal-alt-mobile-input" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-                    Alternate Mobile Number (Optional)
+                    पर्यायी मोबाईल क्रमांक (Alternate Mobile - ऐच्छिक)
                 </label>
                 <input type="tel" id="confirm-modal-alt-mobile-input" class="form-control font-mono"
-                       placeholder="e.g. 9822012345" maxlength="20"
+                       placeholder="उदा. 9822012345" maxlength="20"
                        style="height: 42px; font-size: 14px; font-weight: 600; border: 1.5px solid #cbd5e1; border-radius: 8px;"
                        onkeydown="if(event.key === 'Enter'){ event.preventDefault(); confirmAndCreateCustomer(); }">
             </div>
@@ -1929,11 +1903,11 @@
             <!-- Action Buttons -->
             <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 16px;">
                 <button type="button" class="btn btn-secondary" onclick="closeNewCustomerModal()" style="font-weight: 600; padding: 10px 18px; font-size: 13px; border-radius: 8px;">
-                    <i class="fa-solid fa-xmark"></i> Cancel
+                    <i class="fa-solid fa-xmark"></i> रद्द करा (Cancel)
                 </button>
                 <button type="button" id="btn-confirm-create-customer" onclick="confirmAndCreateCustomer()" class="btn btn-primary"
                         style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 10px 22px; font-size: 13.5px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-                    <i class="fa-solid fa-user-plus"></i> Create Customer Profile
+                    <i class="fa-solid fa-user-plus"></i> हो, प्रोफाईल बनवा (Create Profile)
                 </button>
             </div>
         </div>
@@ -2627,7 +2601,7 @@ function executeQuickGo(e, confirmCreate = false) {
         const createBtn = document.getElementById('btn-confirm-create-customer');
         if (createBtn) {
             createBtn.disabled = false;
-            createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+            createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> हो, प्रोफाईल बनवा (Create Profile)';
         }
         alert('Network error while processing customer.');
     });
@@ -2643,7 +2617,7 @@ function showNewCustomerModal(mobile, name) {
     if (nameInput) nameInput.value = name || document.getElementById('fe_name').value.trim() || '';
     if (createBtn) {
         createBtn.disabled = false;
-        createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+        createBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> हो, प्रोफाईल बनवा (Create Profile)';
     }
 
     if (modal) {
@@ -2674,7 +2648,7 @@ function confirmAndCreateCustomer() {
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registering...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> नोंदणी होत आहे...';
     }
 
     executeQuickGo(null, true);
@@ -2692,7 +2666,7 @@ function closeNewCustomerModal() {
     const btn = document.getElementById('btn-confirm-create-customer');
     if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Customer Profile';
+        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> हो, प्रोफाईल बनवा (Create Profile)';
     }
 
     const feMobile = document.getElementById('fe_mobile');
@@ -4594,19 +4568,19 @@ function resetEntireDesk() {
     document.getElementById('fe_name').value = '';
     document.getElementById('fe_mobile').value = '';
 
-    // Reset Right Card & Keep Bottom Services Card visible
+    // Reset Right Card & Hide Bottom Services Card
     const grid = document.getElementById('pocket-top-grid');
     if (grid) grid.classList.remove('has-customer');
 
     const rightCard = document.getElementById('right-customer-card');
-    if (rightCard) rightCard.style.display = 'flex';
+    if (rightCard) rightCard.style.display = 'none';
     const emptyState = document.getElementById('cust-empty-state');
     if (emptyState) emptyState.style.display = 'block';
     const loadedState = document.getElementById('cust-loaded-state');
     if (loadedState) loadedState.style.display = 'none';
 
     const bottomCard = document.getElementById('bottom-services-card');
-    if (bottomCard) bottomCard.style.display = 'flex';
+    if (bottomCard) bottomCard.style.display = 'none';
 
     document.getElementById('current_cust_id').value = '';
     document.getElementById('cd-status-badge').className = 'pocket-badge-neutral';
