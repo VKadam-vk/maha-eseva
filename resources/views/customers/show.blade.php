@@ -952,14 +952,18 @@
                                    placeholder="₹ 0.00" readonly tabindex="-1" style="background: #f8fafc;">
                         </td>
 
-                        <!-- 6. Payment Mode -->
+                        <!-- 6. Payment Mode (Cash, Online, plus Add Custom...) -->
                         <td style="padding: 4px 6px;">
-                            <input type="text" id="se_payment_mode" list="customer_payment_mode_datalist" class="excel-input font-bold"
-                                   value="Cash" placeholder="Cash / Online..."
-                                   style="font-size: 12px; color: #4338ca; text-align: center; text-transform: capitalize;"
-                                   onchange="registerCustomerPaymentMode(this.value)"
-                                   onkeydown="handleActiveRowKey(event)"
-                                   title="Select or type Payment Mode (Cash, Online, GPay, etc.)">
+                            <select id="se_payment_mode" class="excel-select font-bold payment-mode-select"
+                                    data-prev="Cash"
+                                    onchange="onCustomerPaymentModeChange(this)"
+                                    onkeydown="handleActiveRowKey(event)"
+                                    style="width: 100%; height: 34px; font-size: 12px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 2px 6px; cursor: pointer; background: #ffffff;"
+                                    title="Payment Mode: Cash, Online, or Add Custom...">
+                                <option value="Cash" selected>Cash</option>
+                                <option value="Online">Online</option>
+                                <option value="__NEW_PAYMENT_MODE__" style="color: #0284c7; font-weight: 800;">➕ नवीन जोडा (Add New)...</option>
+                            </select>
                         </td>
 
                         <!-- 7. Work Details -->
@@ -1693,16 +1697,35 @@ function getSavedStatusesForService(serviceName) {
     return Array.from(new Set([...baseList, ...customList]));
 }
 
+function getSavedCustomerPaymentModes() {
+    let modes = ['Cash', 'Online'];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                parsed.forEach(m => {
+                    if (m && !modes.some(x => x.toLowerCase() === m.toLowerCase())) {
+                        modes.push(m);
+                    }
+                });
+            }
+        }
+    } catch(e) {}
+    return modes;
+}
+
 function registerCustomerPaymentMode(mode) {
     if (!mode) return;
     const val = mode.trim();
-    if (!val) return;
+    if (!val || val === '__NEW_PAYMENT_MODE__') return;
 
     let storedModes = [];
     try {
         const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
         if (stored) storedModes = JSON.parse(stored);
     } catch(e) {}
+    if (!Array.isArray(storedModes)) storedModes = [];
 
     if (!storedModes.some(m => m.toLowerCase() === val.toLowerCase())) {
         storedModes.push(val);
@@ -1710,28 +1733,101 @@ function registerCustomerPaymentMode(mode) {
             localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(storedModes));
         } catch(e) {}
     }
+}
 
-    document.querySelectorAll('datalist[id*="payment_mode"]').forEach(dl => {
-        let exists = Array.from(dl.options).some(o => o.value.toLowerCase() === val.toLowerCase());
-        if (!exists) {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.textContent = val;
-            dl.appendChild(opt);
-        }
+function getCustomerPaymentModeOptionsHtml(selectedVal = 'Cash') {
+    const list = getSavedCustomerPaymentModes();
+    const current = (selectedVal || 'Cash').trim();
+
+    if (current && !list.some(m => m.toLowerCase() === current.toLowerCase())) {
+        list.push(current);
+    }
+
+    let html = '';
+    list.forEach(m => {
+        const isSel = (m.toLowerCase() === current.toLowerCase()) ? 'selected' : '';
+        html += `<option value="${escapeHtml(m)}" ${isSel}>${escapeHtml(m)}</option>`;
     });
+    html += '<option value="__NEW_PAYMENT_MODE__" style="color: #0284c7; font-weight: 800;">➕ नवीन जोडा (Add New)...</option>';
+    return html;
+}
+
+function renderActiveCustomerPaymentModeOptions(selectedVal = 'Cash') {
+    const selectEl = document.getElementById('se_payment_mode');
+    if (!selectEl) return;
+    selectEl.innerHTML = getCustomerPaymentModeOptionsHtml(selectedVal);
+    selectEl.dataset.prev = selectedVal;
+}
+
+function onCustomerPaymentModeChange(selectEl, appId = null) {
+    if (!selectEl) return;
+    if (selectEl.value === '__NEW_PAYMENT_MODE__') {
+        const custom = prompt('नवीन Payment Mode चे नाव टाका (उदा. PhonePe, Google Pay, Cheque, UPI):');
+        if (custom && custom.trim()) {
+            const clean = custom.trim();
+            registerCustomerPaymentMode(clean);
+
+            // Update all payment mode selects on page
+            document.querySelectorAll('.payment-mode-select').forEach(sel => {
+                const addOption = sel.querySelector('option[value="__NEW_PAYMENT_MODE__"]');
+                const exists = Array.from(sel.options).some(o => o.value.toLowerCase() === clean.toLowerCase());
+                if (!exists) {
+                    const opt = document.createElement('option');
+                    opt.value = clean;
+                    opt.textContent = clean;
+                    if (addOption) {
+                        sel.insertBefore(opt, addOption);
+                    } else {
+                        sel.appendChild(opt);
+                    }
+                }
+            });
+
+            selectEl.value = clean;
+            selectEl.dataset.prev = clean;
+            if (appId) {
+                autoSaveCommittedRow(appId);
+            }
+        } else {
+            selectEl.value = selectEl.dataset.prev || 'Cash';
+            return;
+        }
+    } else {
+        selectEl.dataset.prev = selectEl.value;
+        if (appId) {
+            autoSaveCommittedRow(appId);
+        }
+    }
 }
 
 function initCustomerPaymentModes() {
+    renderActiveCustomerPaymentModeOptions('Cash');
+
+    let customList = [];
     try {
         const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
-        if (stored) {
-            const list = JSON.parse(stored);
-            if (Array.isArray(list)) {
-                list.forEach(m => registerCustomerPaymentMode(m));
-            }
-        }
+        if (stored) customList = JSON.parse(stored);
     } catch(e) {}
+    if (!Array.isArray(customList) || customList.length === 0) return;
+
+    document.querySelectorAll('.payment-mode-select').forEach(sel => {
+        const currentVal = sel.value;
+        const addOption = sel.querySelector('option[value="__NEW_PAYMENT_MODE__"]');
+        customList.forEach(m => {
+            const exists = Array.from(sel.options).some(o => o.value.toLowerCase() === m.toLowerCase());
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                if (addOption) {
+                    sel.insertBefore(opt, addOption);
+                } else {
+                    sel.appendChild(opt);
+                }
+            }
+        });
+        sel.value = currentVal;
+    });
 }
 
 function recordCustomStatusForService(serviceName, val) {
@@ -1989,15 +2085,16 @@ function getCommittedRowInnerHtml(app) {
             </span>
         </td>
         <td style="padding: 4px 6px; text-align: center;">
-            <input type="text" list="customer_payment_mode_datalist" id="crow_payment_mode_${app.id}"
-                   class="excel-cell-input font-bold"
-                   value="${escapeHtml(app.payment_mode || 'Cash')}"
-                   tabindex="-1"
-                   style="text-align: center; font-size: 12px; color: #4338ca; text-transform: capitalize;"
-                   title="Payment Mode (Cash, Online, GPay, etc.)"
-                   placeholder="Cash / Online"
-                   onchange="registerCustomerPaymentMode(this.value); autoSaveCommittedRow(${app.id})"
-                   onkeydown="handleCommittedKey(event, ${app.id})">
+            <select id="crow_payment_mode_${app.id}" class="excel-cell-input font-bold payment-mode-select"
+                    data-app-id="${app.id}"
+                    data-prev="${escapeHtml(app.payment_mode || 'Cash')}"
+                    tabindex="-1"
+                    style="width: 100%; height: 28px; font-size: 11.5px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; cursor: pointer; background: #ffffff;"
+                    title="Payment Mode (Cash, Online, or Add Custom...)"
+                    onchange="onCustomerPaymentModeChange(this, ${app.id})"
+                    onkeydown="handleCommittedKey(event, ${app.id})">
+                ${getCustomerPaymentModeOptionsHtml(app.payment_mode || 'Cash')}
+            </select>
         </td>
         <td style="padding: 4px 6px;">
             <textarea id="crow_work_details_${app.id}" class="excel-work-details"
@@ -2523,7 +2620,10 @@ function resetActiveRowFields() {
     document.getElementById('se_rate').value = '';
     document.getElementById('se_received').value = '';
     document.getElementById('se_remaining').value = '';
-    if (document.getElementById('se_payment_mode')) document.getElementById('se_payment_mode').value = 'Cash';
+    if (document.getElementById('se_payment_mode')) {
+        document.getElementById('se_payment_mode').value = 'Cash';
+        document.getElementById('se_payment_mode').dataset.prev = 'Cash';
+    }
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '30px';
     document.getElementById('se_payment_remarks').value = '';

@@ -837,15 +837,19 @@
 
                             <!-- Payment Mode -->
                             <td style="padding: 4px 6px; text-align: center;">
-                                <input type="text" list="global_payment_mode_options"
-                                       id="payment_mode_{{ $app->id }}"
-                                       class="excel-input font-bold"
-                                       value="{{ $app->payment_mode ?? 'Cash' }}"
-                                       tabindex="-1"
-                                       style="text-align: center; font-size: 12px; color: #4338ca; text-transform: capitalize;"
-                                       title="Payment Mode (Cash, Online, etc.)"
-                                       placeholder="Cash / Online"
-                                       onchange="registerGlobalPaymentMode(this.value); saveRowField({{ $app->id }}, 'payment_mode', this.value)">
+                                <select id="payment_mode_{{ $app->id }}" class="excel-select font-bold payment-mode-select"
+                                        data-app-id="{{ $app->id }}"
+                                        data-prev="{{ $app->payment_mode ?? 'Cash' }}"
+                                        onchange="onGlobalPaymentModeChange(this, {{ $app->id }})"
+                                        style="width: 100%; height: 32px; font-size: 12px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 2px 6px; cursor: pointer; background: #ffffff;"
+                                        title="Payment Mode (Cash, Online, or Add Custom...)">
+                                    <option value="Cash" {{ ($app->payment_mode ?? 'Cash') === 'Cash' ? 'selected' : '' }}>Cash</option>
+                                    <option value="Online" {{ ($app->payment_mode ?? 'Cash') === 'Online' ? 'selected' : '' }}>Online</option>
+                                    @if(!empty($app->payment_mode) && !in_array($app->payment_mode, ['Cash', 'Online']))
+                                        <option value="{{ $app->payment_mode }}" selected>{{ $app->payment_mode }}</option>
+                                    @endif
+                                    <option value="__NEW_PAYMENT_MODE__" style="color: #0284c7; font-weight: 800;">➕ नवीन जोडा (Add New)...</option>
+                                </select>
                             </td>
 
                             <!-- 8. Work Details -->
@@ -1127,6 +1131,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        initStoredGlobalPaymentModes();
         // Apply status colors to all status selectors
         document.querySelectorAll('.status-select, .status-combobox').forEach(el => applyStatusInputStyle(el));
 
@@ -1279,7 +1284,7 @@
     function registerGlobalPaymentMode(mode) {
         if (!mode) return;
         const val = mode.trim();
-        if (!val) return;
+        if (!val || val === '__NEW_PAYMENT_MODE__') return;
 
         let storedModes = [];
         try {
@@ -1293,15 +1298,70 @@
                 localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(storedModes));
             } catch(e) {}
         }
+    }
 
-        document.querySelectorAll('datalist[id*="payment_mode"]').forEach(dl => {
-            let exists = Array.from(dl.options).some(o => o.value.toLowerCase() === val.toLowerCase());
-            if (!exists) {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.textContent = val;
-                dl.appendChild(opt);
+    function onGlobalPaymentModeChange(selectEl, appId) {
+        if (!selectEl) return;
+        if (selectEl.value === '__NEW_PAYMENT_MODE__') {
+            const custom = prompt('नवीन Payment Mode चे नाव टाका (उदा. PhonePe, Google Pay, Cheque, UPI):');
+            if (custom && custom.trim()) {
+                const clean = custom.trim();
+                registerGlobalPaymentMode(clean);
+
+                // Add option to all payment mode selects on page
+                document.querySelectorAll('.payment-mode-select').forEach(sel => {
+                    const addOption = sel.querySelector('option[value="__NEW_PAYMENT_MODE__"]');
+                    const exists = Array.from(sel.options).some(o => o.value.toLowerCase() === clean.toLowerCase());
+                    if (!exists) {
+                        const opt = document.createElement('option');
+                        opt.value = clean;
+                        opt.textContent = clean;
+                        if (addOption) {
+                            sel.insertBefore(opt, addOption);
+                        } else {
+                            sel.appendChild(opt);
+                        }
+                    }
+                });
+
+                selectEl.value = clean;
+                selectEl.dataset.prev = clean;
+                saveRowField(appId, 'payment_mode', clean);
+            } else {
+                selectEl.value = selectEl.dataset.prev || 'Cash';
+                return;
             }
+        } else {
+            selectEl.dataset.prev = selectEl.value;
+            saveRowField(appId, 'payment_mode', selectEl.value);
+        }
+    }
+
+    function initStoredGlobalPaymentModes() {
+        let customList = [];
+        try {
+            const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+            if (stored) customList = JSON.parse(stored);
+        } catch(e) {}
+        if (!Array.isArray(customList) || customList.length === 0) return;
+
+        document.querySelectorAll('.payment-mode-select').forEach(sel => {
+            const currentVal = sel.value;
+            const addOption = sel.querySelector('option[value="__NEW_PAYMENT_MODE__"]');
+            customList.forEach(m => {
+                const exists = Array.from(sel.options).some(o => o.value.toLowerCase() === m.toLowerCase());
+                if (!exists) {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (addOption) {
+                        sel.insertBefore(opt, addOption);
+                    } else {
+                        sel.appendChild(opt);
+                    }
+                }
+            });
+            sel.value = currentVal;
         });
     }
 
