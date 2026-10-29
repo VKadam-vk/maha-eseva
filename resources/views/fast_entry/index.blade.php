@@ -4240,8 +4240,27 @@ function onSubServiceChange(serviceId) {
     document.getElementById('se_followup').value = targetDate.toISOString().split('T')[0];
 
     // Update Row-level Apply Now & Watch Tutorial buttons
+    const rowBtnApply = document.getElementById('row-btn-apply');
+    const rowBtnTutorial = document.getElementById('row-btn-tutorial');
 
+    const workUrl = srv.work_portal_link || srv.service_portal_link;
+    const tutorialUrl = srv.video_instruction_link;
 
+    if (rowBtnApply) {
+        if (workUrl && workUrl.trim() !== '') {
+            rowBtnApply.href = workUrl.trim();
+        } else {
+            rowBtnApply.href = `https://www.google.com/search?q=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' maharashtra official online portal apply')}`;
+        }
+        rowBtnApply.style.display = 'inline-flex';
+    }
+
+    if (rowBtnTutorial) {
+        if (tutorialUrl && tutorialUrl.trim() !== '') {
+            rowBtnTutorial.href = tutorialUrl.trim();
+        } else {
+            rowBtnTutorial.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(srv.main_service_name + ' ' + (srv.sub_service_name || '') + ' form fill up online maharashtra tutorial')}`;
+        }
         rowBtnTutorial.style.display = 'inline-flex';
     }
 
