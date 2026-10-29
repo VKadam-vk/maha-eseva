@@ -312,6 +312,12 @@
         pointer-events: auto !important;
     }
 
+    /* Sub-service row mode toggle */
+    tr.followup-row-locked .row-sub-view { display: block !important; }
+    tr.followup-row-locked .row-sub-edit { display: none !important; }
+    tr.followup-row-unlocked .row-sub-view { display: none !important; }
+    tr.followup-row-unlocked .row-sub-edit { display: block !important; }
+
     /* Fast Entry Input Styles */
     .excel-input, .excel-select {
         width: 100%;
@@ -702,6 +708,7 @@
                         <th style="text-align: right; min-width: 80px; width: 85px;">Rate (₹)</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
                         <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
+                        <th style="text-align: center; min-width: 110px; width: 115px; color: #c084fc;">Payment Mode</th>
                         <th style="min-width: 160px;">Work Details</th>
                         <th style="min-width: 150px; width: 160px; color: #10b981;">Pending Remark</th>
                         <th style="min-width: 135px; width: 140px;">
@@ -732,6 +739,7 @@
                     </tr>
                 </thead>
                 <tbody id="followup-sheet-tbody">
+                    @php $servicesByMain = $activeServices->groupBy('main_service_name'); @endphp
                     @forelse($applications as $app)
                         @php
                             $rate = (float) ($app->total_amount ?? $app->rate ?? 0);
@@ -782,26 +790,56 @@
                             </td>
 
                             <!-- 2. Service & Sub Service -->
-                            <td style="padding: 4px 6px;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
-                                    <div style="font-weight: 700; color: #0f172a; font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
-                                        {{ $serv?->main_service_name ?? 'Service' }}
-                                        @if($app->sub_service)
-                                            <div style="font-size: 11px; font-weight: 500; color: #0284c7;">
-                                                {{ $app->sub_service }}
-                                            </div>
-                                        @endif
+                            <td style="padding: 4px 6px; min-width: 175px;">
+                                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; color: #0f172a; font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ $serv?->main_service_name ?? 'Service' }}
+                                        </div>
+                                        <div class="row-sub-view" id="sub_view_{{ $app->id }}" style="font-size: 11px; font-weight: 600; color: #0284c7; margin-top: 2px;">
+                                            {{ $app->sub_service ?: '-' }}
+                                        </div>
+                                        <div class="row-sub-edit" id="sub_edit_{{ $app->id }}" style="display: none; margin-top: 3px;">
+                                            @php
+                                                $siblings = $mainName ? ($servicesByMain[$mainName] ?? collect([$serv])) : collect([$serv]);
+                                                $hasMatch = false;
+                                            @endphp
+                                            <select class="excel-select font-semibold sub-service-dropdown"
+                                                    id="sub_service_{{ $app->id }}"
+                                                    tabindex="-1"
+                                                    style="width: 100%; font-size: 11px; height: 26px; padding: 2px 4px; border: 1.5px solid #0284c7; border-radius: 4px; color: #0369a1; font-weight: 700; background: #ffffff;"
+                                                    onchange="onFollowupDeskSubServiceChange(this, {{ $app->id }})">
+                                                @foreach($siblings as $sOpt)
+                                                    @php
+                                                        $isSelected = ($sOpt->id == $app->service_id || strcasecmp(trim($sOpt->sub_service_name), trim($app->sub_service ?? '')) === 0);
+                                                        if ($isSelected) $hasMatch = true;
+                                                    @endphp
+                                                    <option value="{{ $sOpt->id }}"
+                                                            data-sub-name="{{ $sOpt->sub_service_name }}"
+                                                            data-price="{{ $sOpt->price }}"
+                                                            data-days="{{ $sOpt->expected_processing_days ?? 7 }}"
+                                                            {{ $isSelected ? 'selected' : '' }}>
+                                                        {{ $sOpt->sub_service_name }} (₹{{ number_format($sOpt->price, 0) }})
+                                                    </option>
+                                                @endforeach
+                                                @if(!$hasMatch && $app->sub_service)
+                                                    <option value="" data-sub-name="{{ $app->sub_service }}" selected>{{ $app->sub_service }}</option>
+                                                @endif
+                                            </select>
+                                        </div>
                                     </div>
-                                    <button type="button" class="btn-doc-eye"
-                                            onclick="openDocsModalForService({{ $serv?->id ?? 'null' }}, '{{ addslashes($serv?->main_service_name ?? '') }}', '{{ addslashes($app->sub_service ?? '') }}', {{ $expDays }}, {{ $rate }})"
-                                            title="View Required Documents">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-cell-history"
-                                            onclick="openFieldHistory({{ $app->id }}, 'sub_service', event)"
-                                            title="Sub Service Change History">
-                                        <i class="fa-solid fa-clock-rotate-left"></i>
-                                    </button>
+                                    <div style="display: flex; align-items: center; gap: 3px; flex-shrink: 0; margin-top: 2px;">
+                                        <button type="button" class="btn-doc-eye" id="btn_doc_eye_{{ $app->id }}"
+                                                onclick="openDocsModalForService({{ $serv?->id ?? 'null' }}, '{{ addslashes($serv?->main_service_name ?? '') }}', '{{ addslashes($app->sub_service ?? '') }}', {{ $expDays }}, {{ $rate }})"
+                                                title="View Required Documents">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn-cell-history"
+                                                onclick="openFieldHistory({{ $app->id }}, 'sub_service', event)"
+                                                title="Sub Service Change History">
+                                            <i class="fa-solid fa-clock-rotate-left"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </td>
 
@@ -845,6 +883,19 @@
                                        id="remaining_{{ $app->id }}"
                                        value="₹ {{ number_format($rem, 2) }}" readonly tabindex="-1"
                                        style="text-align: right; background: #f8fafc; color: {{ $rem > 0 ? '#b91c1c' : '#166534' }};">
+                            </td>
+
+                            <!-- Payment Mode -->
+                            <td style="padding: 4px 6px; text-align: center;">
+                                <input type="text" list="global_payment_mode_options"
+                                       id="payment_mode_{{ $app->id }}"
+                                       class="excel-input font-bold"
+                                       value="{{ $app->payment_mode ?? 'Cash' }}"
+                                       tabindex="-1"
+                                       style="text-align: center; font-size: 12px; color: #4338ca; text-transform: capitalize;"
+                                       title="Payment Mode (Cash, Online, etc.)"
+                                       placeholder="Cash / Online"
+                                       onchange="registerGlobalPaymentMode(this.value); saveRowField({{ $app->id }}, 'payment_mode', this.value)">
                             </td>
 
                             <!-- 7. Work Details -->
@@ -1050,6 +1101,13 @@
     <option value="REJECTED">Rejected</option>
 </datalist>
 
+<!-- Datalist for Payment Mode Combobox -->
+<datalist id="global_payment_mode_options">
+    @foreach($existingPaymentModes ?? ['Cash', 'Online', 'UPI', 'Google Pay', 'PhonePe', 'Cheque', 'Bank Transfer'] as $pmode)
+        <option value="{{ $pmode }}">{{ $pmode }}</option>
+    @endforeach
+</datalist>
+
 <!-- REQUIRED DOCUMENTS POPUP MODAL -->
 <div id="docs-modal-overlay" class="modal-overlay" style="display: none;" onclick="closeDocsModal(event)">
     <div class="docs-modal-card" style="max-width: 500px;" onclick="event.stopPropagation()">
@@ -1198,6 +1256,83 @@
         recalculateFollowupMetrics();
     }
 
+    function onFollowupDeskSubServiceChange(selectEl, appId) {
+        const selectedOpt = selectEl.selectedOptions[0];
+        if (!selectedOpt) return;
+
+        const newSubName = selectedOpt.getAttribute('data-sub-name') || selectedOpt.text.split('(')[0].trim();
+        const newPrice = parseFloat(selectedOpt.getAttribute('data-price') || 0);
+        const newDays = parseInt(selectedOpt.getAttribute('data-days') || 7);
+        const newServiceId = selectedOpt.value;
+
+        // 1. Update the Rate input with new service rate ("update vava rate new service nusar")
+        const rateInput = document.getElementById(`rate_${appId}`);
+        if (rateInput && !isNaN(newPrice)) {
+            rateInput.value = newPrice;
+            calculateRowRemaining(appId);
+        }
+
+        // 2. Update expected days badge
+        const row = document.getElementById(`row-app-${appId}`);
+        if (row) {
+            row.dataset.sub_service = newSubName;
+            if (newServiceId) row.dataset.service_id = newServiceId;
+            const daysBadge = row.querySelector('td:nth-child(3) .badge');
+            if (daysBadge) {
+                daysBadge.innerHTML = `⏱️ ${newDays}d`;
+            }
+        }
+
+        // 3. Update view text
+        const viewSub = document.getElementById(`sub_view_${appId}`);
+        if (viewSub) {
+            viewSub.textContent = newSubName;
+        }
+
+        // 4. Update the doc eye button
+        const eyeBtn = document.getElementById(`btn_doc_eye_${appId}`);
+        if (eyeBtn && newServiceId) {
+            const srv = window.MASTER_SERVICES ? window.MASTER_SERVICES.find(s => s.id == newServiceId) : null;
+            if (srv) {
+                eyeBtn.onclick = function() {
+                    openDocsModalForService(srv.id, srv.main_service_name, srv.sub_service_name, newDays, newPrice);
+                };
+            }
+        }
+
+        // 5. Trigger auto-save
+        saveRowField(appId, 'sub_service', newSubName);
+    }
+
+    function registerGlobalPaymentMode(mode) {
+        if (!mode) return;
+        const val = mode.trim();
+        if (!val) return;
+
+        let storedModes = [];
+        try {
+            const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+            if (stored) storedModes = JSON.parse(stored);
+        } catch(e) {}
+
+        if (!storedModes.some(m => m.toLowerCase() === val.toLowerCase())) {
+            storedModes.push(val);
+            try {
+                localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(storedModes));
+            } catch(e) {}
+        }
+
+        document.querySelectorAll('datalist[id*="payment_mode"]').forEach(dl => {
+            let exists = Array.from(dl.options).some(o => o.value.toLowerCase() === val.toLowerCase());
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                dl.appendChild(opt);
+            }
+        });
+    }
+
     // Save individual field on change (Auto-save)
     function saveRowField(appId, field, value) {
         const row = document.getElementById(`row-app-${appId}`);
@@ -1205,13 +1340,21 @@
 
         const rate = parseFloat(document.getElementById(`rate_${appId}`)?.value || 0);
         const received = parseFloat(document.getElementById(`received_${appId}`)?.value || 0);
+        const paymentMode = document.getElementById(`payment_mode_${appId}`)?.value?.trim() || null;
         const workDetails = document.getElementById(`work_details_${appId}`)?.value || null;
         const paymentRemarks = document.getElementById(`payment_remarks_${appId}`)?.value || null;
         const operatorId = document.getElementById(`operator_${appId}`)?.value || null;
         const followUpDate = document.getElementById(`followup_${appId}`)?.value || null;
         const statusVal = document.getElementById(`status_${appId}`)?.value || 'PENDING';
 
+        const subSelect = document.getElementById(`sub_service_${appId}`);
+        const subOpt = subSelect ? subSelect.selectedOptions[0] : null;
+        const subService = subOpt ? (subOpt.getAttribute('data-sub-name') || subOpt.text.split('(')[0].trim()) : (document.getElementById(`sub_view_${appId}`)?.textContent || '').trim();
+        const serviceId = subOpt ? (subOpt.value || null) : (row?.dataset.service_id || null);
+
         // Update dataset for instant filter evaluation
+        if (subService) row.dataset.sub_service = subService;
+        if (serviceId) row.dataset.service_id = serviceId;
         if (field === 'assigned_employee_id') {
             const opSel = document.getElementById(`operator_${appId}`);
             const opTxt = opSel?.selectedOptions[0]?.textContent?.trim() || '';
@@ -1224,8 +1367,11 @@
 
         const payload = {
             application_id: appId,
+            service_id: serviceId || null,
+            sub_service: subService || null,
             rate: rate,
             received: received,
+            payment_mode: paymentMode,
             work_details: workDetails,
             payment_remarks: paymentRemarks,
             assigned_employee_id: operatorId,
@@ -1249,6 +1395,12 @@
                 row.style.transition = 'background-color 0.3s ease';
                 row.style.backgroundColor = '#ecfdf5';
                 setTimeout(() => { row.style.backgroundColor = ''; }, 600);
+
+                if (res.data && res.data.sub_service) {
+                    const viewSub = document.getElementById(`sub_view_${appId}`);
+                    if (viewSub) viewSub.textContent = res.data.sub_service;
+                }
+
                 if (window.followupFilter) {
                     window.followupFilter.refresh();
                 } else {

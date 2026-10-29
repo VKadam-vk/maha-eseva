@@ -109,6 +109,8 @@ class ApplicationController extends Controller
             Application::STATUS_CANCELLED,
         ];
 
+        $existingPaymentModes = Application::getAvailablePaymentModes($user->tenant_id);
+
         return view('applications.index', compact(
             'applications',
             'services',
@@ -119,7 +121,8 @@ class ApplicationController extends Controller
             'totalCount',
             'totalBilled',
             'totalReceived',
-            'totalRemaining'
+            'totalRemaining',
+            'existingPaymentModes'
         ));
     }
 

@@ -91,6 +91,7 @@ class ApplicationService
                 'total_amount' => $totalAmount,
                 'received_amount' => $initialReceived,
                 'remaining_amount' => $remainingAmount,
+                'payment_mode' => $data['payment_mode'] ?? 'Cash',
                 'external_acknowledgement_no' => $data['external_acknowledgement_no'] ?? null,
                 'external_portal_login_user' => $data['external_portal_login_user'] ?? null,
                 'due_date' => $data['due_date'] ?? $expectedCompletion,

@@ -182,16 +182,22 @@
             <span class="bold">AMOUNT RECEIVED:</span>
             <span class="bold">₹ {{ number_format($recv, 2) }}</span>
         </div>
+        @if(!empty($application->payment_mode))
+            <div class="flex-between" style="font-size: 11px; color: #475569;">
+                <span>Payment Mode (मोड):</span>
+                <span class="bold">{{ strtoupper($application->payment_mode) }}</span>
+            </div>
+        @endif
         <div class="flex-between" style="color: {{ $rem > 0 ? '#b91c1c' : '#166534' }}; font-weight: bold;">
             <span>Remaining Bal:</span>
             <span>₹ {{ number_format($rem, 2) }}</span>
         </div>
 
-        @if($application->work_details)
+        @if(!empty($application->external_acknowledgement_no))
             <div class="divider"></div>
-            <div style="font-size: 11px;">
-                <span class="bold">Notes / Ack No:</span><br>
-                {{ $application->work_details }}
+            <div class="flex-between" style="font-size: 11px;">
+                <span class="bold">Govt Ack / Token:</span>
+                <span class="bold">{{ $application->external_acknowledgement_no }}</span>
             </div>
         @endif
 

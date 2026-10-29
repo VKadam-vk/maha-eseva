@@ -178,7 +178,9 @@ class CustomerController extends Controller
             ];
         })->values();
 
-        return view('customers.show', compact('customer', 'activityTimeline', 'activeServices', 'employees', 'formattedFamilyMembers'));
+        $existingPaymentModes = \App\Models\Application::getAvailablePaymentModes($customer->tenant_id);
+
+        return view('customers.show', compact('customer', 'activityTimeline', 'activeServices', 'employees', 'formattedFamilyMembers', 'existingPaymentModes'));
     }
 
     /**

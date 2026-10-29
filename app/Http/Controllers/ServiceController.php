@@ -36,14 +36,19 @@ class ServiceController extends Controller
             $s = trim($request->search);
             $query->where(function ($q) use ($s) {
                 $q->where('main_service_name', 'like', "%{$s}%")
-                  ->orWhere('sub_service_name', 'like', "%{$s}%");
+                  ->orWhere('sub_service_name', 'like', "%{$s}%")
+                  ->orWhere('service_variant', 'like', "%{$s}%");
             });
         }
 
-        $services = $query->orderBy('main_service_name')->orderBy('id')->paginate(20)->withQueryString();
+        $services = $query->orderBy('main_service_name')->orderBy('sub_service_name')->get();
+        $groupedServices = $services->groupBy(function($item) {
+            return trim($item->main_service_name ?: 'GENERAL SERVICES');
+        });
+
         $mainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
 
-        return view('services.index', compact('services', 'mainServices'));
+        return view('services.index', compact('services', 'groupedServices', 'mainServices'));
     }
 
     /**

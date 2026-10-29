@@ -39,7 +39,7 @@
                 </label>
                 <input type="text" name="main_service_name" list="main_services_list" class="form-control" required 
                        placeholder="e.g. PAN CARD, INCOME CERTIFICATE, RENT AGREEMENT, DOMICILE CERTIFICATE..." 
-                       value="{{ old('main_service_name') }}"
+                       value="{{ old('main_service_name', request('main_service')) }}"
                        style="height: 48px; font-size: 15px; font-weight: 700; text-transform: uppercase; border: 2px solid #cbd5e1; border-radius: 8px;">
                 
                 <datalist id="main_services_list">

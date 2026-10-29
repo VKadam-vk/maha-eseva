@@ -51,7 +51,10 @@ class FastEntryController extends Controller
             ->values()
             ->toArray();
 
-        return view('fast_entry.index', compact('branches', 'services', 'employees', 'existingOccupations'));
+        // Available payment modes (defaults + tenant custom entered)
+        $existingPaymentModes = Application::getAvailablePaymentModes($user->tenant_id);
+
+        return view('fast_entry.index', compact('branches', 'services', 'employees', 'existingOccupations', 'existingPaymentModes'));
     }
 
     /**
@@ -147,6 +150,7 @@ class FastEntryController extends Controller
                     'rate' => (float) $app->total_amount,
                     'received' => (float) $app->received_amount,
                     'remaining' => (float) $app->remaining_amount,
+                    'payment_mode' => $app->payment_mode ?: 'Cash',
                     'status' => $app->work_status,
                     'service_id' => $app->service_id,
                     'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
@@ -292,8 +296,10 @@ class FastEntryController extends Controller
             'application_id' => ['required', 'exists:applications,id'],
             'rate' => ['required', 'numeric', 'min:0'],
             'received' => ['nullable', 'numeric', 'min:0'],
+            'payment_mode' => ['nullable', 'string', 'max:50'],
             'work_status' => ['nullable', 'string'],
             'assigned_employee_id' => ['nullable', 'exists:employees,id'],
+            'service_id' => ['nullable', 'exists:services,id'],
             'sub_service' => ['nullable', 'string', 'max:255'],
             'work_details' => ['nullable', 'string'],
             'payment_remarks' => ['nullable', 'string'],
@@ -316,23 +322,49 @@ class FastEntryController extends Controller
         $oldAssigned = $application->assigned_employee_id;
         $oldRate = (float) $application->total_amount;
         $oldSubService = $application->sub_service;
+        $oldServiceId = $application->service_id;
         $oldFollowup = $application->follow_up_date ? date('Y-m-d', strtotime($application->follow_up_date)) : null;
+        $oldPaymentMode = $application->payment_mode ?: 'Cash';
 
         $newRate = $rate;
         $newStatus = $workStatus;
         $newAssigned = $validated['assigned_employee_id'] ?? null;
-        $newSubService = array_key_exists('sub_service', $validated) ? $validated['sub_service'] : $application->sub_service;
+        $newServiceId = $application->service_id;
+        $newSubService = $application->sub_service;
+        $newPaymentMode = array_key_exists('payment_mode', $validated) ? ($validated['payment_mode'] ?: 'Cash') : $oldPaymentMode;
+
+        if (!empty($validated['service_id'])) {
+            $newService = Service::find($validated['service_id']);
+            if ($newService) {
+                $newServiceId = $newService->id;
+                $newSubService = $newService->sub_service_name;
+            }
+        } elseif (array_key_exists('sub_service', $validated) && !empty($validated['sub_service'])) {
+            $newSubService = trim($validated['sub_service']);
+            $currentService = $application->service;
+            if ($currentService) {
+                $matched = Service::where('main_service_name', $currentService->main_service_name)
+                    ->where('sub_service_name', $newSubService)
+                    ->first();
+                if ($matched) {
+                    $newServiceId = $matched->id;
+                }
+            }
+        }
+
         $newFollowup = array_key_exists('follow_up_date', $validated) && !empty($validated['follow_up_date']) ? date('Y-m-d', strtotime($validated['follow_up_date'])) : null;
 
         $application->update([
+            'service_id' => $newServiceId,
+            'sub_service' => $newSubService,
             'total_amount' => $rate,
             'base_amount' => $rate,
             'received_amount' => $received,
             'remaining_amount' => $remaining,
+            'payment_mode' => $newPaymentMode,
             'payment_status' => $remaining <= 0 ? Application::PAYMENT_PAID : ($received > 0 ? Application::PAYMENT_PARTIAL : Application::PAYMENT_PENDING),
             'work_status' => $workStatus,
             'assigned_employee_id' => $newAssigned,
-            'sub_service' => $newSubService,
             'work_details' => array_key_exists('work_details', $validated) ? $validated['work_details'] : $application->work_details,
             'payment_remarks' => array_key_exists('payment_remarks', $validated) ? $validated['payment_remarks'] : $application->payment_remarks,
             'follow_up_date' => array_key_exists('follow_up_date', $validated) ? $validated['follow_up_date'] : $application->follow_up_date,
@@ -343,6 +375,7 @@ class FastEntryController extends Controller
         ApplicationFieldHistory::recordIfChanged($application, 'assigned_employee_id', 'Operator', $oldAssigned, $newAssigned, null, null, $user->id);
         ApplicationFieldHistory::recordIfChanged($application, 'rate', 'Rate (₹)', $oldRate, $newRate, null, null, $user->id);
         ApplicationFieldHistory::recordIfChanged($application, 'sub_service', 'Sub Service', $oldSubService, $newSubService, null, null, $user->id);
+        ApplicationFieldHistory::recordIfChanged($application, 'payment_mode', 'Payment Mode', $oldPaymentMode, $newPaymentMode, null, null, $user->id);
         ApplicationFieldHistory::recordIfChanged($application, 'follow_up_date', 'Follow-Up Date', $oldFollowup, $newFollowup, null, null, $user->id);
 
         $this->syncApplicationFollowUp(
@@ -353,6 +386,7 @@ class FastEntryController extends Controller
         );
 
         $customer = $application->customer;
+        $application->load(['service', 'assignedEmployee.user']);
 
         return response()->json([
             'success' => true,
@@ -360,6 +394,7 @@ class FastEntryController extends Controller
             'data' => [
                 'id' => $application->id,
                 'application_number' => $application->application_number,
+                'service_id' => $application->service_id,
                 'service_name' => $application->service?->main_service_name ?? 'Service',
                 'sub_service' => $application->sub_service,
                 'expected_days' => (int) ($application->service?->expected_processing_days ?? 7),
@@ -367,6 +402,7 @@ class FastEntryController extends Controller
                 'rate' => number_format($application->total_amount, 2),
                 'received' => number_format($application->received_amount, 2),
                 'remaining' => number_format($application->remaining_amount, 2),
+                'payment_mode' => $application->payment_mode ?: 'Cash',
                 'status' => $application->work_status,
                 'assigned_employee_id' => $application->assigned_employee_id,
                 'work_details' => $application->work_details ?? '',
@@ -517,6 +553,7 @@ class FastEntryController extends Controller
             'sub_service' => ['nullable', 'string', 'max:100'],
             'rate' => ['required', 'numeric', 'min:0'],
             'received' => ['nullable', 'numeric', 'min:0'],
+            'payment_mode' => ['nullable', 'string', 'max:50'],
             'work_details' => ['nullable', 'string'],
             'payment_remarks' => ['nullable', 'string'],
             'documents_list' => ['nullable', 'string'],
@@ -535,13 +572,14 @@ class FastEntryController extends Controller
         $service = Service::findOrFail($validated['service_id']);
         $rate = (float) $validated['rate'];
         $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
+        $paymentMode = !empty($validated['payment_mode']) ? trim($validated['payment_mode']) : 'Cash';
         $workStatus = $validated['work_status'] ?? Application::STATUS_NEW;
         if ($workStatus === 'DONE') {
             $workStatus = Application::STATUS_READY;
         }
 
         try {
-            $application = DB::transaction(function () use ($validated, $user, $customer, $service, $rate, $received, $workStatus) {
+            $application = DB::transaction(function () use ($validated, $user, $customer, $service, $rate, $received, $paymentMode, $workStatus) {
                 $app = $this->applicationService->createApplication([
                     'customer_id' => $customer->id,
                     'family_member_id' => $validated['family_member_id'] ?? null,
@@ -552,6 +590,7 @@ class FastEntryController extends Controller
                     'application_date' => now()->toDateString(),
                     'base_amount' => $rate,
                     'received_amount' => $received,
+                    'payment_mode' => $paymentMode,
                     'work_status' => $workStatus,
                     'work_details' => $validated['work_details'] ?? null,
                     'payment_remarks' => $validated['payment_remarks'] ?? null,
@@ -604,6 +643,7 @@ class FastEntryController extends Controller
                         'rate' => (float) $app->total_amount,
                         'received' => (float) $app->received_amount,
                         'remaining' => (float) $app->remaining_amount,
+                        'payment_mode' => $app->payment_mode ?: 'Cash',
                         'status' => $app->work_status,
                         'service_id' => $app->service_id,
                         'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
@@ -639,6 +679,7 @@ class FastEntryController extends Controller
                     'rate' => number_format($application->total_amount, 2),
                     'received' => number_format($application->received_amount, 2),
                     'remaining' => number_format($application->remaining_amount, 2),
+                    'payment_mode' => $application->payment_mode ?: $paymentMode,
                     'status' => $application->work_status,
                     'expected_days' => (int) ($service->expected_processing_days ?? 7),
                     'main_service_name' => $service->main_service_name,

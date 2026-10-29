@@ -56,6 +56,7 @@ class Application extends Model
         'total_amount',
         'received_amount',
         'remaining_amount',
+        'payment_mode',
         'external_acknowledgement_no',
         'external_portal_login_user',
         'submit_date',
@@ -185,5 +186,28 @@ class Application extends Model
         $this->remaining_amount = $remaining;
         $this->payment_status = $paymentStatus;
         $this->saveQuietly();
+    }
+
+    public static function getAvailablePaymentModes(?int $tenantId = null): array
+    {
+        $defaults = ['Cash', 'Online', 'UPI', 'Google Pay', 'PhonePe', 'Cheque', 'Bank Transfer'];
+        if (!$tenantId) {
+            return $defaults;
+        }
+
+        try {
+            $custom = self::where('tenant_id', $tenantId)
+                ->whereNotNull('payment_mode')
+                ->where('payment_mode', '!=', '')
+                ->distinct()
+                ->pluck('payment_mode')
+                ->map(fn($m) => trim($m))
+                ->filter()
+                ->toArray();
+
+            return array_values(array_unique(array_merge($defaults, $custom)));
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
     }
 }

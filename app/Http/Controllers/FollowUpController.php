@@ -91,6 +91,7 @@ class FollowUpController extends Controller
         $totalReceived = $applications->sum('received_amount');
         $totalRemaining = max(0, $totalBilled - $totalReceived);
         $totalCount = $applications->count();
+        $existingPaymentModes = \App\Models\Application::getAvailablePaymentModes($user->tenant_id);
 
         return view('followups.index', compact(
             'applications',
@@ -108,7 +109,8 @@ class FollowUpController extends Controller
             'totalBilled',
             'totalReceived',
             'totalRemaining',
-            'totalCount'
+            'totalCount',
+            'existingPaymentModes'
         ));
     }
 

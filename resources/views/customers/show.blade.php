@@ -323,6 +323,12 @@
         box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
     }
 
+    /* Sub-service row mode toggle */
+    .pocket-excel-table tr.committed-row-locked .crow-sub-view { display: flex !important; }
+    .pocket-excel-table tr.committed-row-locked .crow-sub-edit { display: none !important; }
+    .pocket-excel-table tr.committed-row-unlocked .crow-sub-view { display: none !important; }
+    .pocket-excel-table tr.committed-row-unlocked .crow-sub-edit { display: flex !important; }
+
     /* Fixed / Sticky Right Status Column for No-Scroll Experience */
     .sticky-status-th,
     .sticky-status-td {
@@ -766,6 +772,7 @@
                 'rate' => (float) $app->total_amount,
                 'received' => (float) $app->received_amount,
                 'remaining' => (float) $app->remaining_amount,
+                'payment_mode' => $app->payment_mode ?: 'Cash',
                 'status' => $app->work_status ?? 'PENDING',
                 'expected_days' => (int) ($app->service?->expected_processing_days ?? 7),
                 'main_service_name' => $app->service?->main_service_name ?? 'Service',
@@ -817,6 +824,13 @@
             <option value="REJECTED">REJECTED</option>
         </datalist>
 
+        <!-- PAYMENT MODE COMBOBOX DATALIST (Supports Standard + Custom Typed Modes) -->
+        <datalist id="customer_payment_mode_datalist">
+            @foreach($existingPaymentModes ?? ['Cash', 'Online', 'UPI', 'Google Pay', 'PhonePe', 'Cheque', 'Bank Transfer'] as $pmode)
+                <option value="{{ $pmode }}">{{ $pmode }}</option>
+            @endforeach
+        </datalist>
+
         <!-- TABLE SCROLL WRAPPER (Compact, Fits Screen Without Horizontal Scroll) -->
         <div class="excel-table-scroll-wrapper">
             <table id="customer-services-table" class="pocket-excel-table">
@@ -843,11 +857,12 @@
                         <th style="min-width: 75px;">3. Rate (₹) *</th>
                         <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
                         <th style="min-width: 75px;">5. Remaining (₹)</th>
-                        <th style="min-width: 140px; color: #38bdf8;">6. Work Details</th>
-                        <th style="min-width: 140px; color: #10b981;">7. Pending Remark</th>
+                        <th style="min-width: 105px; color: #c084fc; text-align: center;">6. Payment Mode</th>
+                        <th style="min-width: 140px; color: #38bdf8;">7. Work Details</th>
+                        <th style="min-width: 140px; color: #10b981;">8. Pending Remark</th>
                         <th style="min-width: 125px;">
                             <div class="excel-th-inner">
-                                <span>8. Operator</span>
+                                <span>9. Operator</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="operator" title="Filter by Operator">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -855,7 +870,7 @@
                         </th>
                         <th style="min-width: 125px; color: #fbbf24;">
                             <div class="excel-th-inner">
-                                <span>9. Follow-Up Date</span>
+                                <span>10. Follow-Up Date</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="followup_date" title="Filter by Follow-Up Date">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -937,21 +952,31 @@
                                    placeholder="₹ 0.00" readonly tabindex="-1" style="background: #f8fafc;">
                         </td>
 
-                        <!-- 6. Work Details -->
+                        <!-- 6. Payment Mode -->
+                        <td style="padding: 4px 6px;">
+                            <input type="text" id="se_payment_mode" list="customer_payment_mode_datalist" class="excel-input font-bold"
+                                   value="Cash" placeholder="Cash / Online..."
+                                   style="font-size: 12px; color: #4338ca; text-align: center; text-transform: capitalize;"
+                                   onchange="registerCustomerPaymentMode(this.value)"
+                                   onkeydown="handleActiveRowKey(event)"
+                                   title="Select or type Payment Mode (Cash, Online, GPay, etc.)">
+                        </td>
+
+                        <!-- 7. Work Details -->
                         <td>
                             <textarea id="se_work_details" class="excel-work-details"
                                       placeholder="Work details / notes..."
                                       rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
-                        <!-- 7. Pending Remark -->
+                        <!-- 8. Pending Remark -->
                         <td>
                             <textarea id="se_payment_remarks" class="excel-work-details"
                                       placeholder="Pending remark / notes..."
                                       rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
-                        <!-- 8. Operator -->
+                        <!-- 9. Operator -->
                         <td>
                             <select id="se_operator" class="excel-select font-semibold" onkeydown="handleActiveRowKey(event)">
                                 <option value="">-- Operator --</option>
@@ -1668,6 +1693,47 @@ function getSavedStatusesForService(serviceName) {
     return Array.from(new Set([...baseList, ...customList]));
 }
 
+function registerCustomerPaymentMode(mode) {
+    if (!mode) return;
+    const val = mode.trim();
+    if (!val) return;
+
+    let storedModes = [];
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+        if (stored) storedModes = JSON.parse(stored);
+    } catch(e) {}
+
+    if (!storedModes.some(m => m.toLowerCase() === val.toLowerCase())) {
+        storedModes.push(val);
+        try {
+            localStorage.setItem('maha_eseva_custom_payment_modes', JSON.stringify(storedModes));
+        } catch(e) {}
+    }
+
+    document.querySelectorAll('datalist[id*="payment_mode"]').forEach(dl => {
+        let exists = Array.from(dl.options).some(o => o.value.toLowerCase() === val.toLowerCase());
+        if (!exists) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            dl.appendChild(opt);
+        }
+    });
+}
+
+function initCustomerPaymentModes() {
+    try {
+        const stored = localStorage.getItem('maha_eseva_custom_payment_modes');
+        if (stored) {
+            const list = JSON.parse(stored);
+            if (Array.isArray(list)) {
+                list.forEach(m => registerCustomerPaymentMode(m));
+            }
+        }
+    } catch(e) {}
+}
+
 function recordCustomStatusForService(serviceName, val) {
     if (!val) return;
     const clean = val.trim().toUpperCase();
@@ -1864,9 +1930,9 @@ function getCommittedRowInnerHtml(app) {
         <td style="font-weight: 700; color: #0f172a;">
             ${escapeHtml(app.service_name)}
         </td>
-        <td style="padding: 4px 6px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
-                <span id="crow_sub_${app.id}" style="font-weight: 600; color: #0284c7; font-size: 12px; line-height: 1.25;">
+        <td style="padding: 4px 6px; min-width: 170px;">
+            <div class="crow-sub-view" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; width: 100%;">
+                <span id="crow_view_sub_${app.id}" style="font-weight: 600; color: #0284c7; font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     ${escapeHtml(app.sub_service || '-')}
                 </span>
                 <div style="display: flex; align-items: center; gap: 3px; flex-shrink: 0;">
@@ -1877,6 +1943,15 @@ function getCommittedRowInnerHtml(app) {
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
                 </div>
+            </div>
+            <div class="crow-sub-edit" style="display: none; align-items: center; gap: 4px; width: 100%;">
+                <select id="crow_sub_${app.id}" class="excel-cell-input font-bold" style="flex: 1; height: 28px; font-size: 11.5px; padding: 2px 4px; border: 1.5px solid #0284c7; border-radius: 4px; color: #0369a1; background: #f0f9ff;"
+                        onchange="onCustomerRowSubServiceChange(this, ${app.id})">
+                    ${renderCustomerSubServiceOptionsHtml(app)}
+                </select>
+                <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'sub_service', event)" title="Sub Service Change History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
             </div>
         </td>
         <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
@@ -1912,6 +1987,17 @@ function getCommittedRowInnerHtml(app) {
             <span id="crow_rem_${app.id}" style="color: ${remColor}; font-size: 12.5px;">
                 ₹ ${remNum.toFixed(2)}
             </span>
+        </td>
+        <td style="padding: 4px 6px; text-align: center;">
+            <input type="text" list="customer_payment_mode_datalist" id="crow_payment_mode_${app.id}"
+                   class="excel-cell-input font-bold"
+                   value="${escapeHtml(app.payment_mode || 'Cash')}"
+                   tabindex="-1"
+                   style="text-align: center; font-size: 12px; color: #4338ca; text-transform: capitalize;"
+                   title="Payment Mode (Cash, Online, GPay, etc.)"
+                   placeholder="Cash / Online"
+                   onchange="registerCustomerPaymentMode(this.value); autoSaveCommittedRow(${app.id})"
+                   onkeydown="handleCommittedKey(event, ${app.id})">
         </td>
         <td style="padding: 4px 6px;">
             <textarea id="crow_work_details_${app.id}" class="excel-work-details"
@@ -2121,12 +2207,101 @@ function calcCommittedRemaining(appId) {
     }
 }
 
+function renderCustomerSubServiceOptionsHtml(app) {
+    const mainName = (app.main_service_name || app.service_name || '').trim();
+    const currentSub = (app.sub_service || '').trim();
+    const currentServiceId = app.service_id;
+
+    let siblings = [];
+    if (typeof allServices !== 'undefined' && Array.isArray(allServices)) {
+        siblings = allServices.filter(s => (s.main_service_name || '').trim().toLowerCase() === mainName.toLowerCase());
+        if (siblings.length === 0 && currentServiceId) {
+            const srv = allServices.find(s => s.id == currentServiceId);
+            if (srv) {
+                siblings = allServices.filter(s => (s.main_service_name || '').trim().toLowerCase() === (srv.main_service_name || '').trim().toLowerCase());
+            }
+        }
+    }
+
+    let hasSelected = false;
+    let html = '';
+    if (siblings && siblings.length > 0) {
+        siblings.forEach(s => {
+            const isMatch = (currentServiceId && s.id == currentServiceId) ||
+                            (!currentServiceId && (s.sub_service_name || '').trim().toLowerCase() === currentSub.toLowerCase());
+            if (isMatch) hasSelected = true;
+            const price = parseFloat(s.price || 0);
+            const days = parseInt(s.expected_processing_days || 7);
+            html += `<option value="${s.id}" data-sub-name="${escapeHtml(s.sub_service_name)}" data-price="${price}" data-days="${days}" ${isMatch ? 'selected' : ''}>
+                ${escapeHtml(s.sub_service_name)} (₹${price.toFixed(0)})
+            </option>`;
+        });
+    }
+
+    if (!hasSelected && currentSub) {
+        html = `<option value="" data-sub-name="${escapeHtml(currentSub)}" selected>${escapeHtml(currentSub)}</option>` + html;
+    }
+
+    return html;
+}
+
+function onCustomerRowSubServiceChange(selectEl, appId) {
+    const selectedOption = selectEl.selectedOptions[0];
+    if (!selectedOption) return;
+
+    const newServiceId = selectedOption.value;
+    const newSubName = selectedOption.getAttribute('data-sub-name') || selectedOption.text.split('(')[0].trim();
+    const newPrice = parseFloat(selectedOption.getAttribute('data-price') || 0);
+    const expDays = parseInt(selectedOption.getAttribute('data-days') || 7);
+
+    // 1. Update the Rate input with new service rate ("update vava rate new service nusar")
+    const rateInput = document.getElementById(`crow_rate_${appId}`);
+    if (rateInput && !isNaN(newPrice)) {
+        rateInput.value = newPrice;
+        calcCommittedRemaining(appId);
+        const viewRate = document.getElementById(`crow_view_rate_${appId}`);
+        if (viewRate) viewRate.textContent = `₹ ${newPrice.toFixed(2)}`;
+    }
+
+    // 2. Update expected days badge
+    const row = document.getElementById(`committed-row-${appId}`);
+    if (row) {
+        row.dataset.sub_service = newSubName;
+        if (newServiceId) row.dataset.service_id = newServiceId;
+        const daysBadge = row.querySelector('.badge:has(⏱️), td:nth-child(4) .badge');
+        if (daysBadge) {
+            daysBadge.innerHTML = `⏱️ ${expDays} Days`;
+        }
+    }
+
+    // 3. Update view text
+    const viewSub = document.getElementById(`crow_view_sub_${appId}`);
+    if (viewSub) {
+        viewSub.textContent = newSubName;
+    }
+
+    // 4. Update in loadedApplications cache
+    if (window.loadedApplications && window.loadedApplications[appId]) {
+        window.loadedApplications[appId].sub_service = newSubName;
+        window.loadedApplications[appId].service_id = newServiceId;
+        if (!isNaN(newPrice)) {
+            window.loadedApplications[appId].rate = newPrice;
+        }
+        window.loadedApplications[appId].expected_days = expDays;
+    }
+
+    // 5. Trigger auto-save
+    autoSaveCommittedRow(appId);
+}
+
 function autoSaveCommittedRow(appId) {
     const rateInput = document.getElementById(`crow_rate_${appId}`);
     const receivedInput = document.getElementById(`crow_received_${appId}`);
     const statusInput = document.getElementById(`crow_status_${appId}`);
     const operatorSelect = document.getElementById(`crow_operator_${appId}`);
-    const subInput = document.getElementById(`crow_sub_${appId}`);
+    const subSelect = document.getElementById(`crow_sub_${appId}`);
+    const subOpt = subSelect ? subSelect.selectedOptions[0] : null;
+    const subInput = subSelect || document.getElementById(`crow_view_sub_${appId}`);
     const workDetailsInput = document.getElementById(`crow_work_details_${appId}`);
     const paymentRemarksInput = document.getElementById(`crow_payment_remarks_${appId}`);
     const followupInput = document.getElementById(`crow_followup_${appId}`);
@@ -2137,14 +2312,18 @@ function autoSaveCommittedRow(appId) {
     const received = receivedInput ? (receivedInput.value || 0) : 0;
     const status = statusInput ? (statusInput.value.trim().toUpperCase() || 'PENDING') : 'PENDING';
     const operator = operatorSelect ? operatorSelect.value : null;
-    const subService = subInput ? (subInput.tagName === 'INPUT' ? subInput.value.trim() : (subInput.textContent || '').trim()) : '';
+    const subService = subOpt ? (subOpt.getAttribute('data-sub-name') || subOpt.text.split('(')[0].trim()) : (subInput ? (subInput.tagName === 'INPUT' ? subInput.value.trim() : (subInput.textContent || '').trim()) : '');
+    const serviceId = subOpt ? (subOpt.value || null) : null;
     const workDetails = workDetailsInput ? workDetailsInput.value.trim() : null;
     const paymentRemarks = paymentRemarksInput ? paymentRemarksInput.value.trim() : null;
+    const paymentModeInput = document.getElementById(`crow_payment_mode_${appId}`);
+    const paymentMode = paymentModeInput ? paymentModeInput.value.trim() : null;
     const followupDate = followupInput ? (followupInput.value || null) : null;
 
     const rowEl = document.getElementById(`committed-row-${appId}`);
     if (rowEl) {
         if (subService) rowEl.dataset.sub_service = subService;
+        if (serviceId) rowEl.dataset.service_id = serviceId;
         if (status) rowEl.dataset.status = status;
         if (operatorSelect) {
             const opText = operatorSelect.selectedOptions[0]?.textContent?.trim() || '';
@@ -2165,6 +2344,7 @@ function autoSaveCommittedRow(appId) {
     const payload = {
         _token: '{{ csrf_token() }}',
         application_id: appId,
+        service_id: serviceId || null,
         rate: rate,
         received: received,
         work_status: status,
@@ -2172,6 +2352,7 @@ function autoSaveCommittedRow(appId) {
         sub_service: subService || null,
         work_details: workDetails,
         payment_remarks: paymentRemarks,
+        payment_mode: paymentMode,
         follow_up_date: followupDate,
     };
 
@@ -2191,17 +2372,30 @@ function autoSaveCommittedRow(appId) {
             if (loadedApplications[appId]) {
                 loadedApplications[appId] = {
                     ...loadedApplications[appId],
+                    service_id: d.service_id,
+                    service_name: d.service_name || d.main_service_name,
                     rate: parseFloat(d.rate.replace(/,/g, '')),
                     received: parseFloat(d.received.replace(/,/g, '')),
                     remaining: parseFloat(d.remaining.replace(/,/g, '')),
                     status: d.status,
                     operator: d.operator,
                     sub_service: d.sub_service,
+                    expected_days: d.expected_days,
                     work_details: d.work_details,
                     payment_remarks: d.payment_remarks,
+                    payment_mode: d.payment_mode || 'Cash',
                     follow_up_date: d.follow_up_date,
                     assigned_employee_id: d.assigned_employee_id
                 };
+            }
+
+            if (d.payment_mode) {
+                registerCustomerPaymentMode(d.payment_mode);
+            }
+
+            const viewSub = document.getElementById(`crow_view_sub_${appId}`);
+            if (viewSub && d.sub_service) {
+                viewSub.textContent = d.sub_service;
             }
 
             calcCommittedRemaining(appId);
@@ -2329,6 +2523,7 @@ function resetActiveRowFields() {
     document.getElementById('se_rate').value = '';
     document.getElementById('se_received').value = '';
     document.getElementById('se_remaining').value = '';
+    if (document.getElementById('se_payment_mode')) document.getElementById('se_payment_mode').value = 'Cash';
     document.getElementById('se_work_details').value = '';
     document.getElementById('se_work_details').style.height = '30px';
     document.getElementById('se_payment_remarks').value = '';
@@ -2376,6 +2571,7 @@ function saveActiveServiceRow() {
         sub_service: srv ? srv.sub_service_name : '',
         rate: rate,
         received: document.getElementById('se_received').value || 0,
+        payment_mode: document.getElementById('se_payment_mode') ? document.getElementById('se_payment_mode').value.trim() : 'Cash',
         work_details: document.getElementById('se_work_details').value.trim() || null,
         payment_remarks: document.getElementById('se_payment_remarks').value.trim() || null,
         follow_up_date: document.getElementById('se_followup').value || null,
@@ -2400,6 +2596,9 @@ function saveActiveServiceRow() {
         if (res.success) {
             const d = res.data;
             recordCustomStatusForService(mainServiceName, statusVal);
+            if (payload.payment_mode) {
+                registerCustomerPaymentMode(payload.payment_mode);
+            }
 
             const newApp = {
                 id: d.id,
@@ -2410,6 +2609,7 @@ function saveActiveServiceRow() {
                 rate: parseFloat(d.rate.replace(/,/g, '')),
                 received: parseFloat(d.received.replace(/,/g, '')),
                 remaining: parseFloat(d.remaining.replace(/,/g, '')),
+                payment_mode: d.payment_mode || payload.payment_mode || 'Cash',
                 status: d.status,
                 expected_days: d.expected_days,
                 main_service_name: d.main_service_name || mainServiceName,
@@ -2732,6 +2932,7 @@ document.addEventListener('keydown', function(e) {
 // 6. INITIAL LOAD BOOTSTRAP
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+    initCustomerPaymentModes();
     const tbody = document.getElementById('services-tbody');
     const activeRow = document.getElementById('active-service-row');
 
