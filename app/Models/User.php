@@ -125,6 +125,16 @@ class User extends Authenticatable
             return $userPerms->contains('slug', $permissionSlug);
         }
 
+        // Sensitive modules for employees require explicit direct permission
+        if ($this->isEmployee() && in_array($permissionSlug, [
+            'services.view', 'services.create', 'services.edit', 'services.delete',
+            'branches.view', 'branches.create', 'branches.edit', 'branches.delete',
+            'reports.view', 'reports.export',
+            'settings.view', 'settings.edit',
+        ])) {
+            return false;
+        }
+
         // Fallback to role permissions
         foreach ($this->roles as $role) {
             if ($role->hasPermission($permissionSlug)) {
@@ -136,22 +146,43 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if this user has restricted services access.
+     */
+    public function hasServiceRestrictions(): bool
+    {
+        if ($this->isSuperAdmin() || $this->isBusinessOwner() || $this->isBranchAdmin()) {
+            return false;
+        }
+
+        if ($this->employee) {
+            return $this->employee->services()->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Get array of service IDs accessible to this user.
+     */
+    public function getAllowedServiceIds(): array
+    {
+        if (!$this->hasServiceRestrictions()) {
+            return Service::where('is_active', true)->pluck('id')->toArray();
+        }
+
+        return $this->employee->services()->where('is_active', true)->pluck('services.id')->toArray();
+    }
+
+    /**
      * Get query for services accessible to this user.
      */
     public function allowedServices()
     {
-        if ($this->isSuperAdmin() || $this->isBusinessOwner() || $this->isBranchAdmin()) {
+        if (!$this->hasServiceRestrictions()) {
             return Service::where('is_active', true);
         }
 
-        if ($this->employee) {
-            $assignedCount = $this->employee->services()->count();
-            if ($assignedCount > 0) {
-                return $this->employee->services()->where('is_active', true);
-            }
-        }
-
-        return Service::where('is_active', true);
+        return $this->employee->services()->where('is_active', true);
     }
 
     /**
@@ -159,20 +190,12 @@ class User extends Authenticatable
      */
     public function canAccessService(int|Service $service): bool
     {
-        if ($this->isSuperAdmin() || $this->isBusinessOwner() || $this->isBranchAdmin()) {
+        if (!$this->hasServiceRestrictions()) {
             return true;
         }
 
         $serviceId = $service instanceof Service ? $service->id : (int) $service;
-
-        if ($this->employee) {
-            $assignedCount = $this->employee->services()->count();
-            if ($assignedCount > 0) {
-                return $this->employee->services()->where('services.id', $serviceId)->exists();
-            }
-        }
-
-        return true;
+        return in_array($serviceId, $this->getAllowedServiceIds());
     }
 
     // Account lockout & Security

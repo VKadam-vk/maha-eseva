@@ -76,8 +76,8 @@ class ApplicationController extends Controller
         }
 
         // Restrict employee visibility to only their allowed services
-        if ($user->isEmployee() && $user->employee && $user->employee->services()->exists()) {
-            $allowedServiceIds = $user->employee->services()->pluck('services.id');
+        if ($user->hasServiceRestrictions()) {
+            $allowedServiceIds = $user->getAllowedServiceIds();
             $query->whereIn('service_id', $allowedServiceIds);
         }
 
@@ -88,7 +88,9 @@ class ApplicationController extends Controller
 
         $applications = $query->latest('id')->paginate(30)->withQueryString();
         $services = $user->allowedServices()->get();
-        $activeServices = Service::where('is_active', true)->with('category')->get();
+        $activeServices = $user->hasServiceRestrictions()
+            ? $user->allowedServices()->with('category')->get()
+            : Service::where('is_active', true)->with('category')->get();
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
 
@@ -187,6 +189,11 @@ class ApplicationController extends Controller
      */
     public function show(Application $application): View
     {
+        $user = Auth::user();
+        if ($user->hasServiceRestrictions() && !$user->canAccessService($application->service_id)) {
+            abort(403, 'Unauthorized: You do not have permission to view applications for this service.');
+        }
+
         $this->authorize('view', $application);
 
         $application->load([

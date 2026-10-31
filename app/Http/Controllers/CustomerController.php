@@ -47,6 +47,14 @@ class CustomerController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        // Restrict employee visibility to customers who have applications in their allowed services
+        if ($user->hasServiceRestrictions()) {
+            $allowedServiceIds = $user->getAllowedServiceIds();
+            $query->whereHas('applications', function ($q) use ($allowedServiceIds) {
+                $q->whereIn('service_id', $allowedServiceIds);
+            });
+        }
+
         $customers = $query->latest()->paginate(15)->withQueryString();
         $categories = CustomerCategory::all();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
@@ -130,13 +138,28 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer): View
     {
+        $user = Auth::user();
         $this->authorize('view', $customer);
+
+        // Restrict employee access to customer profile if no allowed services match
+        if ($user->hasServiceRestrictions()) {
+            $hasAccess = $customer->applications()->whereIn('service_id', $user->getAllowedServiceIds())->exists()
+                || (int) ($customer->created_by ?? 0) === (int) $user->id;
+            if (!$hasAccess && $customer->applications()->exists()) {
+                abort(403, 'तुम्हाला या ग्राहकाची माहिती पाहण्याची परवानगी नाही.');
+            }
+        }
 
         $customer->load([
             'branch',
             'category',
             'creator',
             'familyMembers',
+            'applications' => function ($q) use ($user) {
+                if ($user->hasServiceRestrictions()) {
+                    $q->whereIn('service_id', $user->getAllowedServiceIds());
+                }
+            },
             'applications.service',
             'applications.assignedEmployee.user',
             'applications.familyMember',
@@ -161,7 +184,9 @@ class CustomerController extends Controller
             ->limit(25)
             ->get();
 
-        $activeServices = Service::where('is_active', true)->with('category')->get();
+        $activeServices = $user->hasServiceRestrictions()
+            ? $user->allowedServices()->with('category')->get()
+            : Service::where('is_active', true)->with('category')->get();
         $employees = Auth::user()->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
 
         $formattedFamilyMembers = $customer->familyMembers->map(function ($fm) {

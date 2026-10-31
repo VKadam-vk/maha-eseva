@@ -33,8 +33,10 @@ class FastEntryController extends Controller
         $user = Auth::user();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
         
-        // Active services master for counter entries
-        $services = Service::where('is_active', true)->orderBy('main_service_name')->get();
+        // Active services master for counter entries (filtered by employee allowed services if restricted)
+        $services = $user->hasServiceRestrictions()
+            ? $user->allowedServices()->orderBy('main_service_name')->get()
+            : Service::where('is_active', true)->orderBy('main_service_name')->get();
 
         // Active operators/employees
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
@@ -131,8 +133,12 @@ class FastEntryController extends Controller
             $isNew = true;
         }
 
-        // Fetch customer's full applications & services history
-        $applications = Application::where('customer_id', $customer->id)
+        // Fetch customer's full applications & services history (filtered for restricted employees)
+        $appsQuery = Application::where('customer_id', $customer->id);
+        if ($user->hasServiceRestrictions()) {
+            $appsQuery->whereIn('service_id', $user->getAllowedServiceIds());
+        }
+        $applications = $appsQuery
             ->with(['service', 'assignedEmployee.user', 'familyMember'])
             ->latest('id')
             ->get()
@@ -308,6 +314,13 @@ class FastEntryController extends Controller
 
         $user = Auth::user();
         $application = Application::findOrFail($validated['application_id']);
+
+        if ($user->hasServiceRestrictions() && !$user->canAccessService($application->service_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'तुम्हाला या सेवेचे काम किंवा अर्जात बदल करण्याची परवानगी नाही.'
+            ], 403);
+        }
 
         $rate = (float) $validated['rate'];
         $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
@@ -570,6 +583,13 @@ class FastEntryController extends Controller
         $user = Auth::user();
         $customer = Customer::findOrFail($validated['customer_id']);
         $service = Service::findOrFail($validated['service_id']);
+
+        if ($user->hasServiceRestrictions() && !$user->canAccessService($service->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'तुम्हाला या सेवेचे काम (Service Entry) करण्याची परवानगी नाही. कृपया ॲडमिनशी संपर्क साधा.'
+            ], 403);
+        }
         $rate = (float) $validated['rate'];
         $received = isset($validated['received']) ? (float) $validated['received'] : 0.00;
         $paymentMode = !empty($validated['payment_mode']) ? trim($validated['payment_mode']) : 'Cash';
@@ -625,7 +645,11 @@ class FastEntryController extends Controller
                 'created_at' => now(),
             ]);
 
-            $applications = Application::where('customer_id', $customer->id)
+            $appsQuery = Application::where('customer_id', $customer->id);
+            if ($user->hasServiceRestrictions()) {
+                $appsQuery->whereIn('service_id', $user->getAllowedServiceIds());
+            }
+            $applications = $appsQuery
                 ->with(['service', 'assignedEmployee.user', 'familyMember'])
                 ->latest('id')
                 ->get()

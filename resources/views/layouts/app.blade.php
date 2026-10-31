@@ -47,10 +47,12 @@
                     <span>All Entries</span>
                 </a>
 
-                <a href="{{ route('services.index') }}" class="erp-nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>Services Master</span>
-                </a>
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('services.view'))
+                    <a href="{{ route('services.index') }}" class="erp-nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Services Master</span>
+                    </a>
+                @endif
 
                 <a href="{{ route('followups.index') }}" class="erp-nav-link {{ request()->routeIs('followups.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-calendar-check"></i>
@@ -62,52 +64,60 @@
                     <span>Enquiries / Leads</span>
                 </a>
 
-                <div class="erp-nav-section-title">Financials</div>
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('payments.view'))
+                    <div class="erp-nav-section-title">Financials</div>
 
-                <a href="{{ route('payments.index') }}" class="erp-nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span>Collections & Receipts</span>
-                </a>
+                    <a href="{{ route('payments.index') }}" class="erp-nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        <span>Collections & Receipts</span>
+                    </a>
 
-                <a href="{{ route('invoices.index') }}" class="erp-nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
-                    <span>Invoices</span>
-                </a>
-
-                <div class="erp-nav-section-title">Administration</div>
-
-                @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner())
-                    <a href="{{ route('branches.index') }}" class="erp-nav-link {{ request()->routeIs('branches.*') ? 'active' : '' }}">
-                        <i class="fa-solid fa-code-branch"></i>
-                        <span>Branches</span>
+                    <a href="{{ route('invoices.index') }}" class="erp-nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>Invoices</span>
                     </a>
                 @endif
 
-                <a href="{{ route('employees.index') }}" class="erp-nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-user-tie"></i>
-                    <span>Staff & Operators</span>
-                </a>
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('branches.view') || Auth::user()->hasPermission('employees.view') || Auth::user()->hasPermission('reports.view'))
+                    <div class="erp-nav-section-title">Administration</div>
 
-                <a href="{{ route('reports.index') }}" class="erp-nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>Reports Center</span>
-                </a>
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('branches.view'))
+                        <a href="{{ route('branches.index') }}" class="erp-nav-link {{ request()->routeIs('branches.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-code-branch"></i>
+                            <span>Branches</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('import_export.import.customers') }}" class="erp-nav-link {{ request()->routeIs('import_export.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Import & Export</span>
-                </a>
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('employees.view'))
+                        <a href="{{ route('employees.index') }}" class="erp-nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <span>Staff & Operators</span>
+                        </a>
+                    @endif
 
-                @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner())
-                    <a href="{{ route('audit.index') }}" class="erp-nav-link {{ request()->routeIs('audit.*') ? 'active' : '' }}">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Audit Security</span>
-                    </a>
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('reports.view'))
+                        <a href="{{ route('reports.index') }}" class="erp-nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Reports Center</span>
+                        </a>
+                    @endif
 
-                    <a href="{{ route('settings.index') }}" class="erp-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                        <i class="fa-solid fa-sliders"></i>
-                        <span>Settings</span>
-                    </a>
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner())
+                        <a href="{{ route('import_export.import.customers') }}" class="erp-nav-link {{ request()->routeIs('import_export.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-file-excel"></i>
+                            <span>Import & Export</span>
+                        </a>
+
+                        <a href="{{ route('audit.index') }}" class="erp-nav-link {{ request()->routeIs('audit.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Audit Security</span>
+                        </a>
+
+                        <a href="{{ route('settings.index') }}" class="erp-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>Settings</span>
+                        </a>
+                    @endif
                 @endif
             </nav>
         </aside>

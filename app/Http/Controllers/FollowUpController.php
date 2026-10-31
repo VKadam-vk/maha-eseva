@@ -37,7 +37,11 @@ class FollowUpController extends Controller
             ->whereNotNull('follow_up_date');
 
         if ($user->isEmployee()) {
-            $query->where('assigned_employee_id', $user->employee?->id);
+            if ($user->hasServiceRestrictions()) {
+                $query->whereIn('service_id', $user->getAllowedServiceIds());
+            } else {
+                $query->where('assigned_employee_id', $user->employee?->id);
+            }
         }
 
         if ($request->filled('status')) {
@@ -69,11 +73,19 @@ class FollowUpController extends Controller
         $allCountQuery = Application::whereNotNull('follow_up_date');
 
         if ($user->isEmployee()) {
-            $empId = $user->employee?->id;
-            $todayCountQuery->where('assigned_employee_id', $empId);
-            $tomorrowCountQuery->where('assigned_employee_id', $empId);
-            $overdueCountQuery->where('assigned_employee_id', $empId);
-            $allCountQuery->where('assigned_employee_id', $empId);
+            if ($user->hasServiceRestrictions()) {
+                $allowedIds = $user->getAllowedServiceIds();
+                $todayCountQuery->whereIn('service_id', $allowedIds);
+                $tomorrowCountQuery->whereIn('service_id', $allowedIds);
+                $overdueCountQuery->whereIn('service_id', $allowedIds);
+                $allCountQuery->whereIn('service_id', $allowedIds);
+            } else {
+                $empId = $user->employee?->id;
+                $todayCountQuery->where('assigned_employee_id', $empId);
+                $tomorrowCountQuery->where('assigned_employee_id', $empId);
+                $overdueCountQuery->where('assigned_employee_id', $empId);
+                $allCountQuery->where('assigned_employee_id', $empId);
+            }
         }
 
         $todayCount = $todayCountQuery->count();
@@ -82,7 +94,9 @@ class FollowUpController extends Controller
         $allCount = $allCountQuery->count();
 
         // 4. Auxiliary master data
-        $activeServices = \App\Models\Service::where('is_active', true)->with('category')->get();
+        $activeServices = $user->hasServiceRestrictions()
+            ? $user->allowedServices()->with('category')->get()
+            : \App\Models\Service::where('is_active', true)->with('category')->get();
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
         $customers = Customer::latest()->limit(50)->get();
 

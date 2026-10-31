@@ -123,50 +123,61 @@ class ReportService
     public function getEmployeeDashboard(int $tenantId, int $employeeId): array
     {
         $today = now()->toDateString();
+        $user = Auth::user();
+        $hasRestrictions = $user && $user->hasServiceRestrictions();
+        $allowedIds = $hasRestrictions ? $user->getAllowedServiceIds() : [];
 
-        $assignedToday = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $buildAppQuery = function() use ($tenantId, $employeeId, $hasRestrictions, $allowedIds) {
+            $q = Application::where('tenant_id', $tenantId);
+            if ($hasRestrictions) {
+                $q->whereIn('service_id', $allowedIds);
+            } else {
+                $q->where('assigned_employee_id', $employeeId);
+            }
+            return $q;
+        };
+
+        $assignedToday = $buildAppQuery()
             ->whereDate('created_at', $today)
             ->count();
 
-        $inProcess = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $inProcess = $buildAppQuery()
             ->whereIn('work_status', [Application::STATUS_IN_PROCESS, Application::STATUS_SUBMITTED, Application::STATUS_UNDER_PROCESS])
             ->count();
 
-        $pending = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $pending = $buildAppQuery()
             ->whereIn('work_status', [Application::STATUS_NEW, Application::STATUS_DOCUMENT_PENDING, Application::STATUS_RETURNED_CORRECTION])
             ->count();
 
-        $dueToday = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $dueToday = $buildAppQuery()
             ->whereDate('due_date', $today)
             ->whereNotIn('work_status', [Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
             ->count();
 
-        $overdue = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $overdue = $buildAppQuery()
             ->whereDate('due_date', '<', $today)
             ->whereNotIn('work_status', [Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
             ->count();
 
-        $completed = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
+        $completed = $buildAppQuery()
             ->whereIn('work_status', [Application::STATUS_APPROVED, Application::STATUS_READY, Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
             ->count();
 
-        $tasks = Application::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
-            ->whereNotIn('work_status', [Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
+        // Pending Applications Only for Dashboard
+        $tasks = $buildAppQuery()
+            ->whereNotIn('work_status', [Application::STATUS_DELIVERED, Application::STATUS_CLOSED, Application::STATUS_APPROVED])
             ->with(['customer', 'service'])
-            ->orderBy('due_date', 'asc')
-            ->limit(10)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
             ->get();
 
-        $followUps = FollowUp::where('tenant_id', $tenantId)
-            ->where('assigned_employee_id', $employeeId)
-            ->where('status', FollowUp::STATUS_PENDING)
+        $followUps = FollowUp::where('tenant_id', $tenantId);
+        if ($hasRestrictions) {
+            $followUps->whereIn('service_id', $allowedIds);
+        } else {
+            $followUps->where('assigned_employee_id', $employeeId);
+        }
+        $followUps = $followUps->where('status', FollowUp::STATUS_PENDING)
             ->with(['customer', 'application'])
             ->orderBy('follow_up_date', 'asc')
             ->limit(10)

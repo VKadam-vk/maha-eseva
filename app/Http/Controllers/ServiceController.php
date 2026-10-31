@@ -20,11 +20,15 @@ class ServiceController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner() && !$user->hasPermission('services.view')) {
+            abort(403, 'सेवा मास्टर (Services Master) ॲक्सेस करण्याची परवानगी तुम्हाला नाही. कृपया ॲडमिनशी संपर्क साधा.');
+        }
+
         $query = Service::with(['category', 'customFields'])->withCount('applications');
 
         // Restrict services if logged in employee has specific assigned services
-        if ($user->isEmployee() && $user->employee && $user->employee->services()->exists()) {
-            $allowedServiceIds = $user->employee->services()->pluck('services.id');
+        if ($user->hasServiceRestrictions()) {
+            $allowedServiceIds = $user->getAllowedServiceIds();
             $query->whereIn('id', $allowedServiceIds);
         }
 

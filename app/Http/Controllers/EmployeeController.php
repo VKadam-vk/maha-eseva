@@ -49,17 +49,21 @@ class EmployeeController extends Controller
             return $s->main_service_name ?: 'General Services';
         });
 
-        // Default recommended permissions for counter operator
+        // Default recommended permissions for counter operator (Service Master is disabled by default)
         $defaultPermissionSlugs = [
             'customers.view', 'customers.create', 'customers.edit',
             'applications.view', 'applications.create', 'applications.edit',
             'documents.view', 'documents.upload',
             'payments.view', 'payments.create',
-            'services.view',
         ];
         $defaultPermissionIds = Permission::whereIn('slug', $defaultPermissionSlugs)->pluck('id')->toArray();
 
-        return view('employees.create', compact('branches', 'permissions', 'services', 'defaultPermissionIds'));
+        $allServicesFlat = Service::where('is_active', true)
+            ->orderBy('main_service_name')
+            ->orderBy('sub_service_name')
+            ->get();
+
+        return view('employees.create', compact('branches', 'permissions', 'services', 'allServicesFlat', 'defaultPermissionIds'));
     }
 
     /**
@@ -176,8 +180,13 @@ class EmployeeController extends Controller
         $assignedServiceIds = $employee->services()->pluck('services.id')->toArray();
         $hasAllServices = empty($assignedServiceIds);
 
+        $allServicesFlat = Service::where('is_active', true)
+            ->orderBy('main_service_name')
+            ->orderBy('sub_service_name')
+            ->get();
+
         return view('employees.edit', compact(
-            'employee', 'branches', 'permissions', 'services',
+            'employee', 'branches', 'permissions', 'services', 'allServicesFlat',
             'assignedPermissionIds', 'assignedServiceIds', 'hasAllServices'
         ));
     }

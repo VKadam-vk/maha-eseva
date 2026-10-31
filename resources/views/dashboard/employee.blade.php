@@ -59,7 +59,7 @@
 <!-- My Assigned Applications -->
 <div class="erp-card">
     <div class="erp-card-header">
-        <h3 class="erp-card-title"><i class="fa-solid fa-list-check"></i> My Active Processing Queue</h3>
+        <h3 class="erp-card-title"><i class="fa-solid fa-list-check"></i> My Active Pending Processing Queue (प्रलंबित कामे)</h3>
     </div>
     <div class="table-responsive">
         <table class="erp-table">
