@@ -127,12 +127,38 @@
             <!-- 9. Contact Email -->
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-envelope" style="color: #2563eb;"></i> Contact Email
+                    <i class="fa-solid fa-envelope" style="color: #2563eb;"></i> Contact Email (Branch Login ID)
                 </label>
                 <input type="email" name="contact_email" class="form-control" 
                        placeholder="kothrud@mahaeseva.com" 
                        value="{{ old('contact_email') }}"
                        style="height: 44px; font-size: 13.5px; width: 100%;">
+                <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">Used as username to log in as Branch Admin.</small>
+            </div>
+
+            <!-- 9b. Branch Admin Login Password -->
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-weight: 700; color: #1e293b; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-key" style="color: #4f46e5;"></i> Branch Admin Login Password
+                    </span>
+                    <span style="font-size: 11px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">
+                        <i class="fa-solid fa-key"></i> Default: 12345678
+                    </span>
+                </label>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="branch_password_input" name="password" class="form-control" 
+                           value="{{ old('password', '12345678') }}" 
+                           placeholder="12345678" style="height: 44px; padding-right: 42px; font-weight: 700; font-family: var(--font-mono, monospace); letter-spacing: 0.5px; width: 100%;">
+                    <button type="button" onclick="toggleBranchPasswordVisibility()" 
+                            style="position: absolute; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; font-size: 14px;" 
+                            title="Show/Hide Password">
+                        <i id="branch_password_eye" class="fa-solid fa-eye-slash"></i>
+                    </button>
+                </div>
+                <small style="color: #64748b; font-size: 11px; margin-top: 3px; display: block;">
+                    <i class="fa-solid fa-circle-info" style="color: #0284c7;"></i> Pre-filled with default password <code>12345678</code>. Branch admin can change it after login.
+                </small>
             </div>
 
             <!-- 10. Physical Address -->
@@ -186,4 +212,21 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function toggleBranchPasswordVisibility() {
+    const input = document.getElementById('branch_password_input');
+    const eye = document.getElementById('branch_password_eye');
+    if (!input || !eye) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = 'password';
+        eye.className = 'fa-solid fa-eye';
+    }
+}
+</script>
+@endpush
 @endsection

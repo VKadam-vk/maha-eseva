@@ -50,8 +50,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required">Login Password</label>
-                        <input type="password" name="password" class="form-control" required placeholder="Minimum 8 characters">
+                        <label class="form-label required" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Login Password</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">
+                                <i class="fa-solid fa-key"></i> Default: 12345678
+                            </span>
+                        </label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="text" id="emp_password_input" name="password" class="form-control" 
+                                   value="{{ old('password', '12345678') }}" 
+                                   placeholder="12345678" style="padding-right: 42px; font-weight: 700; font-family: var(--font-mono, monospace); letter-spacing: 0.5px;">
+                            <button type="button" onclick="toggleEmpPasswordVisibility()" 
+                                    style="position: absolute; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; font-size: 14px;" 
+                                    title="Show/Hide Password">
+                                <i id="emp_password_eye" class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <small style="color: #64748b; font-size: 11.5px; margin-top: 4px; display: block;">
+                            <i class="fa-solid fa-circle-info" style="color: #0284c7;"></i> Pre-filled with default password <code>12345678</code>. Employee can change it after login.
+                        </small>
                     </div>
                 </div>
 
@@ -635,6 +652,19 @@ document.addEventListener('DOMContentLoaded', function () {
     renderServicesUI();
     updatePermCheckboxesUI();
 });
+
+function toggleEmpPasswordVisibility() {
+    const input = document.getElementById('emp_password_input');
+    const eye = document.getElementById('emp_password_eye');
+    if (!input || !eye) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        eye.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = 'password';
+        eye.className = 'fa-solid fa-eye';
+    }
+}
 </script>
 @endpush
 @endsection

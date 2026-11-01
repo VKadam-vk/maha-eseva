@@ -83,7 +83,7 @@ class EmployeeController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
             'mobile' => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:6'],
             'branch_id' => ['required', 'exists:branches,id'],
             'designation' => ['required', 'string', 'max:100'],
             'joining_date' => ['nullable', 'date'],
@@ -109,13 +109,14 @@ class EmployeeController extends Controller
         }
 
         DB::transaction(function () use ($request, $validated, $tenantId) {
+            $empPassword = !empty($validated['password']) ? $validated['password'] : '12345678';
             $user = User::create([
                 'tenant_id' => $tenantId,
                 'branch_id' => $validated['branch_id'],
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'mobile' => $validated['mobile'],
-                'password' => Hash::make($validated['password']),
+                'password' => Hash::make($empPassword),
                 'status' => 'ACTIVE',
             ]);
 
@@ -170,7 +171,7 @@ class EmployeeController extends Controller
             AuditService::log('EMPLOYEE_CREATED', $employee, null, $employee->toArray());
         });
 
-        return redirect()->route('employees.index')->with('success', 'Employee created successfully with assigned permissions and services.');
+        return redirect()->route('employees.index')->with('success', 'Employee created successfully! Login Email: ' . $validated['email'] . ' | Default Password: ' . (!empty($validated['password']) ? $validated['password'] : '12345678'));
     }
 
     /**
