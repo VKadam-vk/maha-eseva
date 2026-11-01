@@ -15,6 +15,7 @@ class Service extends Model
 
     protected $fillable = [
         'tenant_id',
+        'branch_id',
         'category_id',
         'service_code',
         'main_service_name',
@@ -46,6 +47,11 @@ class Service extends Model
         'expected_processing_days' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function category(): BelongsTo
     {

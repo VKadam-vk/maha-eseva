@@ -40,7 +40,9 @@ class CustomerController extends Controller
             });
         }
 
-        if ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
             $query->where('branch_id', $request->branch_id);
         }
 
@@ -58,7 +60,12 @@ class CustomerController extends Controller
 
         $customers = $query->latest()->paginate(15)->withQueryString();
         $categories = CustomerCategory::all();
-        $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
+
+        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
+        if ($user->branch_id) {
+            $branchesQuery->where('id', $user->branch_id);
+        }
+        $branches = $branchesQuery->get() ?? collect();
 
         return view('customers.index', compact('customers', 'categories', 'branches'));
     }
@@ -70,7 +77,12 @@ class CustomerController extends Controller
     {
         $user = Auth::user();
         $categories = CustomerCategory::all();
-        $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
+
+        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
+        if ($user->branch_id) {
+            $branchesQuery->where('id', $user->branch_id);
+        }
+        $branches = $branchesQuery->get() ?? collect();
 
         return view('customers.create', compact('categories', 'branches'));
     }
@@ -80,6 +92,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = Auth::user();
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'mobile' => ['required', 'string', 'max:20'],
@@ -99,7 +112,11 @@ class CustomerController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $customer = $this->customerService->createCustomer($validated, Auth::user());
+        if ($user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        }
+
+        $customer = $this->customerService->createCustomer($validated, $user);
 
         return redirect()->route('customers.show', $customer->id)
             ->with('success', "Customer {$customer->name} ({$customer->customer_code}) saved successfully.");
@@ -111,9 +128,10 @@ class CustomerController extends Controller
     public function checkDuplicate(Request $request): JsonResponse
     {
         $request->validate(['mobile' => 'required|string']);
-        $tenantId = Auth::user()->tenant_id;
+        $user = Auth::user();
+        $tenantId = $user->tenant_id;
 
-        $existing = $this->customerService->findByMobile($tenantId, $request->mobile);
+        $existing = $this->customerService->findByMobile($tenantId, $request->mobile, $user->branch_id);
 
         if ($existing) {
             return response()->json([
@@ -185,9 +203,7 @@ class CustomerController extends Controller
             ->limit(25)
             ->get();
 
-        $activeServices = $user->hasServiceRestrictions()
-            ? $user->allowedServices()->with('category')->get()
-            : Service::where('is_active', true)->with('category')->get();
+        $activeServices = $user->allowedServices()->with('category')->get();
         $employees = Auth::user()->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
 
         $formattedFamilyMembers = $customer->familyMembers->map(function ($fm) {

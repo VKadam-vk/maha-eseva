@@ -31,20 +31,30 @@ class FastEntryController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
+        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
+        if ($user->branch_id) {
+            $branchesQuery->where('id', $user->branch_id);
+        }
+        $branches = $branchesQuery->get() ?? collect();
         
-        // Active services master for counter entries (filtered by employee allowed services if restricted)
-        $services = $user->hasServiceRestrictions()
-            ? $user->allowedServices()->orderBy('main_service_name')->get()
-            : Service::where('is_active', true)->orderBy('main_service_name')->get();
+        // Active services master for counter entries (filtered by employee allowed services if restricted, or branch)
+        $services = $user->allowedServices()->orderBy('main_service_name')->get();
 
         // Active operators/employees
-        $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        }
+        $employees = $employeesQuery->get() ?? collect();
 
         // Distinct customer occupations in database
-        $existingOccupations = Customer::where('tenant_id', $user->tenant_id)
+        $occupationsQuery = Customer::where('tenant_id', $user->tenant_id)
             ->whereNotNull('occupation')
-            ->where('occupation', '!=', '')
+            ->where('occupation', '!=', '');
+        if ($user->branch_id) {
+            $occupationsQuery->where('branch_id', $user->branch_id);
+        }
+        $existingOccupations = $occupationsQuery
             ->distinct()
             ->pluck('occupation')
             ->map(fn($o) => strtoupper(trim($o)))
@@ -82,8 +92,8 @@ class FastEntryController extends Controller
             ], 422);
         }
 
-        // 1. Search existing customer by mobile
-        $existing = $this->customerService->findByMobile($tenantId, $cleanedMobile);
+        // 1. Search existing customer by mobile within branch
+        $existing = $this->customerService->findByMobile($tenantId, $cleanedMobile, $user->branch_id);
 
         if ($existing) {
             // If name is entered and different, update name
@@ -448,7 +458,12 @@ class FastEntryController extends Controller
         $user = Auth::user();
         $cleanedMobile = preg_replace('/[^0-9]/', '', $query);
 
-        $customers = Customer::where('tenant_id', $user->tenant_id)
+        $customersQuery = Customer::where('tenant_id', $user->tenant_id);
+        if ($user->branch_id) {
+            $customersQuery->where('branch_id', $user->branch_id);
+        }
+
+        $customers = $customersQuery
             ->where(function ($q) use ($query, $cleanedMobile) {
                 $q->where('name', 'like', "%{$query}%")
                   ->orWhere('customer_code', 'like', "%{$query}%");
@@ -503,7 +518,7 @@ class FastEntryController extends Controller
 
         try {
             $cleanedMobile = preg_replace('/[^0-9]/', '', $validated['mobile']);
-            $existing = $this->customerService->findByMobile($tenantId, $cleanedMobile);
+            $existing = $this->customerService->findByMobile($tenantId, $cleanedMobile, $user->branch_id);
 
             if ($existing) {
                 $customer = $this->customerService->updateCustomer($existing, [
@@ -518,8 +533,9 @@ class FastEntryController extends Controller
                 ], $user);
                 $isNew = false;
             } else {
+                $branchId = $user->branch_id ?? ($validated['branch_id'] ?? null);
                 $customer = $this->customerService->createCustomer([
-                    'branch_id' => $validated['branch_id'] ?? $user->branch_id,
+                    'branch_id' => $branchId,
                     'name' => $validated['customer_name'],
                     'gender' => $validated['gender'],
                     'mobile' => $cleanedMobile,

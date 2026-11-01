@@ -20,7 +20,14 @@ class BranchController extends Controller
      */
     public function index(): View
     {
-        $branches = Branch::withCount(['users', 'employees', 'customers', 'applications'])->paginate(15);
+        $user = Auth::user();
+        if ((!$user->isSuperAdmin() && !$user->isBusinessOwner()) || $user->isBranchAdmin()) {
+            abort(403, 'Unauthorized: Only business owners can manage branches.');
+        }
+
+        $branches = Branch::where('tenant_id', $user->tenant_id)
+            ->withCount(['users', 'employees', 'customers', 'applications'])
+            ->paginate(15);
         return view('branches.index', compact('branches'));
     }
 
@@ -30,7 +37,7 @@ class BranchController extends Controller
     public function create(): View
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+        if ((!$user->isSuperAdmin() && !$user->isBusinessOwner()) || $user->isBranchAdmin()) {
             abort(403, 'Unauthorized: Only business owners can create new branches.');
         }
 
@@ -43,7 +50,7 @@ class BranchController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+        if ((!$user->isSuperAdmin() && !$user->isBusinessOwner()) || $user->isBranchAdmin()) {
             abort(403, 'Unauthorized: Only business owners can create new branches.');
         }
 
@@ -139,7 +146,7 @@ class BranchController extends Controller
     public function edit(Branch $branch): View
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+        if ((!$user->isSuperAdmin() && !$user->isBusinessOwner()) || $user->isBranchAdmin()) {
             abort(403, 'Unauthorized: Only business owners can edit branch settings.');
         }
 
@@ -152,7 +159,7 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch): RedirectResponse
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+        if ((!$user->isSuperAdmin() && !$user->isBusinessOwner()) || $user->isBranchAdmin()) {
             abort(403, 'Unauthorized: Only business owners can edit branch settings.');
         }
 

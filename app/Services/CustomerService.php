@@ -10,22 +10,27 @@ use Illuminate\Support\Str;
 class CustomerService
 {
     /**
-     * Search for duplicate or existing customer by mobile or alternate mobile number within tenant.
+     * Search for duplicate or existing customer by mobile or alternate mobile number within tenant (and optionally branch).
      */
-    public function findByMobile(int $tenantId, string $mobile): ?Customer
+    public function findByMobile(int $tenantId, string $mobile, ?int $branchId = null): ?Customer
     {
         $cleanedMobile = preg_replace('/[^0-9]/', '', $mobile);
-        return Customer::where('tenant_id', $tenantId)
-            ->where(function ($query) use ($cleanedMobile, $mobile) {
-                $query->where('mobile', $mobile)
-                      ->orWhere('mobile', $cleanedMobile)
-                      ->orWhere('alternate_mobile', $mobile)
-                      ->orWhere('alternate_mobile', $cleanedMobile);
+        $query = Customer::where('tenant_id', $tenantId);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return $query->where(function ($q) use ($cleanedMobile, $mobile) {
+                $q->where('mobile', $mobile)
+                  ->orWhere('mobile', $cleanedMobile)
+                  ->orWhere('alternate_mobile', $mobile)
+                  ->orWhere('alternate_mobile', $cleanedMobile);
 
                 if (strlen($cleanedMobile) >= 10) {
                     $last10 = substr($cleanedMobile, -10);
-                    $query->orWhere('mobile', 'like', "%{$last10}%")
-                          ->orWhere('alternate_mobile', 'like', "%{$last10}%");
+                    $q->orWhere('mobile', 'like', "%{$last10}%")
+                      ->orWhere('alternate_mobile', 'like', "%{$last10}%");
                 }
             })
             ->first();
@@ -56,8 +61,8 @@ class CustomerService
         $tenantId = (int) ($creator->tenant_id ?? \App\Models\Tenant::first()?->id ?? 1);
         $branchId = $data['branch_id'] ?? $creator->branch_id ?? \App\Models\Branch::where('tenant_id', $tenantId)->first()?->id ?? 1;
 
-        // Check for duplicate by mobile
-        $existing = $this->findByMobile($tenantId, $data['mobile']);
+        // Check for duplicate by mobile within branch
+        $existing = $this->findByMobile($tenantId, $data['mobile'], $branchId);
         if ($existing) {
             return $existing;
         }

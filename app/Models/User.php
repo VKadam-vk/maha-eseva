@@ -184,7 +184,15 @@ class User extends Authenticatable
     public function allowedServices()
     {
         if (!$this->hasServiceRestrictions()) {
-            return Service::where('is_active', true);
+            $query = Service::where('is_active', true);
+            if ($this->branch_id) {
+                $query->where('branch_id', $this->branch_id);
+            } else {
+                $query->where(function ($q) {
+                    $q->whereNull('branch_id')->orWhere('branch_id', $this->branch_id);
+                });
+            }
+            return $query;
         }
 
         return $this->employee->services()->where('is_active', true);
@@ -195,12 +203,20 @@ class User extends Authenticatable
      */
     public function canAccessService(int|Service $service): bool
     {
+        $srv = $service instanceof Service ? $service : Service::find($service);
+        if (!$srv) {
+            return false;
+        }
+
+        if ($this->branch_id && $srv->branch_id && (int) $srv->branch_id !== (int) $this->branch_id) {
+            return false;
+        }
+
         if (!$this->hasServiceRestrictions()) {
             return true;
         }
 
-        $serviceId = $service instanceof Service ? $service->id : (int) $service;
-        return in_array($serviceId, $this->getAllowedServiceIds());
+        return in_array($srv->id, $this->getAllowedServiceIds());
     }
 
     // Account lockout & Security

@@ -81,7 +81,7 @@
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('branches.view') || Auth::user()->hasPermission('employees.view') || Auth::user()->hasPermission('reports.view'))
                     <div class="erp-nav-section-title">Administration</div>
 
-                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner() || Auth::user()->hasPermission('branches.view'))
+                    @if((Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner()) && !Auth::user()->isBranchAdmin())
                         <a href="{{ route('branches.index') }}" class="erp-nav-link {{ request()->routeIs('branches.*') ? 'active' : '' }}">
                             <i class="fa-solid fa-code-branch"></i>
                             <span>Branches</span>

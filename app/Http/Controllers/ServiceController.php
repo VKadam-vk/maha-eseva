@@ -20,11 +20,20 @@ class ServiceController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner() && !$user->hasPermission('services.view')) {
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner() && !$user->isBranchAdmin() && !$user->hasPermission('services.view')) {
             abort(403, 'सेवा मास्टर (Services Master) ॲक्सेस करण्याची परवानगी तुम्हाला नाही. कृपया ॲडमिनशी संपर्क साधा.');
         }
 
         $query = Service::with(['category', 'customFields'])->withCount('applications');
+
+        // Branch-level isolation:
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } else {
+            $query->where(function ($q) use ($user) {
+                $q->whereNull('branch_id')->orWhere('branch_id', $user->branch_id);
+            });
+        }
 
         // Restrict services if logged in employee has specific assigned services
         if ($user->hasServiceRestrictions()) {
@@ -50,7 +59,13 @@ class ServiceController extends Controller
             return trim($item->main_service_name ?: 'GENERAL SERVICES');
         });
 
-        $mainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
+        $mainServicesQuery = Service::distinct();
+        if ($user->branch_id) {
+            $mainServicesQuery->where('branch_id', $user->branch_id);
+        } else {
+            $mainServicesQuery->whereNull('branch_id');
+        }
+        $mainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
 
         return view('services.index', compact('services', 'groupedServices', 'mainServices'));
     }
@@ -60,7 +75,14 @@ class ServiceController extends Controller
      */
     public function create(): View
     {
-        $existingMainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
+        $user = Auth::user();
+        $mainServicesQuery = Service::distinct();
+        if ($user->branch_id) {
+            $mainServicesQuery->where('branch_id', $user->branch_id);
+        } else {
+            $mainServicesQuery->whereNull('branch_id');
+        }
+        $existingMainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
         return view('services.create', compact('existingMainServices'));
     }
 
@@ -84,6 +106,7 @@ class ServiceController extends Controller
 
         $mainServiceName = strtoupper(trim($validated['main_service_name']));
         $tenantId = Auth::user()->tenant_id;
+        $branchId = Auth::user()->branch_id;
         $createdCount = 0;
 
         foreach ($validated['sub_services'] as $index => $subData) {
@@ -120,6 +143,7 @@ class ServiceController extends Controller
 
             $service = Service::create([
                 'tenant_id' => $tenantId,
+                'branch_id' => $branchId,
                 'category_id' => null,
                 'service_code' => $serviceCode,
                 'main_service_name' => $mainServiceName,
@@ -148,7 +172,18 @@ class ServiceController extends Controller
      */
     public function edit(Service $service): View
     {
-        $existingMainServices = Service::distinct()->pluck('main_service_name')->filter()->values();
+        $user = Auth::user();
+        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Unauthorized: Cannot edit services from another branch.');
+        }
+
+        $mainServicesQuery = Service::distinct();
+        if ($user->branch_id) {
+            $mainServicesQuery->where('branch_id', $user->branch_id);
+        } else {
+            $mainServicesQuery->whereNull('branch_id');
+        }
+        $existingMainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
         return view('services.edit', compact('service', 'existingMainServices'));
     }
 
@@ -157,6 +192,11 @@ class ServiceController extends Controller
      */
     public function update(Request $request, Service $service): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Unauthorized: Cannot update services from another branch.');
+        }
+
         $validated = $request->validate([
             'main_service_name' => ['required', 'string', 'max:255'],
             'sub_service_name' => ['required', 'string', 'max:255'],
@@ -209,6 +249,14 @@ class ServiceController extends Controller
      */
     public function destroy(Service $service): RedirectResponse
     {
+        $user = Auth::user();
+        if (!$user->isAdmin()) {
+            abort(403, 'Unauthorized: Only admins can delete services.');
+        }
+        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Unauthorized: Cannot delete services from another branch.');
+        }
+
         $old = $service->toArray();
         $service->delete();
         AuditService::log('SERVICE_DELETED', $service, $old, null);
@@ -221,6 +269,10 @@ class ServiceController extends Controller
      */
     public function show(Service $service): View
     {
+        $user = Auth::user();
+        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Unauthorized: Cannot access services from another branch.');
+        }
         $service->load(['category', 'customFields']);
         return view('services.show', compact('service'));
     }
@@ -230,6 +282,10 @@ class ServiceController extends Controller
      */
     public function storeCustomField(Request $request, Service $service): RedirectResponse
     {
+        $user = Auth::user();
+        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Unauthorized.');
+        }
         $validated = $request->validate([
             'field_name' => ['required', 'string', 'max:255'],
             'field_key' => ['required', 'string', 'max:50', 'alpha_dash'],

@@ -63,7 +63,9 @@ class ApplicationController extends Controller
             $query->where('assigned_employee_id', $request->employee_id);
         }
 
-        if ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
             $query->where('branch_id', $request->branch_id);
         }
 
@@ -88,11 +90,19 @@ class ApplicationController extends Controller
 
         $applications = $query->latest('id')->paginate(30)->withQueryString();
         $services = $user->allowedServices()->get();
-        $activeServices = $user->hasServiceRestrictions()
-            ? $user->allowedServices()->with('category')->get()
-            : Service::where('is_active', true)->with('category')->get();
-        $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
-        $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
+        $activeServices = $user->allowedServices()->with('category')->get();
+
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        }
+        $employees = $employeesQuery->get() ?? collect();
+
+        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
+        if ($user->branch_id) {
+            $branchesQuery->where('id', $user->branch_id);
+        }
+        $branches = $branchesQuery->get() ?? collect();
 
         $statuses = [
             Application::STATUS_NEW,
@@ -138,9 +148,24 @@ class ApplicationController extends Controller
         $selectedCustomer = $customerId ? Customer::find($customerId) : null;
         
         $services = $user->allowedServices()->with('customFields')->get();
-        $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
-        $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
-        $customers = Customer::latest()->limit(50)->get();
+
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        }
+        $employees = $employeesQuery->get() ?? collect();
+
+        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
+        if ($user->branch_id) {
+            $branchesQuery->where('id', $user->branch_id);
+        }
+        $branches = $branchesQuery->get() ?? collect();
+
+        $customersQuery = Customer::latest();
+        if ($user->branch_id) {
+            $customersQuery->where('branch_id', $user->branch_id);
+        }
+        $customers = $customersQuery->limit(50)->get();
 
         return view('applications.create', compact('services', 'employees', 'branches', 'customers', 'selectedCustomer'));
     }
@@ -150,6 +175,7 @@ class ApplicationController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = Auth::user();
         $validated = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'service_id' => ['required', 'exists:services,id'],
@@ -170,7 +196,10 @@ class ApplicationController extends Controller
             'custom_fields' => ['nullable', 'array'],
         ]);
 
-        $user = Auth::user();
+        if ($user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        }
+
         if (!$user->canAccessService((int) $validated['service_id'])) {
             return back()->withErrors(['service_id' => 'Unauthorized: You do not have permission to access or create applications for this service.'])->withInput();
         }

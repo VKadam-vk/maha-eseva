@@ -85,6 +85,10 @@ class CustomerPolicy
             return false;
         }
 
+        if ($user->branch_id && $user->branch_id !== $customer->branch_id) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }

@@ -69,6 +69,10 @@ class ApplicationPolicy
             return false;
         }
 
+        if ($user->branch_id && $user->branch_id !== $application->branch_id) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
