@@ -174,7 +174,12 @@ class ReportService
 
         $followUps = FollowUp::where('tenant_id', $tenantId);
         if ($hasRestrictions) {
-            $followUps->whereIn('service_id', $allowedIds);
+            $followUps->where(function($q) use ($allowedIds) {
+                $q->whereNull('application_id')
+                  ->orWhereHas('application', function($sub) use ($allowedIds) {
+                      $sub->whereIn('service_id', $allowedIds);
+                  });
+            });
         } else {
             $followUps->where('assigned_employee_id', $employeeId);
         }
