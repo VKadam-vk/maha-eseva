@@ -50,11 +50,17 @@ class CustomerController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        // Restrict employee visibility to customers who have applications in their allowed services
+        // Restrict employee visibility to customers who have applications in their allowed services or assigned to them
         if ($user->hasServiceRestrictions()) {
             $allowedServiceIds = $user->getAllowedServiceIds();
-            $query->whereHas('applications', function ($q) use ($allowedServiceIds) {
-                $q->whereIn('service_id', $allowedServiceIds);
+            $empId = $user->employee?->id;
+            $query->whereHas('applications', function ($q) use ($allowedServiceIds, $empId) {
+                $q->where(function ($sub) use ($allowedServiceIds, $empId) {
+                    $sub->whereIn('service_id', $allowedServiceIds);
+                    if ($empId) {
+                        $sub->orWhere('assigned_employee_id', $empId);
+                    }
+                });
             });
         }
 
@@ -162,8 +168,13 @@ class CustomerController extends Controller
 
         // Restrict employee access to customer profile if no allowed services match
         if ($user->hasServiceRestrictions()) {
-            $hasAccess = $customer->applications()->whereIn('service_id', $user->getAllowedServiceIds())->exists()
-                || (int) ($customer->created_by ?? 0) === (int) $user->id;
+            $empId = $user->employee?->id;
+            $hasAccess = $customer->applications()->where(function ($q) use ($user, $empId) {
+                $q->whereIn('service_id', $user->getAllowedServiceIds());
+                if ($empId) {
+                    $q->orWhere('assigned_employee_id', $empId);
+                }
+            })->exists() || (int) ($customer->created_by ?? 0) === (int) $user->id;
             if (!$hasAccess && $customer->applications()->exists()) {
                 abort(403, 'तुम्हाला या ग्राहकाची माहिती पाहण्याची परवानगी नाही.');
             }
@@ -176,7 +187,13 @@ class CustomerController extends Controller
             'familyMembers',
             'applications' => function ($q) use ($user) {
                 if ($user->hasServiceRestrictions()) {
-                    $q->whereIn('service_id', $user->getAllowedServiceIds());
+                    $empId = $user->employee?->id;
+                    $q->where(function ($sub) use ($user, $empId) {
+                        $sub->whereIn('service_id', $user->getAllowedServiceIds());
+                        if ($empId) {
+                            $sub->orWhere('assigned_employee_id', $empId);
+                        }
+                    });
                 }
             },
             'applications.service',
@@ -204,7 +221,12 @@ class CustomerController extends Controller
             ->get();
 
         $activeServices = $user->allowedServices()->with('category')->get();
-        $employees = Auth::user()->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
+
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with(['user', 'services:id,main_service_name,sub_service_name']);
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        }
+        $employees = $employeesQuery->get() ?? collect();
 
         $formattedFamilyMembers = $customer->familyMembers->map(function ($fm) {
             return [

@@ -40,8 +40,8 @@ class FastEntryController extends Controller
         // Active services master for counter entries (filtered by employee allowed services if restricted, or branch)
         $services = $user->allowedServices()->orderBy('main_service_name')->get();
 
-        // Active operators/employees
-        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        // Active operators/employees with assigned services
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with(['user', 'services:id,main_service_name,sub_service_name']);
         if ($user->branch_id) {
             $employeesQuery->where('branch_id', $user->branch_id);
         }
@@ -143,10 +143,17 @@ class FastEntryController extends Controller
             $isNew = true;
         }
 
-        // Fetch customer's full applications & services history (filtered for restricted employees)
+        // Fetch customer's full applications & services history (filtered for restricted employees or assigned operator)
         $appsQuery = Application::where('customer_id', $customer->id);
         if ($user->hasServiceRestrictions()) {
-            $appsQuery->whereIn('service_id', $user->getAllowedServiceIds());
+            $allowedServiceIds = $user->getAllowedServiceIds();
+            $empId = $user->employee?->id;
+            $appsQuery->where(function ($q) use ($allowedServiceIds, $empId) {
+                $q->whereIn('service_id', $allowedServiceIds);
+                if ($empId) {
+                    $q->orWhere('assigned_employee_id', $empId);
+                }
+            });
         }
         $applications = $appsQuery
             ->with(['service', 'assignedEmployee.user', 'familyMember'])

@@ -3428,14 +3428,46 @@ function getEmployeeName(empId, fallback = '') {
     return name.toUpperCase();
 }
 
-function getEmployeeOptionsHtml(selectedId) {
+function isEmployeeAllowedForService(emp, serviceId = null, mainServiceName = null) {
+    if (!emp) return false;
+    const srvList = emp.services || [];
+    // If employee has no assigned specific services (empty array), they can handle ALL services
+    if (!srvList || srvList.length === 0) return true;
+
+    if (serviceId) {
+        const sId = parseInt(serviceId, 10);
+        if (srvList.some(s => parseInt(s.id, 10) === sId)) return true;
+    }
+
+    if (mainServiceName) {
+        const mName = String(mainServiceName).trim().toUpperCase();
+        if (srvList.some(s => (s.main_service_name || '').trim().toUpperCase() === mName)) return true;
+    }
+
+    return false;
+}
+
+function getEmployeeOptionsHtml(selectedId, serviceId = null, mainServiceName = null) {
     let html = '<option value="">-- Unassigned --</option>';
-    allEmployees.forEach(emp => {
-        const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || 'Staff');
-        const sel = (emp.id == selectedId) ? 'selected' : '';
-        html += `<option value="${emp.id}" ${sel}>${name.toUpperCase()}</option>`;
+    (window.allEmployees || []).forEach(emp => {
+        const isAllowed = isEmployeeAllowedForService(emp, serviceId, mainServiceName);
+        const isSelected = (selectedId && emp.id == selectedId);
+
+        // Include employee if allowed for this service, OR if already selected on this row, OR if no service specified yet
+        if (isAllowed || isSelected || (!serviceId && !mainServiceName)) {
+            const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || 'Staff');
+            const sel = isSelected ? 'selected' : '';
+            html += `<option value="${emp.id}" ${sel}>${name.toUpperCase()}</option>`;
+        }
     });
     return html;
+}
+
+function updateActiveRowOperatorOptions(serviceId = null, mainServiceName = null) {
+    const opSelect = document.getElementById('se_operator');
+    if (!opSelect) return;
+    const currentSelected = opSelect.value;
+    opSelect.innerHTML = getEmployeeOptionsHtml(currentSelected, serviceId, mainServiceName);
 }
 
 function renderCommittedServices(apps) {
@@ -4321,7 +4353,7 @@ function getCommittedRowInnerHtml(app) {
                 <select id="crow_operator_${app.id}" class="excel-operator-select" style="flex: 1;"
                         title="Click to assign operator"
                         onchange="autoSaveCommittedRow(${app.id})">
-                    ${getEmployeeOptionsHtml(app.assigned_employee_id)}
+                    ${getEmployeeOptionsHtml(app.assigned_employee_id, app.service_id, app.main_service_name || app.service_name)}
                 </select>
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'assigned_employee_id', event)" title="Operator Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
@@ -4582,7 +4614,16 @@ function onCommittedSubServiceSelectChange(selectEl, appId) {
         window.loadedApplications[appId].expected_days = expDays;
     }
 
-    // 5. Trigger auto-save to persist immediately
+    // 5. Update operator select options for this new service
+    const opSelect = document.getElementById(`crow_operator_${appId}`);
+    if (opSelect) {
+        const curOp = opSelect.value;
+        const app = (window.loadedApplications && window.loadedApplications[appId]) ? window.loadedApplications[appId] : null;
+        const mainServiceName = app ? (app.main_service_name || app.service_name) : null;
+        opSelect.innerHTML = getEmployeeOptionsHtml(curOp, newServiceId, mainServiceName);
+    }
+
+    // 6. Trigger auto-save to persist immediately
     autoSaveCommittedRow(appId);
 }
 
@@ -4770,8 +4811,11 @@ function onMainServiceChange(mainName) {
     if (!mainName) {
         subSelect.disabled = true;
         resetActiveRowFields();
+        updateActiveRowOperatorOptions(null, null);
         return;
     }
+
+    updateActiveRowOperatorOptions(null, mainName);
 
     const matched = allServices.filter(s => s.main_service_name === mainName);
     matched.forEach(s => {
@@ -4807,6 +4851,9 @@ function onSubServiceChange(serviceId) {
 
     document.getElementById('se_service_id').value = srv.id;
     document.getElementById('se_sub_service').value = srv.sub_service_name;
+
+    // Filter Operator dropdown to only operators allowed for this service!
+    updateActiveRowOperatorOptions(srv.id, srv.main_service_name);
 
     const price = parseFloat(srv.price) || 0;
     document.getElementById('se_rate').value = price;
@@ -4890,6 +4937,7 @@ function resetActiveRowFields() {
     document.getElementById('se_payment_remarks').style.height = '34px';
     document.getElementById('se_docs_list').value = '';
     document.getElementById('se_followup').value = '';
+    updateActiveRowOperatorOptions(null, null);
 }
 
 function copyDocsToActiveRow() {

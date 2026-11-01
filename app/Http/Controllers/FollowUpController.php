@@ -97,7 +97,11 @@ class FollowUpController extends Controller
         $activeServices = $user->hasServiceRestrictions()
             ? $user->allowedServices()->with('category')->get()
             : \App\Models\Service::where('is_active', true)->with('category')->get();
-        $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with(['user', 'services:id,main_service_name,sub_service_name']);
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        }
+        $employees = $employeesQuery->get() ?? collect();
         $customers = Customer::latest()->limit(50)->get();
 
         // 5. Aggregate metrics for the active view

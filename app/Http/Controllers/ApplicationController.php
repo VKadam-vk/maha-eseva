@@ -78,10 +78,16 @@ class ApplicationController extends Controller
             $query->whereDate('application_date', '<=', $request->to_date);
         }
 
-        // Restrict employee visibility to only their allowed services
+        // Restrict employee visibility to only their allowed services or assigned applications
         if ($user->hasServiceRestrictions()) {
             $allowedServiceIds = $user->getAllowedServiceIds();
-            $query->whereIn('service_id', $allowedServiceIds);
+            $empId = $user->employee?->id;
+            $query->where(function ($q) use ($allowedServiceIds, $empId) {
+                $q->whereIn('service_id', $allowedServiceIds);
+                if ($empId) {
+                    $q->orWhere('assigned_employee_id', $empId);
+                }
+            });
         }
 
         $totalCount = (clone $query)->count();
@@ -93,7 +99,7 @@ class ApplicationController extends Controller
         $services = $user->allowedServices()->get();
         $activeServices = $user->allowedServices()->with('category')->get();
 
-        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with(['user', 'services:id,main_service_name,sub_service_name']);
         if ($user->branch_id) {
             $employeesQuery->where('branch_id', $user->branch_id);
         }
@@ -150,7 +156,7 @@ class ApplicationController extends Controller
 
         $services = $user->allowedServices()->with('customFields')->get();
 
-        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
+        $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with(['user', 'services:id,main_service_name,sub_service_name']);
         if ($user->branch_id) {
             $employeesQuery->where('branch_id', $user->branch_id);
         }

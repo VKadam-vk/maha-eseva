@@ -2005,13 +2005,42 @@ function onActiveStatusSelectChange(selectEl) {
 // ==========================================
 // 3. COMMITTED ROWS GENERATION & AUTO-SAVE
 // ==========================================
-function getEmployeeOptionsHtml(selectedEmployeeId) {
+function isEmployeeAllowedForService(emp, serviceId = null, mainServiceName = null) {
+    if (!emp) return false;
+    const srvList = emp.services || [];
+    if (!srvList || srvList.length === 0) return true; // Unrestricted staff
+
+    if (serviceId) {
+        const sId = parseInt(serviceId, 10);
+        if (srvList.some(s => parseInt(s.id, 10) === sId)) return true;
+    }
+
+    if (mainServiceName) {
+        const mName = String(mainServiceName).trim().toUpperCase();
+        if (srvList.some(s => (s.main_service_name || '').trim().toUpperCase() === mName)) return true;
+    }
+
+    return false;
+}
+
+function getEmployeeOptionsHtml(selectedEmployeeId, serviceId = null, mainServiceName = null) {
     let html = '<option value="">-- Unassigned --</option>';
-    allEmployees.forEach(emp => {
+    (window.allEmployees || []).forEach(emp => {
+        const isAllowed = isEmployeeAllowedForService(emp, serviceId, mainServiceName);
         const isSel = selectedEmployeeId && (emp.id == selectedEmployeeId);
-        html += `<option value="${emp.id}" ${isSel ? 'selected' : ''}>${escapeHtml(emp.user ? emp.user.name : 'Operator')}</option>`;
+
+        if (isAllowed || isSel || (!serviceId && !mainServiceName)) {
+            html += `<option value="${emp.id}" ${isSel ? 'selected' : ''}>${escapeHtml(emp.user ? emp.user.name : (emp.name || 'Staff #' + emp.id))}</option>`;
+        }
     });
     return html;
+}
+
+function updateActiveRowOperatorOptions(serviceId = null, mainServiceName = null) {
+    const opSelect = document.getElementById('se_operator');
+    if (!opSelect) return;
+    const curVal = opSelect.value;
+    opSelect.innerHTML = getEmployeeOptionsHtml(curVal, serviceId, mainServiceName);
 }
 
 function getAppPortalLink(app) {
@@ -2152,7 +2181,7 @@ function getCommittedRowInnerHtml(app) {
                         tabindex="-1"
                         title="Operator"
                         onchange="autoSaveCommittedRow(${app.id})">
-                    ${getEmployeeOptionsHtml(app.assigned_employee_id)}
+                    ${getEmployeeOptionsHtml(app.assigned_employee_id, app.service_id, app.service_name)}
                 </select>
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'assigned_employee_id', event)" title="Operator Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
@@ -2568,8 +2597,11 @@ function onMainServiceChange(mainName) {
     if (!mainName) {
         subSelect.disabled = true;
         resetActiveRowFields();
+        updateActiveRowOperatorOptions(null, null);
         return;
     }
+
+    updateActiveRowOperatorOptions(null, mainName);
 
     const matched = allServices.filter(s => s.main_service_name === mainName);
     matched.forEach(s => {
@@ -2598,6 +2630,8 @@ function onSubServiceChange(serviceId) {
 
     const srv = allServices.find(s => s.id == serviceId);
     if (!srv) return;
+
+    updateActiveRowOperatorOptions(srv.id, srv.main_service_name);
 
     const price = parseFloat(srv.price) || 0;
     document.getElementById('se_rate').value = price;
@@ -2662,6 +2696,7 @@ function resetActiveRowFields() {
     document.getElementById('se_payment_remarks').value = '';
     document.getElementById('se_payment_remarks').style.height = '30px';
     document.getElementById('se_followup').value = '';
+    updateActiveRowOperatorOptions(null, null);
 }
 
 function handleActiveRowKey(e) {

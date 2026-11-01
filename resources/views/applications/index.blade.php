@@ -918,14 +918,27 @@
                                 </div>
                             </td>
 
-                            <!-- 9. Operator -->
+                            <!-- 9. Operator (Filtered by service permission) -->
                             <td>
                                 <div style="display: flex; align-items: center; gap: 4px;">
+                                    @php
+                                        $allowedEmps = $employees->filter(function($emp) use ($app) {
+                                            // Unrestricted employee (handles all services)
+                                            if ($emp->services->isEmpty()) return true;
+                                            // Matches this service ID
+                                            if ($app->service_id && $emp->services->contains('id', $app->service_id)) return true;
+                                            // Matches main service name
+                                            if ($app->service && $emp->services->contains('main_service_name', $app->service->main_service_name)) return true;
+                                            // Keep current assigned operator
+                                            if ($app->assigned_employee_id && (int)$app->assigned_employee_id === (int)$emp->id) return true;
+                                            return false;
+                                        });
+                                    @endphp
                                     <select class="excel-select font-semibold" id="operator_{{ $app->id }}" style="flex: 1;"
                                             tabindex="-1"
                                             onchange="saveRowField({{ $app->id }}, 'assigned_employee_id', this.value)">
                                         <option value="">-- Staff --</option>
-                                        @foreach($employees as $emp)
+                                        @foreach($allowedEmps as $emp)
                                             <option value="{{ $emp->id }}" {{ $app->assigned_employee_id == $emp->id ? 'selected' : '' }}>
                                                 {{ $emp->user?->name ?? 'Staff #' . $emp->id }}
                                             </option>
@@ -1164,6 +1177,37 @@
 <script>
     // Master Services Bootstrap
     window.MASTER_SERVICES = @json($activeServices);
+    window.ALL_EMPLOYEES = @json($employees);
+
+    function isEmployeeAllowedForService(emp, serviceId) {
+        if (!emp) return false;
+        const srvList = emp.services || [];
+        if (!srvList || srvList.length === 0) return true; // Unrestricted staff
+        if (serviceId) {
+            const sId = parseInt(serviceId, 10);
+            if (srvList.some(s => parseInt(s.id, 10) === sId)) return true;
+        }
+        return false;
+    }
+
+    function updateRowOperatorOptions(appId, serviceId) {
+        const opSelect = document.getElementById(`operator_${appId}`);
+        if (!opSelect || !window.ALL_EMPLOYEES) return;
+        const curVal = opSelect.value;
+        const sId = serviceId ? parseInt(serviceId, 10) : null;
+
+        let html = '<option value="">-- Staff --</option>';
+        window.ALL_EMPLOYEES.forEach(emp => {
+            const isAllowed = isEmployeeAllowedForService(emp, sId);
+            const isSelected = (curVal && parseInt(emp.id, 10) === parseInt(curVal, 10));
+
+            if (isAllowed || isSelected || !sId) {
+                const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || 'Staff #' + emp.id);
+                html += `<option value="${emp.id}" ${isSelected ? 'selected' : ''}>${name}</option>`;
+            }
+        });
+        opSelect.innerHTML = html;
+    }
 
     let appSearchTimer = null;
     function autoFilterApplications(query) {
@@ -1346,7 +1390,12 @@
             }
         }
 
-        // 5. Trigger auto-save
+        // 5. Update operator dropdown for new service
+        if (newServiceId) {
+            updateRowOperatorOptions(appId, newServiceId);
+        }
+
+        // 6. Trigger auto-save
         saveRowField(appId, 'sub_service', newSubName);
     }
 

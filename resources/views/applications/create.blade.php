@@ -46,10 +46,12 @@
 
                     <div class="form-group">
                         <label class="form-label">Assign Staff / Operator</label>
-                        <select name="assigned_employee_id" class="form-select">
+                        <select name="assigned_employee_id" id="assigned_employee_select" class="form-select">
                             <option value="">-- Assign Operator --</option>
                             @foreach($employees as $emp)
-                                <option value="{{ $emp->id }}" {{ old('assigned_employee_id') == $emp->id ? 'selected' : '' }}>
+                                <option value="{{ $emp->id }}"
+                                        data-services="{{ $emp->services->pluck('id')->implode(',') }}"
+                                        {{ old('assigned_employee_id') == $emp->id ? 'selected' : '' }}>
                                     {{ $emp->user->name }} ({{ $emp->designation }})
                                 </option>
                             @endforeach
@@ -185,7 +187,27 @@
 
 @push('scripts')
 <script>
+function filterOperatorsByService(serviceId) {
+    const empSelect = document.getElementById('assigned_employee_select');
+    if (!empSelect) return;
+    const sId = serviceId ? String(serviceId) : '';
+    Array.from(empSelect.options).forEach((opt, idx) => {
+        if (idx === 0) return;
+        const allowed = opt.getAttribute('data-services') || '';
+        if (!allowed || !sId) {
+            opt.style.display = '';
+        } else {
+            const ids = allowed.split(',').map(s => s.trim());
+            opt.style.display = ids.includes(sId) ? '' : 'none';
+        }
+    });
+    if (empSelect.selectedOptions[0] && empSelect.selectedOptions[0].style.display === 'none') {
+        empSelect.value = '';
+    }
+}
+
 function loadServiceSchema(serviceId) {
+    filterOperatorsByService(serviceId);
     if (!serviceId) {
         document.getElementById('dynamic-fields-container').style.display = 'none';
         document.getElementById('required-docs-box').style.display = 'none';
