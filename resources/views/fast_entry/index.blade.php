@@ -246,30 +246,17 @@
         word-break: break-all;
     }
 
-    /* Inline Edit Inputs for Profile Auto-Save */
+    /* Inline Edit Inputs for Profile: View Mode vs Edit Mode */
     .inline-edit-input {
         width: 100%;
         border: 1px solid transparent;
         border-radius: 5px;
         background: transparent;
         padding: 3px 6px;
-        margin-left: -6px;
         font-size: 14px;
         font-weight: 700;
         color: #0f172a;
         transition: all 0.15s ease;
-    }
-
-    .inline-edit-input:hover {
-        border-color: #cbd5e1;
-        background: #ffffff;
-    }
-
-    .inline-edit-input:focus {
-        border-color: #0284c7;
-        background: #ffffff;
-        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
-        outline: none;
     }
 
     .inline-edit-select {
@@ -278,11 +265,57 @@
         border-radius: 5px;
         background: transparent;
         padding: 2px 4px;
-        margin-left: -4px;
         font-size: 13px;
         font-weight: 700;
         color: #0f172a;
-        cursor: pointer;
+    }
+
+    /* When NOT in editing mode */
+    #cust-loaded-state:not(.is-editing) .inline-edit-input,
+    #cust-loaded-state:not(.is-editing) .inline-edit-select {
+        border-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        pointer-events: none !important;
+        cursor: default !important;
+        color: #0f172a !important;
+        padding-left: 0 !important;
+        font-weight: 700 !important;
+        opacity: 1 !important;
+    }
+
+    #cust-loaded-state:not(.is-editing) .inline-edit-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    #cust-loaded-state:not(.is-editing) #rating-item-box .star-clickable-group {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    /* When in editing mode */
+    #cust-loaded-state.is-editing .inline-edit-input,
+    #cust-loaded-state.is-editing .inline-edit-select {
+        border: 1.5px solid #0284c7 !important;
+        background: #ffffff !important;
+        border-radius: 6px !important;
+        padding: 4px 8px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15) !important;
+        pointer-events: auto !important;
+        cursor: text !important;
+        outline: none;
+    }
+
+    #cust-loaded-state.is-editing .inline-edit-select {
+        -webkit-appearance: auto;
+        -moz-appearance: auto;
+        appearance: auto;
+        cursor: pointer !important;
     }
 
     .inline-edit-select:hover, .inline-edit-select:focus {
@@ -1394,11 +1427,30 @@
                     <span>Customer Details</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <button type="button" id="btn-open-edit-cust-modal" onclick="openEditCustomerModal()"
-                            style="background: #0284c7; color: #ffffff; border: none; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);"
-                            title="Edit Customer Details (Click to edit all details)">
-                        <i class="fa-solid fa-pencil"></i> Edit Details
-                    </button>
+                    <!-- Edit Actions: Toggles Edit and Save -->
+                    <div id="cd-edit-actions" style="display: flex; align-items: center; gap: 6px;">
+                        <!-- Normal View: Edit Button -->
+                        <button type="button" id="btn-customer-edit" onclick="enableCustomerEditMode()"
+                                style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1.5px solid #38bdf8; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);"
+                                title="Click to edit customer details">
+                            <i class="fa-solid fa-pencil"></i> Edit
+                        </button>
+
+                        <!-- Active Edit: Save & Cancel Buttons -->
+                        <div id="cd-editing-buttons" style="display: none; align-items: center; gap: 6px;">
+                            <button type="button" id="btn-customer-save" onclick="saveCustomerInlineDetails()"
+                                    style="background: #16a34a; color: #ffffff; border: none; font-size: 11.5px; font-weight: 800; padding: 4px 13px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4);"
+                                    title="Save customer changes">
+                                <i class="fa-solid fa-check"></i> Save
+                            </button>
+                            <button type="button" id="btn-customer-cancel" onclick="cancelCustomerEditMode()"
+                                    style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; cursor: pointer;"
+                                    title="Cancel changes">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
                     <span id="cd-status-badge" class="pocket-badge-neutral">
                         No Customer Selected
                     </span>
@@ -1442,18 +1494,16 @@
                         <!-- 1. NAME -->
                         <div class="summary-item" title="Customer Name">
                             <span class="summary-label">Name</span>
-                            <input type="text" id="cd-inline-name" class="inline-edit-input" placeholder="Customer Name"
-                                   onblur="autoSaveCustomerField('name', this.value)"
-                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <input type="text" id="cd-inline-name" class="inline-edit-input" placeholder="Customer Name" readonly
+                                   onkeydown="if(event.key==='Enter'){saveCustomerInlineDetails();}">
                             <span class="save-indicator" id="ind-name">✓ Saved</span>
                         </div>
 
                         <!-- 2. MOBILE -->
-                        <div class="summary-item" title="Customer Mobile Number (Click to edit or use Edit Details)">
+                        <div class="summary-item" title="Customer Mobile Number">
                             <span class="summary-label">Mobile No</span>
-                            <input type="tel" id="cd-inline-mobile" class="inline-edit-input font-mono" placeholder="Mobile Number" maxlength="15"
-                                   onblur="autoSaveCustomerField('mobile', this.value)"
-                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <input type="tel" id="cd-inline-mobile" class="inline-edit-input font-mono" placeholder="Mobile Number" maxlength="15" readonly
+                                   onkeydown="if(event.key==='Enter'){saveCustomerInlineDetails();}">
                             <span class="summary-val font-mono" id="cd-mobile" style="display: none;">-</span>
                             <span class="save-indicator" id="ind-mobile">✓ Saved</span>
                         </div>
@@ -1461,9 +1511,8 @@
                         <!-- 2b. ALTERNATE MOBILE -->
                         <div class="summary-item" title="Alternate Mobile">
                             <span class="summary-label">Alt Mobile</span>
-                            <input type="tel" id="cd-inline-alt-mobile" class="inline-edit-input font-mono" placeholder="Alternate Mobile" maxlength="20"
-                                   onblur="autoSaveCustomerField('alternate_mobile', this.value)"
-                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <input type="tel" id="cd-inline-alt-mobile" class="inline-edit-input font-mono" placeholder="Alternate Mobile" maxlength="20" readonly
+                                   onkeydown="if(event.key==='Enter'){saveCustomerInlineDetails();}">
                             <span class="save-indicator" id="ind-alt-mobile">✓ Saved</span>
                         </div>
 
@@ -1485,10 +1534,10 @@
                             <span class="summary-val font-mono" id="cd-outstanding">₹ 0.00</span>
                         </div>
 
-                        <!-- 6. RATING (Interactive 1-5 Keys or Click to AutoSave) -->
-                        <div class="summary-item" id="rating-item-box" title="Click star or press key 1 to 5 to change rating" tabindex="0">
+                        <!-- 6. RATING -->
+                        <div class="summary-item" id="rating-item-box" title="Customer Rating" tabindex="0">
                             <span class="summary-label">
-                                <span>Rating (Keys 1-5 or Click)</span>
+                                <span>Rating</span>
                                 <span class="save-indicator" id="ind-rating" style="display:none;">✓</span>
                             </span>
                             <div class="star-clickable-group">
@@ -1504,7 +1553,7 @@
                         <!-- 7. GENDER -->
                         <div class="summary-item">
                             <span class="summary-label">Gender</span>
-                            <select id="cd-inline-gender" class="inline-edit-select" onchange="autoSaveCustomerField('gender', this.value)">
+                            <select id="cd-inline-gender" class="inline-edit-select" disabled>
                                 <option value="MALE">Male</option>
                                 <option value="FEMALE">Female</option>
                                 <option value="OTHER">Other</option>
@@ -1512,21 +1561,20 @@
                         </div>
 
                         <!-- 8. OCCUPATION (Click to choose or Add New) -->
-                        <div class="summary-item" title="Click to choose or add occupation (Auto-saves)">
+                        <div class="summary-item" title="Occupation">
                             <span class="summary-label">
                                 <span>Occupation</span>
                                 <span class="save-indicator" id="ind-occ" style="display: none;">✓ Saved</span>
                             </span>
-                            <select id="cd-inline-occ" class="inline-edit-select" onchange="onOccupationSelectChange(this)">
+                            <select id="cd-inline-occ" class="inline-edit-select" disabled onchange="onOccupationSelectChange(this)">
                                 <option value="">-- Select Occupation --</option>
                             </select>
                         </div>
 
                         <!-- 9. BIRTH DATE -->
-                        <div class="summary-item" title="Click to edit birth date">
+                        <div class="summary-item" title="Birth Date">
                             <span class="summary-label">Birth Date</span>
-                            <input type="date" id="cd-inline-dob" class="inline-edit-input" style="font-size: 13px;"
-                                   onchange="autoSaveCustomerField('birth_date', this.value)">
+                            <input type="date" id="cd-inline-dob" class="inline-edit-input" style="font-size: 13px;" readonly disabled>
                         </div>
                     </div>
 
@@ -2070,108 +2118,6 @@
                 <button type="submit" id="btn-submit-family-member" class="btn btn-primary"
                         style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 20px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
                     <i id="fm-submit-icon" class="fa-solid fa-check"></i> <span id="fm-submit-label">Save & Select Member</span>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal: Edit Customer Details Popup -->
-<div id="modal-edit-customer" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeEditCustomerModal()">
-    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 520px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-pencil"></i>
-                </div>
-                <div>
-                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Edit Customer Details</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">Update customer profile, contact & demographic details</p>
-                </div>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="closeEditCustomerModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px;">
-                &times;
-            </button>
-        </div>
-
-        <!-- Body -->
-        <form id="form-edit-customer-details" onsubmit="saveFullCustomerDetails(event)" style="padding: 20px 22px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                <!-- Full Name -->
-                <div style="grid-column: span 2;">
-                    <label for="edit-cust-name" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Full Name (पूर्ण नाव) <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="text" id="edit-cust-name" required class="form-control"
-                           style="height: 40px; font-size: 14px; font-weight: 700; text-transform: uppercase;">
-                </div>
-
-                <!-- Primary Mobile Number -->
-                <div>
-                    <label for="edit-cust-mobile" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Mobile Number (मोबाईल) <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="tel" id="edit-cust-mobile" required class="form-control font-mono" maxlength="15"
-                           style="height: 40px; font-size: 14px; font-weight: 700;">
-                </div>
-
-                <!-- Alternate Mobile -->
-                <div>
-                    <label for="edit-cust-alt-mobile" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Alternate Mobile (पर्यायी मोबाईल)
-                    </label>
-                    <input type="tel" id="edit-cust-alt-mobile" class="form-control font-mono" maxlength="20"
-                           placeholder="Optional" style="height: 40px; font-size: 13.5px; font-weight: 600;">
-                </div>
-
-                <!-- Gender -->
-                <div>
-                    <label for="edit-cust-gender" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Gender (लिंग)
-                    </label>
-                    <select id="edit-cust-gender" class="form-control" style="height: 40px; font-size: 13px;">
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-
-                <!-- Birth Date -->
-                <div>
-                    <label for="edit-cust-dob" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Birth Date (जन्मतारीख)
-                    </label>
-                    <input type="date" id="edit-cust-dob" class="form-control" style="height: 40px; font-size: 13px;">
-                </div>
-
-                <!-- Occupation -->
-                <div>
-                    <label for="edit-cust-occupation" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Occupation (व्यवसाय)
-                    </label>
-                    <input type="text" id="edit-cust-occupation" class="form-control" placeholder="उदा. FARMER, STUDENT..." style="height: 40px; font-size: 13px;">
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="edit-cust-email" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
-                        Email (ईमेल)
-                    </label>
-                    <input type="email" id="edit-cust-email" class="form-control" placeholder="Optional" style="height: 40px; font-size: 13px;">
-                </div>
-            </div>
-
-            <div id="edit-cust-error-alert" style="display: none; margin-top: 14px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 12.5px; font-weight: 600;"></div>
-
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; margin-top: 18px; padding-top: 14px;">
-                <button type="button" class="btn btn-secondary" onclick="closeEditCustomerModal()" style="font-weight: 600; padding: 9px 18px; font-size: 13px; border-radius: 8px;">
-                    Cancel
-                </button>
-                <button type="submit" id="btn-save-cust-details" class="btn btn-primary"
-                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 22px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
-                    <i class="fa-solid fa-check"></i> Save Changes
                 </button>
             </div>
         </form>
@@ -2893,6 +2839,9 @@ function populateCustomerUI(cust, isNew) {
         document.getElementById('fe_name').value = cust.name;
     }
 
+    // Ensure customer fields always start in locked view mode
+    lockCustomerFields();
+
     if (cust.is_blacklisted) {
         showAlert('⛔ BLACKLISTED CUSTOMER', `Caution: Customer is marked as BLACKLISTED! Reason: ${cust.blacklist_reason || 'Flagged by desk operator'}`);
     }
@@ -2980,57 +2929,139 @@ function toggleCustomerBlacklist(setBlacklist, reason = '') {
 }
 
 // ==========================================
-// 4. INLINE EDIT & EDIT CUSTOMER MODAL (SINGLE PENCIL)
+// 4. INLINE EDIT / SAVE CONTROLS FOR CUSTOMER CARD
 // ==========================================
-function openEditCustomerModal() {
+let isCustomerEditing = false;
+
+function lockCustomerFields() {
+    isCustomerEditing = false;
+    const loadedState = document.getElementById('cust-loaded-state');
+    if (loadedState) loadedState.classList.remove('is-editing');
+
+    // Make inputs readonly & selects disabled
+    const nameInp = document.getElementById('cd-inline-name');
+    if (nameInp) nameInp.readOnly = true;
+
+    const mobInp = document.getElementById('cd-inline-mobile');
+    if (mobInp) mobInp.readOnly = true;
+
+    const altMobInp = document.getElementById('cd-inline-alt-mobile');
+    if (altMobInp) altMobInp.readOnly = true;
+
+    const dobInp = document.getElementById('cd-inline-dob');
+    if (dobInp) {
+        dobInp.readOnly = true;
+        dobInp.disabled = true;
+    }
+
+    const genderSel = document.getElementById('cd-inline-gender');
+    if (genderSel) genderSel.disabled = true;
+
+    const occSel = document.getElementById('cd-inline-occ');
+    if (occSel) occSel.disabled = true;
+
+    // Toggle header buttons: show Edit, hide Save/Cancel
+    const btnEdit = document.getElementById('btn-customer-edit');
+    if (btnEdit) btnEdit.style.display = 'inline-flex';
+
+    const editBtns = document.getElementById('cd-editing-buttons');
+    if (editBtns) editBtns.style.display = 'none';
+}
+
+function enableCustomerEditMode() {
     if (!currentLoadedCustomer) {
         showAlert('No Customer Selected', 'Please search or select a customer first.');
         return;
     }
-    document.getElementById('edit-cust-name').value = currentLoadedCustomer.name || '';
-    document.getElementById('edit-cust-mobile').value = currentLoadedCustomer.mobile || '';
-    document.getElementById('edit-cust-alt-mobile').value = currentLoadedCustomer.alternate_mobile || '';
-    document.getElementById('edit-cust-gender').value = currentLoadedCustomer.gender || 'MALE';
-    document.getElementById('edit-cust-dob').value = currentLoadedCustomer.birth_date || '';
-    document.getElementById('edit-cust-occupation').value = currentLoadedCustomer.occupation || '';
-    document.getElementById('edit-cust-email').value = currentLoadedCustomer.email || '';
 
-    const errBox = document.getElementById('edit-cust-error-alert');
-    if (errBox) errBox.style.display = 'none';
+    isCustomerEditing = true;
+    const loadedState = document.getElementById('cust-loaded-state');
+    if (loadedState) loadedState.classList.add('is-editing');
 
-    document.getElementById('modal-edit-customer').style.display = 'flex';
-    document.getElementById('edit-cust-name').focus();
+    // Unlock inputs & selects
+    const nameInp = document.getElementById('cd-inline-name');
+    if (nameInp) nameInp.readOnly = false;
+
+    const mobInp = document.getElementById('cd-inline-mobile');
+    if (mobInp) mobInp.readOnly = false;
+
+    const altMobInp = document.getElementById('cd-inline-alt-mobile');
+    if (altMobInp) altMobInp.readOnly = false;
+
+    const dobInp = document.getElementById('cd-inline-dob');
+    if (dobInp) {
+        dobInp.readOnly = false;
+        dobInp.disabled = false;
+    }
+
+    const genderSel = document.getElementById('cd-inline-gender');
+    if (genderSel) genderSel.disabled = false;
+
+    const occSel = document.getElementById('cd-inline-occ');
+    if (occSel) occSel.disabled = false;
+
+    // Toggle header buttons: hide Edit, show Save/Cancel
+    const btnEdit = document.getElementById('btn-customer-edit');
+    if (btnEdit) btnEdit.style.display = 'none';
+
+    const editBtns = document.getElementById('cd-editing-buttons');
+    if (editBtns) editBtns.style.display = 'inline-flex';
+
+    // Focus name input for immediate editing
+    if (nameInp) {
+        nameInp.focus();
+        nameInp.select();
+    }
 }
 
-function closeEditCustomerModal() {
-    const modal = document.getElementById('modal-edit-customer');
-    if (modal) modal.style.display = 'none';
+function cancelCustomerEditMode() {
+    if (currentLoadedCustomer) {
+        const nameInp = document.getElementById('cd-inline-name');
+        if (nameInp) nameInp.value = currentLoadedCustomer.name || '';
+
+        const mobInp = document.getElementById('cd-inline-mobile');
+        if (mobInp) mobInp.value = currentLoadedCustomer.mobile || '';
+
+        const altMobInp = document.getElementById('cd-inline-alt-mobile');
+        if (altMobInp) altMobInp.value = currentLoadedCustomer.alternate_mobile || '';
+
+        const genderSel = document.getElementById('cd-inline-gender');
+        if (genderSel) genderSel.value = currentLoadedCustomer.gender || 'MALE';
+
+        const dobInp = document.getElementById('cd-inline-dob');
+        if (dobInp) dobInp.value = currentLoadedCustomer.birth_date || '';
+
+        renderOccupationOptions(currentLoadedCustomer.occupation || '');
+        renderStarRating(currentLoadedCustomer.star_rating || 5);
+    }
+    lockCustomerFields();
 }
 
-function saveFullCustomerDetails(e) {
-    if (e) e.preventDefault();
+function saveCustomerInlineDetails() {
     if (!currentLoadedCustomer) return;
 
     const custId = currentLoadedCustomer.id;
-    const name = document.getElementById('edit-cust-name').value.trim();
-    const mobile = document.getElementById('edit-cust-mobile').value.trim();
-    const altMobile = document.getElementById('edit-cust-alt-mobile').value.trim();
-    const gender = document.getElementById('edit-cust-gender').value;
-    const dob = document.getElementById('edit-cust-dob').value;
-    const occupation = document.getElementById('edit-cust-occupation').value.trim();
-    const email = document.getElementById('edit-cust-email').value.trim();
+    const name = (document.getElementById('cd-inline-name')?.value || '').trim();
+    const rawMobile = (document.getElementById('cd-inline-mobile')?.value || '').trim();
+    const altMobile = (document.getElementById('cd-inline-alt-mobile')?.value || '').trim();
+    const gender = document.getElementById('cd-inline-gender')?.value || 'MALE';
+    const dob = document.getElementById('cd-inline-dob')?.value || '';
+    const occ = document.getElementById('cd-inline-occ')?.value || '';
 
     if (!name) {
         alert('Please enter customer full name.');
-        return;
-    }
-    const cleanMobile = mobile.replace(/[^0-9]/g, '');
-    if (cleanMobile.length < 10) {
-        alert('Please enter a valid 10-digit mobile number.');
+        document.getElementById('cd-inline-name')?.focus();
         return;
     }
 
-    const saveBtn = document.getElementById('btn-save-cust-details');
+    const cleanMobile = rawMobile.replace(/[^0-9]/g, '');
+    if (cleanMobile.length < 10) {
+        alert('Please enter a valid 10-digit mobile number.');
+        document.getElementById('cd-inline-mobile')?.focus();
+        return;
+    }
+
+    const saveBtn = document.getElementById('btn-customer-save');
     if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
@@ -3044,8 +3075,8 @@ function saveFullCustomerDetails(e) {
         alternate_mobile: altMobile,
         gender: gender,
         birth_date: dob || null,
-        occupation: occupation,
-        email: email
+        occupation: occ,
+        email: currentLoadedCustomer.email || ''
     };
 
     fetch('{{ route("fast_entry.update_customer") }}', {
@@ -3061,56 +3092,45 @@ function saveFullCustomerDetails(e) {
     .then(res => {
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
         }
-        if (res.success) {
-            closeEditCustomerModal();
 
-            // Update state
+        if (res.success) {
+            // Update customer memory state
             currentLoadedCustomer.name = name;
             currentLoadedCustomer.mobile = cleanMobile;
             currentLoadedCustomer.alternate_mobile = altMobile;
             currentLoadedCustomer.gender = gender;
             currentLoadedCustomer.birth_date = dob;
-            currentLoadedCustomer.occupation = occupation;
-            currentLoadedCustomer.email = email;
+            currentLoadedCustomer.occupation = occ;
 
-            // Update left panel inputs
-            document.getElementById('fe_name').value = name;
-            document.getElementById('fe_mobile').value = cleanMobile;
+            // Sync left panel inputs
+            const feName = document.getElementById('fe_name');
+            if (feName) feName.value = name;
+            const feMob = document.getElementById('fe_mobile');
+            if (feMob) feMob.value = cleanMobile;
 
-            // Update right panel customer details card
-            document.getElementById('cd-inline-name').value = name;
-            const cdMobInput = document.getElementById('cd-inline-mobile');
-            if (cdMobInput) cdMobInput.value = cleanMobile;
+            // Update mobile display span if present
             const cdMobSpan = document.getElementById('cd-mobile');
             if (cdMobSpan) cdMobSpan.innerText = cleanMobile;
-            const altMobInput = document.getElementById('cd-inline-alt-mobile');
-            if (altMobInput) altMobInput.value = altMobile;
-            document.getElementById('cd-inline-gender').value = gender;
-            document.getElementById('cd-inline-dob').value = dob || '';
-            renderOccupationOptions(occupation || '');
 
-            // Update Head beneficiary pill if present
+            // Update head beneficiary pill if present
             const headNameEl = document.getElementById('fm-head-name');
             if (headNameEl) headNameEl.textContent = name;
             updateActiveBeneficiaryIndicator();
 
-            showAlert('Success', 'Customer details updated successfully!');
+            // Lock fields back to view mode
+            lockCustomerFields();
+
+            showAlert('Success', 'Customer details saved successfully!');
         } else {
-            const errBox = document.getElementById('edit-cust-error-alert');
-            if (errBox) {
-                errBox.innerText = res.message || 'Failed to update customer details.';
-                errBox.style.display = 'block';
-            } else {
-                alert(res.message || 'Failed to update customer details.');
-            }
+            alert(res.message || 'Failed to save customer details.');
         }
     })
     .catch(err => {
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
         }
         alert('Server error while saving customer details.');
     });
@@ -3200,6 +3220,7 @@ function renderStarRating(val) {
 }
 
 function setAndAutoSaveRating(val) {
+    if (!isCustomerEditing) return;
     val = parseInt(val, 10);
     renderStarRating(val);
     autoSaveCustomerField('star_rating', val);
@@ -3213,6 +3234,7 @@ function setAndAutoSaveRating(val) {
 
 // Global Keyboard Handler for Star Rating (Keys 1 to 5)
 document.addEventListener('keydown', function(e) {
+    if (!isCustomerEditing) return;
     // If user is typing in a text field or select, do not trigger star change
     const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || tag === 'select') {
@@ -3313,15 +3335,12 @@ function onOccupationSelectChange(selectEl) {
             renderOccupationOptions(clean);
             selectEl.value = clean;
             selectEl.dataset.prev = clean;
-            autoSaveCustomerField('occupation', clean);
         } else {
             selectEl.value = selectEl.dataset.prev || '';
             return;
         }
     } else {
-        const val = selectEl.value;
-        selectEl.dataset.prev = val;
-        autoSaveCustomerField('occupation', val);
+        selectEl.dataset.prev = selectEl.value;
     }
 }
 
@@ -4921,6 +4940,7 @@ function saveActiveServiceRow() {
 // ==========================================
 function resetEntireDesk() {
     currentLoadedCustomer = null;
+    lockCustomerFields();
 
     // Reset Left Form
     document.getElementById('fe_name').value = '';
