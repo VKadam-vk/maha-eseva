@@ -63,7 +63,15 @@ class EmployeeController extends Controller
             ->orderBy('sub_service_name')
             ->get();
 
-        return view('employees.create', compact('branches', 'permissions', 'services', 'allServicesFlat', 'defaultPermissionIds'));
+        // Distinct list of main service names
+        $mainServicesList = Service::where('is_active', true)
+            ->whereNotNull('main_service_name')
+            ->where('main_service_name', '!=', '')
+            ->distinct()
+            ->orderBy('main_service_name')
+            ->pluck('main_service_name');
+
+        return view('employees.create', compact('branches', 'permissions', 'services', 'allServicesFlat', 'defaultPermissionIds', 'mainServicesList'));
     }
 
     /**
@@ -85,6 +93,8 @@ class EmployeeController extends Controller
             'address' => ['nullable', 'string'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['exists:permissions,id'],
+            'main_services' => ['nullable', 'array'],
+            'main_services.*' => ['string'],
             'services' => ['nullable', 'array'],
             'services.*' => ['exists:services,id'],
             'all_services' => ['nullable'],
@@ -144,8 +154,17 @@ class EmployeeController extends Controller
             ]);
 
             // Save permitted services if not "all services"
-            if (!$request->boolean('all_services') && $request->filled('services')) {
-                $employee->services()->sync($request->input('services'));
+            if (!$request->boolean('all_services')) {
+                $serviceIds = [];
+                if ($request->filled('main_services')) {
+                    $serviceIds = Service::where('is_active', true)
+                        ->whereIn('main_service_name', $request->input('main_services'))
+                        ->pluck('id')
+                        ->toArray();
+                } elseif ($request->filled('services')) {
+                    $serviceIds = $request->input('services', []);
+                }
+                $employee->services()->sync($serviceIds);
             }
 
             AuditService::log('EMPLOYEE_CREATED', $employee, null, $employee->toArray());
@@ -180,6 +199,22 @@ class EmployeeController extends Controller
         $assignedServiceIds = $employee->services()->pluck('services.id')->toArray();
         $hasAllServices = empty($assignedServiceIds);
 
+        // Distinct list of main service names
+        $mainServicesList = Service::where('is_active', true)
+            ->whereNotNull('main_service_name')
+            ->where('main_service_name', '!=', '')
+            ->distinct()
+            ->orderBy('main_service_name')
+            ->pluck('main_service_name');
+
+        // Main services already assigned to this employee
+        $assignedMainServices = $employee->services()
+            ->whereNotNull('main_service_name')
+            ->where('main_service_name', '!=', '')
+            ->distinct()
+            ->pluck('main_service_name')
+            ->toArray();
+
         $allServicesFlat = Service::where('is_active', true)
             ->orderBy('main_service_name')
             ->orderBy('sub_service_name')
@@ -187,7 +222,8 @@ class EmployeeController extends Controller
 
         return view('employees.edit', compact(
             'employee', 'branches', 'permissions', 'services', 'allServicesFlat',
-            'assignedPermissionIds', 'assignedServiceIds', 'hasAllServices'
+            'assignedPermissionIds', 'assignedServiceIds', 'hasAllServices',
+            'mainServicesList', 'assignedMainServices'
         ));
     }
 
@@ -216,6 +252,8 @@ class EmployeeController extends Controller
             'status' => ['required', 'in:ACTIVE,INACTIVE,ON_LEAVE'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['exists:permissions,id'],
+            'main_services' => ['nullable', 'array'],
+            'main_services.*' => ['string'],
             'services' => ['nullable', 'array'],
             'services.*' => ['exists:services,id'],
             'all_services' => ['nullable'],
@@ -255,8 +293,16 @@ class EmployeeController extends Controller
             if ($request->boolean('all_services')) {
                 $employee->services()->detach(); // no restrictions = full access
             } else {
-                $services = $request->input('services', []);
-                $employee->services()->sync($services);
+                $serviceIds = [];
+                if ($request->filled('main_services')) {
+                    $serviceIds = Service::where('is_active', true)
+                        ->whereIn('main_service_name', $request->input('main_services'))
+                        ->pluck('id')
+                        ->toArray();
+                } elseif ($request->filled('services')) {
+                    $serviceIds = $request->input('services', []);
+                }
+                $employee->services()->sync($serviceIds);
             }
 
             AuditService::log('EMPLOYEE_UPDATED', $employee, null, $employee->toArray());

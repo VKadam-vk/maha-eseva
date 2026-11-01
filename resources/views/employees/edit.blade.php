@@ -128,7 +128,7 @@
                         <i class="fa-solid fa-list-check"></i> Allowed Services
                     </div>
                     <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px; margin-bottom: 0;">
-                        Assign specific services this employee is permitted to handle (e.g. PAN Card, Certificates).
+                        Assign specific main services (e.g. PAN Card, Domicile). All sub-services under selected services will be automatically included.
                     </p>
                 </div>
 
@@ -139,8 +139,8 @@
                         <span style="font-size: 13px; font-weight: 600; color: #1e293b;">Grant All Services (Full Access)</span>
                     </label>
 
-                    <span class="badge {{ $hasAllServices ? 'badge-ready' : (count($assignedServiceIds) > 0 ? 'badge-process' : 'badge-danger') }}" id="servicesSelectedCountBadge">
-                        {{ $hasAllServices ? 'All Services Allowed (Full Access)' : count($assignedServiceIds) . ' Services Selected' }}
+                    <span class="badge {{ $hasAllServices ? 'badge-ready' : (count($assignedMainServices ?? []) > 0 ? 'badge-process' : 'badge-danger') }}" id="servicesSelectedCountBadge">
+                        {{ $hasAllServices ? 'All Services Allowed (Full Access)' : count($assignedMainServices ?? []) . ' Services Selected' }}
                     </span>
                 </div>
             </div>
@@ -148,20 +148,13 @@
             <div id="serviceDropdownWrapper" style="padding: 20px; background: #ffffff;">
                 <div style="max-width: 680px;">
                     <label class="form-label" style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-                        Select Service to Assign
+                        Select Main Service to Assign
                     </label>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <select id="serviceSelectDropdown" class="form-control" style="flex: 1; height: 42px; font-size: 13.5px; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; background: #ffffff;">
-                            <option value="">-- Choose Service from List --</option>
-                            @foreach($services as $categoryName => $catServices)
-                                <optgroup label="{{ $categoryName }}">
-                                    @foreach($catServices as $service)
-                                        <option value="{{ $service->id }}" 
-                                                data-label="{{ $service->main_service_name }}{{ $service->sub_service_name ? ' - ' . $service->sub_service_name : '' }}">
-                                            {{ $service->main_service_name }}{{ $service->sub_service_name ? ' - ' . $service->sub_service_name : '' }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
+                        <select id="mainServiceSelectDropdown" class="form-control" style="flex: 1; height: 42px; font-size: 13.5px; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; background: #ffffff;">
+                            <option value="">-- Choose Main Service from List --</option>
+                            @foreach($mainServicesList as $mainName)
+                                <option value="{{ $mainName }}">{{ $mainName }}</option>
                             @endforeach
                         </select>
                         <button type="button" class="btn btn-primary" id="btnAddServiceFromDropdown" style="height: 42px; padding: 0 18px; font-weight: 700; white-space: nowrap;">
@@ -182,14 +175,20 @@
                         <div id="selectedServicesTagsBox" style="min-height: 52px; padding: 10px 14px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                             <!-- Populated dynamically via JS -->
                         </div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 6px;">
+                            <i class="fa-solid fa-circle-info" style="color: #6366f1;"></i> Selecting a service automatically grants access to all its sub-services and variants.
+                        </div>
                     </div>
                 </div>
 
-                <!-- Hidden inputs container for services[] -->
+                <!-- Hidden inputs container for main_services[] -->
                 <div id="hiddenServicesContainer">
-                    @if(!$hasAllServices && !empty($assignedServiceIds))
-                        @foreach($assignedServiceIds as $sId)
-                            <input type="hidden" name="services[]" value="{{ $sId }}" id="hidden_svc_{{ $sId }}">
+                    @php
+                        $initialServices = old('main_services', $assignedMainServices ?? []);
+                    @endphp
+                    @if(!$hasAllServices && is_array($initialServices))
+                        @foreach($initialServices as $mName)
+                            <input type="hidden" name="main_services[]" value="{{ $mName }}">
                         @endforeach
                     @endif
                 </div>
@@ -402,7 +401,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const allServicesToggle = document.getElementById('allServicesToggle');
-    const serviceSelectDropdown = document.getElementById('serviceSelectDropdown');
+    const serviceSelectDropdown = document.getElementById('mainServiceSelectDropdown');
     const btnAddService = document.getElementById('btnAddServiceFromDropdown');
     const tagsBox = document.getElementById('selectedServicesTagsBox');
     const counterSpan = document.getElementById('selectedServiceCounter');
@@ -410,17 +409,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const hiddenContainer = document.getElementById('hiddenServicesContainer');
     const btnClearAll = document.getElementById('btnClearAllAssignedServices');
 
-    // Key-value store for selected services: { id: label }
-    const selectedServices = new Map();
+    // Set of selected main service names
+    const selectedMainServices = new Set();
 
-    // Initialize from any existing hidden inputs
-    if (hiddenContainer) {
-        hiddenContainer.querySelectorAll('input[name="services[]"]').forEach(inp => {
-            const opt = serviceSelectDropdown ? serviceSelectDropdown.querySelector(`option[value="${inp.value}"]`) : null;
-            const label = opt ? opt.dataset.label : `Service #${inp.value}`;
-            selectedServices.set(inp.value, label);
-        });
-    }
+    // Initialize from pre-loaded main services (or old inputs)
+    @php
+        $initialServicesForJs = old('main_services', $assignedMainServices ?? []);
+    @endphp
+    @if(!$hasAllServices && is_array($initialServicesForJs))
+        @foreach($initialServicesForJs as $mName)
+            selectedMainServices.add(@json($mName));
+        @endforeach
+    @endif
 
     function renderServicesUI() {
         if (!tagsBox) return;
@@ -436,12 +436,11 @@ document.addEventListener('DOMContentLoaded', function () {
             badgeSpan.className = 'badge badge-ready';
             counterSpan.textContent = 'All';
             tagsBox.innerHTML = '<span class="badge badge-ready" style="font-size: 11.5px; padding: 4px 10px;">All Center Services Enabled (Full Access)</span>';
-            // Clear hidden inputs when full access is granted
             if (hiddenContainer) hiddenContainer.innerHTML = '';
             return;
         }
 
-        const count = selectedServices.size;
+        const count = selectedMainServices.size;
         counterSpan.textContent = count;
         badgeSpan.textContent = `${count} Services Selected`;
         badgeSpan.className = count > 0 ? 'badge badge-process' : 'badge badge-danger';
@@ -449,26 +448,26 @@ document.addEventListener('DOMContentLoaded', function () {
         // Re-generate hidden inputs
         if (hiddenContainer) {
             hiddenContainer.innerHTML = '';
-            selectedServices.forEach((label, id) => {
+            selectedMainServices.forEach(name => {
                 const inp = document.createElement('input');
                 inp.type = 'hidden';
-                inp.name = 'services[]';
-                inp.value = id;
+                inp.name = 'main_services[]';
+                inp.value = name;
                 hiddenContainer.appendChild(inp);
             });
         }
 
         if (count === 0) {
-            tagsBox.innerHTML = '<span style="font-size: 12px; color: #94a3b8; font-style: italic;">No specific service selected. Choose a service from the dropdown above and click "Add".</span>';
+            tagsBox.innerHTML = '<span style="font-size: 12px; color: #94a3b8; font-style: italic;">No specific service selected. Choose a main service from the dropdown above and click "Add".</span>';
             return;
         }
 
-        selectedServices.forEach((label, id) => {
+        selectedMainServices.forEach(name => {
             const pill = document.createElement('span');
             pill.style.cssText = 'background: #eef2ff; color: #4338ca; border: 1.5px solid #c7d2fe; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;';
-            pill.innerHTML = `<span>${label}</span> <i class="fa-solid fa-xmark" style="cursor: pointer; color: #6366f1; font-size: 13px;" title="Remove ${label}"></i>`;
+            pill.innerHTML = `<span>${name}</span> <i class="fa-solid fa-xmark" style="cursor: pointer; color: #6366f1; font-size: 13px;" title="Remove ${name}"></i>`;
             pill.querySelector('i').addEventListener('click', function () {
-                selectedServices.delete(id);
+                selectedMainServices.delete(name);
                 renderServicesUI();
             });
             tagsBox.appendChild(pill);
@@ -477,17 +476,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function addSelectedService() {
         if (!serviceSelectDropdown) return;
-        const val = serviceSelectDropdown.value;
+        const val = serviceSelectDropdown.value.trim();
         if (!val) return;
-
-        const opt = serviceSelectDropdown.selectedOptions[0];
-        const label = opt ? (opt.dataset.label || opt.text) : val;
 
         if (allServicesToggle && allServicesToggle.checked) {
             allServicesToggle.checked = false;
         }
 
-        selectedServices.set(val, label);
+        selectedMainServices.add(val);
         serviceSelectDropdown.value = '';
         renderServicesUI();
     }
@@ -510,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnClearAll) {
         btnClearAll.addEventListener('click', function () {
-            selectedServices.clear();
+            selectedMainServices.clear();
             renderServicesUI();
         });
     }
