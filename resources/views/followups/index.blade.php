@@ -318,6 +318,29 @@
     tr.followup-row-unlocked .row-sub-view { display: none !important; }
     tr.followup-row-unlocked .row-sub-edit { display: block !important; }
 
+    /* Work Details & Pending Remark view/edit toggle (Minimized normal height by default) */
+    .row-notes-view {
+        max-width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 11.5px;
+        color: #334155;
+        line-height: 28px;
+        height: 28px;
+        padding: 0 4px;
+        cursor: pointer;
+        user-select: text;
+    }
+    .row-notes-view:hover {
+        color: #0284c7;
+        text-decoration: underline dotted;
+    }
+    tr.followup-row-locked .row-notes-view { display: block !important; }
+    tr.followup-row-locked .row-notes-edit { display: none !important; }
+    tr.followup-row-unlocked .row-notes-view { display: none !important; }
+    tr.followup-row-unlocked .row-notes-edit { display: block !important; }
+
     /* Fast Entry Input Styles */
     .excel-input, .excel-select {
         width: 100%;
@@ -902,20 +925,34 @@
                                 </select>
                             </td>
 
-                            <!-- 7. Work Details -->
-                            <td>
-                                <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
-                                          placeholder="Notes / instructions..."
-                                          rows="1" tabindex="-1" oninput="autoExpandWorkDetails(this)"
-                                          onchange="saveRowField({{ $app->id }}, 'work_details', this.value)">{{ $app->work_details }}</textarea>
+                            <!-- 7. Work Details (Minimized Normal by default) -->
+                            <td style="padding: 4px 6px;">
+                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}" onclick="toggleEditFollowupRow({{ $app->id }})">{{ $app->work_details ?: '-' }}</div>
+                                <div class="row-notes-edit">
+                                    <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
+                                              placeholder="Notes / instructions..."
+                                              rows="1" tabindex="-1"
+                                              title="{{ $app->work_details }}"
+                                              oninput="autoExpandWorkDetails(this)"
+                                              onfocus="autoExpandWorkDetails(this)"
+                                              onblur="minimizeWorkDetails(this)"
+                                              onchange="saveRowField({{ $app->id }}, 'work_details', this.value)">{{ $app->work_details }}</textarea>
+                                </div>
                             </td>
 
-                            <!-- Pending Remark -->
-                            <td>
-                                <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
-                                          placeholder="Pending remark / notes..."
-                                          rows="1" tabindex="-1" oninput="autoExpandWorkDetails(this)"
-                                          onchange="saveRowField({{ $app->id }}, 'payment_remarks', this.value)">{{ $app->payment_remarks }}</textarea>
+                            <!-- Pending Remark (Minimized Normal by default) -->
+                            <td style="padding: 4px 6px;">
+                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}" onclick="toggleEditFollowupRow({{ $app->id }})">{{ $app->payment_remarks ?: '-' }}</div>
+                                <div class="row-notes-edit">
+                                    <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
+                                              placeholder="Pending remark / notes..."
+                                              rows="1" tabindex="-1"
+                                              title="{{ $app->payment_remarks }}"
+                                              oninput="autoExpandWorkDetails(this)"
+                                              onfocus="autoExpandWorkDetails(this)"
+                                              onblur="minimizeWorkDetails(this)"
+                                              onchange="saveRowField({{ $app->id }}, 'payment_remarks', this.value)">{{ $app->payment_remarks }}</textarea>
+                                </div>
                             </td>
 
                             <!-- 8. Operator -->
@@ -1163,8 +1200,8 @@
         // Apply status colors to all status selectors
         document.querySelectorAll('.status-select, .status-combobox').forEach(el => applyStatusInputStyle(el));
 
-        // Auto-expand all work details
-        document.querySelectorAll('.excel-work-details').forEach(el => autoExpandWorkDetails(el));
+        // Initialize all work details & remarks as minimized by default
+        document.querySelectorAll('.excel-work-details').forEach(el => minimizeWorkDetails(el));
 
         // Initialize Excel Column Filter
         if (window.ExcelTableFilter) {
@@ -1186,11 +1223,18 @@
         }
     });
 
-    // Auto-expand textarea
+    // Auto-expand textarea on focus / typing (up to 160px max)
     function autoExpandWorkDetails(el) {
         if (!el) return;
         el.style.height = 'auto';
-        el.style.height = Math.max(28, el.scrollHeight) + 'px';
+        el.style.height = Math.min(Math.max(28, el.scrollHeight), 160) + 'px';
+        el.title = el.value;
+    }
+
+    // Minimize textarea on blur / lock (compact normal single-line height)
+    function minimizeWorkDetails(el) {
+        if (!el) return;
+        el.style.height = '28px';
     }
 
     // Dynamic styling for status select/input
@@ -1461,6 +1505,17 @@
                     if (viewSub) viewSub.textContent = res.data.sub_service;
                 }
 
+                const viewWd = document.getElementById(`view_wd_${appId}`);
+                if (viewWd && workDetails !== null) {
+                    viewWd.textContent = workDetails.trim() || '-';
+                    viewWd.title = workDetails;
+                }
+                const viewPr = document.getElementById(`view_pr_${appId}`);
+                if (viewPr && paymentRemarks !== null) {
+                    viewPr.textContent = paymentRemarks.trim() || '-';
+                    viewPr.title = paymentRemarks;
+                }
+
                 if (window.followupFilter) {
                     window.followupFilter.refresh();
                 } else {
@@ -1514,7 +1569,27 @@
         // Persist row to backend
         saveRowField(appId, 'all', null);
 
-        // Lock row back
+        // Synchronize view text & minimize textareas
+        const wdInput = document.getElementById(`work_details_${appId}`);
+        const prInput = document.getElementById(`payment_remarks_${appId}`);
+        const viewWd = document.getElementById(`view_wd_${appId}`);
+        const viewPr = document.getElementById(`view_pr_${appId}`);
+        if (wdInput) {
+            minimizeWorkDetails(wdInput);
+            if (viewWd) {
+                viewWd.textContent = wdInput.value.trim() || '-';
+                viewWd.title = wdInput.value;
+            }
+        }
+        if (prInput) {
+            minimizeWorkDetails(prInput);
+            if (viewPr) {
+                viewPr.textContent = prInput.value.trim() || '-';
+                viewPr.title = prInput.value;
+            }
+        }
+
+        // Lock row back (returns to minimized view)
         row.classList.remove('followup-row-unlocked');
         row.classList.add('followup-row-locked');
 

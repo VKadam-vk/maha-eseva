@@ -1810,23 +1810,27 @@
                                 </select>
                             </td>
 
-                            <!-- 7. Work Details (Auto-expandable & Resizable) -->
+                            <!-- 7. Work Details (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_work_details" class="excel-work-details"
                                           placeholder="Work details, notes, ack no..."
                                           rows="1"
                                           title="Work Details: Citizen notes, application numbers, or document status"
                                           oninput="autoExpandWorkDetails(this)"
+                                          onfocus="autoExpandWorkDetails(this)"
+                                          onblur="minimizeWorkDetails(this)"
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
-                            <!-- 8. Pending Remark (Auto-expandable & Resizable) -->
+                            <!-- 8. Pending Remark (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
                                 <textarea id="se_payment_remarks" class="excel-work-details"
                                           placeholder="Pending remark / notes..."
                                           rows="1"
                                           title="Pending Remark: Pending reason, documents needed, notes, etc."
                                           oninput="autoExpandWorkDetails(this)"
+                                          onfocus="autoExpandWorkDetails(this)"
+                                          onblur="minimizeWorkDetails(this)"
                                           onkeydown="handleRowKeyDown(event)"></textarea>
                             </td>
 
@@ -3992,8 +3996,13 @@ function copyModalDocsToClipboard(btn) {
 function autoExpandWorkDetails(el) {
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(Math.max(el.scrollHeight, 34), 180) + 'px';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 34), 160) + 'px';
     el.title = el.value;
+}
+
+function minimizeWorkDetails(el) {
+    if (!el) return;
+    el.style.height = '34px';
 }
 
 function getAppPortalLink(app) {
@@ -4079,6 +4088,8 @@ function saveAndLockCommittedRow(appId) {
         btn.innerHTML = '<i class="fa-solid fa-pencil"></i>';
         btn.title = 'Click to edit service details';
     }
+    minimizeWorkDetails(document.getElementById(`crow_work_details_${appId}`));
+    minimizeWorkDetails(document.getElementById(`crow_payment_remarks_${appId}`));
     updateCommittedRowViewTexts(appId);
 }
 
@@ -4277,6 +4288,8 @@ function getCommittedRowInnerHtml(app) {
                           rows="1"
                           title="${escapeHtml(app.work_details || '')}"
                           oninput="autoExpandWorkDetails(this)"
+                          onfocus="autoExpandWorkDetails(this)"
+                          onblur="minimizeWorkDetails(this)"
                           onchange="autoSaveCommittedRow(${app.id})"
                           onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
             </div>
@@ -4291,6 +4304,8 @@ function getCommittedRowInnerHtml(app) {
                           rows="1"
                           title="${escapeHtml(app.payment_remarks || '')}"
                           oninput="autoExpandWorkDetails(this)"
+                          onfocus="autoExpandWorkDetails(this)"
+                          onblur="minimizeWorkDetails(this)"
                           onchange="autoSaveCommittedRow(${app.id})"
                           onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
             </div>

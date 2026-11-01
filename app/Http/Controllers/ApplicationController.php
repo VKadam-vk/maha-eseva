@@ -23,7 +23,8 @@ class ApplicationController extends Controller
     public function __construct(
         protected ApplicationService $applicationService,
         protected NotificationService $notificationService
-    ) {}
+    ) {
+    }
 
     /**
      * Display list of applications with filter filters and server-side pagination.
@@ -37,13 +38,13 @@ class ApplicationController extends Controller
             $s = trim($request->search);
             $query->where(function ($q) use ($s) {
                 $q->where('application_number', 'like', "%{$s}%")
-                  ->orWhere('external_acknowledgement_no', 'like', "%{$s}%")
-                  ->orWhereHas('customer', function ($c) use ($s) {
-                      $c->where('name', 'like', "%{$s}%")
-                        ->orWhere('mobile', 'like', "%{$s}%")
-                        ->orWhere('alternate_mobile', 'like', "%{$s}%")
-                        ->orWhere('customer_code', 'like', "%{$s}%");
-                  });
+                    ->orWhere('external_acknowledgement_no', 'like', "%{$s}%")
+                    ->orWhereHas('customer', function ($c) use ($s) {
+                        $c->where('name', 'like', "%{$s}%")
+                            ->orWhere('mobile', 'like', "%{$s}%")
+                            ->orWhere('alternate_mobile', 'like', "%{$s}%")
+                            ->orWhere('customer_code', 'like', "%{$s}%");
+                    });
             });
         }
 
@@ -146,7 +147,7 @@ class ApplicationController extends Controller
         $user = Auth::user();
         $customerId = $request->query('customer_id');
         $selectedCustomer = $customerId ? Customer::find($customerId) : null;
-        
+
         $services = $user->allowedServices()->with('customFields')->get();
 
         $employeesQuery = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user');
@@ -205,7 +206,7 @@ class ApplicationController extends Controller
         }
 
         $application = $this->applicationService->createApplication($validated, $user);
-        
+
         // Notify customer via SMS / WhatsApp simulation
         $this->notificationService->notifyApplicationCreated($application);
 
@@ -283,7 +284,7 @@ class ApplicationController extends Controller
         ]);
 
         $this->applicationService->updateStatus($application, $validated['work_status'], $validated['remarks'] ?? null, Auth::user());
-        
+
         // Trigger status notification
         $this->notificationService->notifyStatusChanged($application->fresh(), $validated['work_status']);
 

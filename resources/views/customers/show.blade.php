@@ -273,22 +273,33 @@
 
     .pocket-excel-table .excel-work-details {
         width: 100%;
+        height: 30px;
         min-height: 30px;
-        max-height: 120px;
         font-size: 12px;
         border: 1px solid transparent;
         border-radius: 5px;
         background: transparent;
         padding: 3px 6px;
         resize: none;
+        overflow: hidden;
         line-height: 1.3;
         transition: all 0.15s ease;
+    }
+
+    .pocket-excel-table tr.committed-row:not(.committed-row-unlocked) .excel-work-details {
+        height: 30px !important;
+        max-height: 30px !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        pointer-events: none;
     }
 
     .pocket-excel-table tr.committed-row-unlocked .excel-work-details {
         border-color: #cbd5e1;
         background: #ffffff;
         resize: vertical;
+        pointer-events: auto;
     }
 
     .pocket-excel-table tr.committed-row-unlocked .excel-work-details:focus {
@@ -980,14 +991,14 @@
                         <td>
                             <textarea id="se_work_details" class="excel-work-details"
                                       placeholder="Work details / notes..."
-                                      rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
+                                      rows="1" oninput="autoExpandWorkDetails(this)" onfocus="autoExpandWorkDetails(this)" onblur="minimizeWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
                         <!-- 8. Pending Remark -->
                         <td>
                             <textarea id="se_payment_remarks" class="excel-work-details"
                                       placeholder="Pending remark / notes..."
-                                      rows="1" oninput="autoExpandWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
+                                      rows="1" oninput="autoExpandWorkDetails(this)" onfocus="autoExpandWorkDetails(this)" onblur="minimizeWorkDetails(this)" onkeydown="handleActiveRowKey(event)"></textarea>
                         </td>
 
                         <!-- 9. Operator -->
@@ -2118,6 +2129,8 @@ function getCommittedRowInnerHtml(app) {
                       tabindex="-1"
                       title="${escapeHtml(app.work_details || '')}"
                       oninput="autoExpandWorkDetails(this)"
+                      onfocus="autoExpandWorkDetails(this)"
+                      onblur="minimizeWorkDetails(this)"
                       onchange="autoSaveCommittedRow(${app.id})"
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.work_details || '')}</textarea>
         </td>
@@ -2128,6 +2141,8 @@ function getCommittedRowInnerHtml(app) {
                       tabindex="-1"
                       title="${escapeHtml(app.payment_remarks || '')}"
                       oninput="autoExpandWorkDetails(this)"
+                      onfocus="autoExpandWorkDetails(this)"
+                      onblur="minimizeWorkDetails(this)"
                       onchange="autoSaveCommittedRow(${app.id})"
                       onkeydown="handleCommittedKey(event, ${app.id})">${escapeHtml(app.payment_remarks || '')}</textarea>
         </td>
@@ -2234,6 +2249,9 @@ function saveCustomerRowAndLock(appId) {
     // Lock row back
     row.classList.remove('committed-row-unlocked');
     row.classList.add('committed-row-locked');
+
+    minimizeWorkDetails(document.getElementById(`crow_work_details_${appId}`));
+    minimizeWorkDetails(document.getElementById(`crow_payment_remarks_${appId}`));
 
     row.querySelectorAll('input, select, textarea').forEach(el => {
         el.setAttribute('tabindex', '-1');
@@ -2815,8 +2833,13 @@ function recalculateCustomerMetrics() {
 function autoExpandWorkDetails(el) {
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(Math.max(el.scrollHeight, 30), 120) + 'px';
+    el.style.height = Math.min(Math.max(el.scrollHeight, 30), 140) + 'px';
     el.title = el.value;
+}
+
+function minimizeWorkDetails(el) {
+    if (!el) return;
+    el.style.height = '30px';
 }
 
 // ==========================================
