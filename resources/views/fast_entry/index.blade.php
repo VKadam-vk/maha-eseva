@@ -1391,9 +1391,14 @@
             <div class="pocket-card-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
                 <div class="card-title">
                     <i class="fa-solid fa-address-card" style="color: #38bdf8;"></i>
-                    <span>Customer Details (Click to edit - Auto-Saves)</span>
+                    <span>Customer Details</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" id="btn-open-edit-cust-modal" onclick="openEditCustomerModal()"
+                            style="background: #0284c7; color: #ffffff; border: none; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);"
+                            title="Edit Customer Details (Click to edit all details)">
+                        <i class="fa-solid fa-pencil"></i> Edit Details
+                    </button>
                     <span id="cd-status-badge" class="pocket-badge-neutral">
                         No Customer Selected
                     </span>
@@ -1434,12 +1439,9 @@
                     </div>
 
                     <div class="details-summary-grid">
-                        <!-- 1. NAME (Click to edit directly) -->
-                        <div class="summary-item" title="Click to edit Name (Auto-saves on blur/Enter)">
-                            <span class="summary-label">
-                                <span>Name (Click to edit)</span>
-                                <i class="fa-solid fa-pencil" style="font-size: 10px; color: #0284c7;"></i>
-                            </span>
+                        <!-- 1. NAME -->
+                        <div class="summary-item" title="Customer Name">
+                            <span class="summary-label">Name</span>
                             <input type="text" id="cd-inline-name" class="inline-edit-input" placeholder="Customer Name"
                                    onblur="autoSaveCustomerField('name', this.value)"
                                    onkeydown="if(event.key==='Enter'){this.blur();}">
@@ -1447,17 +1449,18 @@
                         </div>
 
                         <!-- 2. MOBILE -->
-                        <div class="summary-item">
+                        <div class="summary-item" title="Customer Mobile Number (Click to edit or use Edit Details)">
                             <span class="summary-label">Mobile No</span>
-                            <span class="summary-val font-mono" id="cd-mobile">-</span>
+                            <input type="tel" id="cd-inline-mobile" class="inline-edit-input font-mono" placeholder="Mobile Number" maxlength="15"
+                                   onblur="autoSaveCustomerField('mobile', this.value)"
+                                   onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <span class="summary-val font-mono" id="cd-mobile" style="display: none;">-</span>
+                            <span class="save-indicator" id="ind-mobile">✓ Saved</span>
                         </div>
 
-                        <!-- 2b. ALTERNATE MOBILE (Click to edit) -->
-                        <div class="summary-item" title="Click to edit Alternate Mobile (Auto-saves on blur/Enter)">
-                            <span class="summary-label">
-                                <span>Alt Mobile (Click to edit)</span>
-                                <i class="fa-solid fa-pencil" style="font-size: 10px; color: #0284c7;"></i>
-                            </span>
+                        <!-- 2b. ALTERNATE MOBILE -->
+                        <div class="summary-item" title="Alternate Mobile">
+                            <span class="summary-label">Alt Mobile</span>
                             <input type="tel" id="cd-inline-alt-mobile" class="inline-edit-input font-mono" placeholder="Alternate Mobile" maxlength="20"
                                    onblur="autoSaveCustomerField('alternate_mobile', this.value)"
                                    onkeydown="if(event.key==='Enter'){this.blur();}">
@@ -2067,6 +2070,108 @@
                 <button type="submit" id="btn-submit-family-member" class="btn btn-primary"
                         style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 20px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
                     <i id="fm-submit-icon" class="fa-solid fa-check"></i> <span id="fm-submit-label">Save & Select Member</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Edit Customer Details Popup -->
+<div id="modal-edit-customer" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeEditCustomerModal()">
+    <div class="confirm-modal-card" style="position: relative; background: #ffffff; width: 100%; max-width: 520px; border-radius: 14px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); border: 1.5px solid #cbd5e1; overflow: hidden; animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(2, 132, 199, 0.25); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-pencil"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Edit Customer Details</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">Update customer profile, contact & demographic details</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeEditCustomerModal()" title="Close" style="background: transparent; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; padding: 2px 6px;">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <form id="form-edit-customer-details" onsubmit="saveFullCustomerDetails(event)" style="padding: 20px 22px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <!-- Full Name -->
+                <div style="grid-column: span 2;">
+                    <label for="edit-cust-name" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Full Name (पूर्ण नाव) <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" id="edit-cust-name" required class="form-control"
+                           style="height: 40px; font-size: 14px; font-weight: 700; text-transform: uppercase;">
+                </div>
+
+                <!-- Primary Mobile Number -->
+                <div>
+                    <label for="edit-cust-mobile" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Mobile Number (मोबाईल) <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="tel" id="edit-cust-mobile" required class="form-control font-mono" maxlength="15"
+                           style="height: 40px; font-size: 14px; font-weight: 700;">
+                </div>
+
+                <!-- Alternate Mobile -->
+                <div>
+                    <label for="edit-cust-alt-mobile" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Alternate Mobile (पर्यायी मोबाईल)
+                    </label>
+                    <input type="tel" id="edit-cust-alt-mobile" class="form-control font-mono" maxlength="20"
+                           placeholder="Optional" style="height: 40px; font-size: 13.5px; font-weight: 600;">
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label for="edit-cust-gender" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Gender (लिंग)
+                    </label>
+                    <select id="edit-cust-gender" class="form-control" style="height: 40px; font-size: 13px;">
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+
+                <!-- Birth Date -->
+                <div>
+                    <label for="edit-cust-dob" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Birth Date (जन्मतारीख)
+                    </label>
+                    <input type="date" id="edit-cust-dob" class="form-control" style="height: 40px; font-size: 13px;">
+                </div>
+
+                <!-- Occupation -->
+                <div>
+                    <label for="edit-cust-occupation" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Occupation (व्यवसाय)
+                    </label>
+                    <input type="text" id="edit-cust-occupation" class="form-control" placeholder="उदा. FARMER, STUDENT..." style="height: 40px; font-size: 13px;">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="edit-cust-email" style="display: block; font-size: 12.5px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+                        Email (ईमेल)
+                    </label>
+                    <input type="email" id="edit-cust-email" class="form-control" placeholder="Optional" style="height: 40px; font-size: 13px;">
+                </div>
+            </div>
+
+            <div id="edit-cust-error-alert" style="display: none; margin-top: 14px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 12.5px; font-weight: 600;"></div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; border-top: 1px solid #e2e8f0; margin-top: 18px; padding-top: 14px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditCustomerModal()" style="font-weight: 600; padding: 9px 18px; font-size: 13px; border-radius: 8px;">
+                    Cancel
+                </button>
+                <button type="submit" id="btn-save-cust-details" class="btn btn-primary"
+                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-color: #0284c7; font-weight: 700; padding: 9px 22px; font-size: 13px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                    <i class="fa-solid fa-check"></i> Save Changes
                 </button>
             </div>
         </form>
@@ -2756,7 +2861,10 @@ function populateCustomerUI(cust, isNew) {
 
     document.getElementById('current_cust_id').value = cust.id;
     document.getElementById('cd-inline-name').value = cust.name;
-    document.getElementById('cd-mobile').innerText = cust.mobile;
+    const cdMobInp = document.getElementById('cd-inline-mobile');
+    if (cdMobInp) cdMobInp.value = cust.mobile;
+    const cdMobSpan = document.getElementById('cd-mobile');
+    if (cdMobSpan) cdMobSpan.innerText = cust.mobile;
     const altMobInput = document.getElementById('cd-inline-alt-mobile');
     if (altMobInput) altMobInput.value = cust.alternate_mobile || '';
     document.getElementById('cd-code').innerText = cust.customer_code;
@@ -2872,11 +2980,151 @@ function toggleCustomerBlacklist(setBlacklist, reason = '') {
 }
 
 // ==========================================
-// 4. INLINE CLICK-TO-EDIT & AUTOSAVE TO CRM
+// 4. INLINE EDIT & EDIT CUSTOMER MODAL (SINGLE PENCIL)
 // ==========================================
+function openEditCustomerModal() {
+    if (!currentLoadedCustomer) {
+        showAlert('No Customer Selected', 'Please search or select a customer first.');
+        return;
+    }
+    document.getElementById('edit-cust-name').value = currentLoadedCustomer.name || '';
+    document.getElementById('edit-cust-mobile').value = currentLoadedCustomer.mobile || '';
+    document.getElementById('edit-cust-alt-mobile').value = currentLoadedCustomer.alternate_mobile || '';
+    document.getElementById('edit-cust-gender').value = currentLoadedCustomer.gender || 'MALE';
+    document.getElementById('edit-cust-dob').value = currentLoadedCustomer.birth_date || '';
+    document.getElementById('edit-cust-occupation').value = currentLoadedCustomer.occupation || '';
+    document.getElementById('edit-cust-email').value = currentLoadedCustomer.email || '';
+
+    const errBox = document.getElementById('edit-cust-error-alert');
+    if (errBox) errBox.style.display = 'none';
+
+    document.getElementById('modal-edit-customer').style.display = 'flex';
+    document.getElementById('edit-cust-name').focus();
+}
+
+function closeEditCustomerModal() {
+    const modal = document.getElementById('modal-edit-customer');
+    if (modal) modal.style.display = 'none';
+}
+
+function saveFullCustomerDetails(e) {
+    if (e) e.preventDefault();
+    if (!currentLoadedCustomer) return;
+
+    const custId = currentLoadedCustomer.id;
+    const name = document.getElementById('edit-cust-name').value.trim();
+    const mobile = document.getElementById('edit-cust-mobile').value.trim();
+    const altMobile = document.getElementById('edit-cust-alt-mobile').value.trim();
+    const gender = document.getElementById('edit-cust-gender').value;
+    const dob = document.getElementById('edit-cust-dob').value;
+    const occupation = document.getElementById('edit-cust-occupation').value.trim();
+    const email = document.getElementById('edit-cust-email').value.trim();
+
+    if (!name) {
+        alert('Please enter customer full name.');
+        return;
+    }
+    const cleanMobile = mobile.replace(/[^0-9]/g, '');
+    if (cleanMobile.length < 10) {
+        alert('Please enter a valid 10-digit mobile number.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('btn-save-cust-details');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    const payload = {
+        _token: '{{ csrf_token() }}',
+        customer_id: custId,
+        name: name,
+        mobile: cleanMobile,
+        alternate_mobile: altMobile,
+        gender: gender,
+        birth_date: dob || null,
+        occupation: occupation,
+        email: email
+    };
+
+    fetch('{{ route("fast_entry.update_customer") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+        }
+        if (res.success) {
+            closeEditCustomerModal();
+
+            // Update state
+            currentLoadedCustomer.name = name;
+            currentLoadedCustomer.mobile = cleanMobile;
+            currentLoadedCustomer.alternate_mobile = altMobile;
+            currentLoadedCustomer.gender = gender;
+            currentLoadedCustomer.birth_date = dob;
+            currentLoadedCustomer.occupation = occupation;
+            currentLoadedCustomer.email = email;
+
+            // Update left panel inputs
+            document.getElementById('fe_name').value = name;
+            document.getElementById('fe_mobile').value = cleanMobile;
+
+            // Update right panel customer details card
+            document.getElementById('cd-inline-name').value = name;
+            const cdMobInput = document.getElementById('cd-inline-mobile');
+            if (cdMobInput) cdMobInput.value = cleanMobile;
+            const cdMobSpan = document.getElementById('cd-mobile');
+            if (cdMobSpan) cdMobSpan.innerText = cleanMobile;
+            const altMobInput = document.getElementById('cd-inline-alt-mobile');
+            if (altMobInput) altMobInput.value = altMobile;
+            document.getElementById('cd-inline-gender').value = gender;
+            document.getElementById('cd-inline-dob').value = dob || '';
+            renderOccupationOptions(occupation || '');
+
+            // Update Head beneficiary pill if present
+            const headNameEl = document.getElementById('fm-head-name');
+            if (headNameEl) headNameEl.textContent = name;
+            updateActiveBeneficiaryIndicator();
+
+            showAlert('Success', 'Customer details updated successfully!');
+        } else {
+            const errBox = document.getElementById('edit-cust-error-alert');
+            if (errBox) {
+                errBox.innerText = res.message || 'Failed to update customer details.';
+                errBox.style.display = 'block';
+            } else {
+                alert(res.message || 'Failed to update customer details.');
+            }
+        }
+    })
+    .catch(err => {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes';
+        }
+        alert('Server error while saving customer details.');
+    });
+}
+
 function autoSaveCustomerField(fieldName, fieldValue) {
     const custId = document.getElementById('current_cust_id').value;
     if (!custId) return;
+
+    if (fieldName === 'mobile') {
+        const clean = fieldValue.replace(/[^0-9]/g, '');
+        if (clean.length < 10) return;
+        fieldValue = clean;
+    }
 
     const payload = {
         _token: '{{ csrf_token() }}',
@@ -2908,6 +3156,16 @@ function autoSaveCustomerField(fieldName, fieldValue) {
                 const headNameEl = document.getElementById('fm-head-name');
                 if (headNameEl) headNameEl.textContent = fieldValue;
                 updateActiveBeneficiaryIndicator();
+            } else if (fieldName === 'mobile') {
+                const ind = document.getElementById('ind-mobile');
+                if (ind) {
+                    ind.style.display = 'inline';
+                    setTimeout(() => ind.style.display = 'none', 1500);
+                }
+                document.getElementById('fe_mobile').value = fieldValue;
+                if (currentLoadedCustomer) currentLoadedCustomer.mobile = fieldValue;
+                const cdMobSpan = document.getElementById('cd-mobile');
+                if (cdMobSpan) cdMobSpan.innerText = fieldValue;
             } else if (fieldName === 'alternate_mobile') {
                 const ind = document.getElementById('ind-alt-mobile');
                 if (ind) {

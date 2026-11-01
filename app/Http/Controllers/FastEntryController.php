@@ -225,6 +225,7 @@ class FastEntryController extends Controller
         $validated = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'name' => ['nullable', 'string', 'max:255'],
+            'mobile' => ['nullable', 'string', 'max:20'],
             'gender' => ['nullable', 'in:MALE,FEMALE,OTHER'],
             'birth_date' => ['nullable', 'date'],
             'alternate_mobile' => ['nullable', 'string', 'max:20'],
@@ -238,6 +239,12 @@ class FastEntryController extends Controller
         $customer = Customer::findOrFail($validated['customer_id']);
         $updates = [];
         if (!empty($validated['name'])) $updates['name'] = trim($validated['name']);
+        if (!empty($validated['mobile'])) {
+            $cleanedMobile = preg_replace('/[^0-9]/', '', $validated['mobile']);
+            if (strlen($cleanedMobile) >= 10) {
+                $updates['mobile'] = $cleanedMobile;
+            }
+        }
         if (isset($validated['gender'])) $updates['gender'] = $validated['gender'];
         if (isset($validated['star_rating'])) $updates['star_rating'] = (int) $validated['star_rating'];
         if (array_key_exists('birth_date', $validated)) $updates['birth_date'] = $validated['birth_date'];
@@ -255,6 +262,7 @@ class FastEntryController extends Controller
             'customer' => [
                 'id' => $customer->id,
                 'name' => $customer->name,
+                'mobile' => $customer->mobile,
                 'gender' => $customer->gender,
                 'birth_date' => $customer->birth_date ? $customer->birth_date->format('Y-m-d') : '',
                 'alternate_mobile' => $customer->alternate_mobile ?: '',
