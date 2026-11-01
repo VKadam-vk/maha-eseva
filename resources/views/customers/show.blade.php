@@ -340,15 +340,9 @@
     .pocket-excel-table tr.committed-row-unlocked .crow-sub-view { display: none !important; }
     .pocket-excel-table tr.committed-row-unlocked .crow-sub-edit { display: flex !important; }
 
-    /* Fixed / Sticky Right Status Column for No-Scroll Experience */
+    /* Status and Action Columns (Natural table flow) */
     .sticky-status-th,
     .sticky-status-td {
-        position: sticky;
-        right: 210px;
-        background: #ffffff !important;
-        z-index: 80 !important;
-        border-left: 2px solid #cbd5e1 !important;
-        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
         width: 145px;
         min-width: 145px;
         max-width: 145px;
@@ -356,7 +350,6 @@
     }
     .pocket-excel-table thead th.sticky-status-th {
         background: #0f172a !important;
-        z-index: 85 !important;
     }
     .pocket-excel-table tr.active-entry-row td.sticky-status-td {
         background: #fffbeb !important;
@@ -364,10 +357,6 @@
 
     .sticky-action-th,
     .sticky-action-td {
-        position: sticky;
-        right: 0;
-        background: #ffffff !important;
-        z-index: 90 !important;
         width: 210px;
         min-width: 210px;
         max-width: 210px;
@@ -375,7 +364,6 @@
     }
     .pocket-excel-table thead th.sticky-action-th {
         background: #0f172a !important;
-        z-index: 95 !important;
     }
     .pocket-excel-table tr.active-entry-row td.sticky-action-td {
         background: #fffbeb !important;
@@ -461,6 +449,8 @@
     .btn-row-tutorial:hover { background: #b91c1c; }
     .btn-row-receipt { background: #16a34a; color: #ffffff !important; }
     .btn-row-receipt:hover { background: #15803d; }
+    .btn-row-delete { background: #fee2e2; color: #dc2626 !important; border: 1px solid #fca5a5 !important; }
+    .btn-row-delete:hover { background: #dc2626; color: #ffffff !important; }
     .btn-row-view { background: #f1f5f9; color: #334155 !important; border: 1px solid #cbd5e1; }
     .btn-row-view:hover { background: #e2e8f0; }
 
@@ -899,7 +889,7 @@
                         </th>
                         <th class="sticky-status-th" style="width: 145px; min-width: 145px; max-width: 145px; color: #f59e0b; text-align: center;">
                             <div class="excel-th-inner">
-                                <span>10. Status</span>
+                                <span>11. Status</span>
                                 <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                     <i class="fa-solid fa-filter"></i>
                                 </button>
@@ -1248,6 +1238,7 @@ const currentCustomerId = {{ $customer->id }};
 const allServices = @json($activeServices);
 const allEmployees = @json($employees);
 const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
+const CAN_DELETE_SERVICES = {{ auth()->user()?->canDeleteServices() ? 'true' : 'false' }};
 let loadedApplications = {};
 const initialApps = @json($formattedApps);
 const currentCustomerName = @json($customer->name);
@@ -2228,12 +2219,60 @@ function getCommittedRowInnerHtml(app) {
                 <button type="button" class="btn-row-action btn-row-receipt" onclick="openReceiptModal(${app.id})" title="View Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i>
                 </button>
+                ${CAN_DELETE_SERVICES ? `
+                <button type="button" class="btn-row-action btn-row-delete" onclick="deleteCustomerServiceRow(${app.id})" title="Delete Service Application">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                ` : ''}
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
             </div>
         </td>
     `;
+}
+
+function deleteCustomerServiceRow(appId) {
+    if (!CAN_DELETE_SERVICES) {
+        alert('Unauthorized: You do not have permission to delete service applications.');
+        return;
+    }
+
+    const app = (window.loadedApplications && window.loadedApplications[appId]) || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
+    const appNum = app ? (app.application_number || `ID #${appId}`) : `ID #${appId}`;
+    const sName = app ? (app.service_name || 'Service') : 'Service';
+
+    if (!confirm(`Are you sure you want to delete this service application?\n\nApplication: ${appNum} (${sName})\n\nThis will permanently remove this service entry. This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch(`/fast-entry/service-row/${appId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            const row = document.getElementById(`committed-row-${appId}`);
+            if (row) row.remove();
+            if (window.loadedApplications && window.loadedApplications[appId]) {
+                delete window.loadedApplications[appId];
+            }
+            if (window.committedApplications) {
+                window.committedApplications = window.committedApplications.filter(a => a.id != appId);
+            }
+            window.location.reload();
+        } else {
+            alert(res.message || 'Failed to delete service application.');
+        }
+    })
+    .catch(err => {
+        alert('Server error while deleting service application.');
+    });
 }
 
 function toggleEditCustomerRow(appId) {

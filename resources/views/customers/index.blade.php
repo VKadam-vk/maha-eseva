@@ -120,8 +120,8 @@
                                 @endif
                             </div>
 
-                            <!-- 3. Customer Code + Occupation / Email -->
-                            <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px; font-size: 11.5px;">
+                            <!-- 3. Customer Code + Occupation / Email / Creator -->
+                            <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px;">
                                 <a href="{{ route('customers.show', $c->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c; text-decoration: none;">
                                     {{ $c->customer_code }}
                                 </a>
@@ -132,6 +132,11 @@
                                 @endif
                                 @if($c->email)
                                     <span style="color: var(--text-muted); font-size: 11px;">&bull; {{ $c->email }}</span>
+                                @endif
+                                @if(Auth::user()->isAdmin())
+                                    <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 10.5px; display: inline-flex; align-items: center; gap: 4px;" title="Registered by {{ $c->creator?->name ?? 'Admin' }}">
+                                        <i class="fa-solid fa-user-pen" style="font-size: 10px;"></i> By: {{ $c->creator?->name ?? 'Admin' }}
+                                    </span>
                                 @endif
                             </div>
                         </td>

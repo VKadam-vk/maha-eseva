@@ -26,7 +26,7 @@ class CustomerController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $query = Customer::with(['branch', 'category'])
+        $query = Customer::with(['branch', 'category', 'creator'])
             ->withCount(['applications', 'documents', 'payments']);
 
         if ($request->filled('search')) {
@@ -50,17 +50,20 @@ class CustomerController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        // Restrict employee visibility to customers who have applications in their allowed services or assigned to them
-        if ($user->hasServiceRestrictions()) {
+        // Restrict employee visibility: an employee sees customers they created, or customers with applications in their allowed services
+        if (!$user->isAdmin()) {
             $allowedServiceIds = $user->getAllowedServiceIds();
             $empId = $user->employee?->id;
-            $query->whereHas('applications', function ($q) use ($allowedServiceIds, $empId) {
-                $q->where(function ($sub) use ($allowedServiceIds, $empId) {
-                    $sub->whereIn('service_id', $allowedServiceIds);
-                    if ($empId) {
-                        $sub->orWhere('assigned_employee_id', $empId);
-                    }
-                });
+            $query->where(function ($q) use ($user, $allowedServiceIds, $empId) {
+                $q->where('created_by', $user->id);
+                if (!empty($allowedServiceIds)) {
+                    $q->orWhereHas('applications', function ($sub) use ($allowedServiceIds, $empId) {
+                        $sub->whereIn('service_id', $allowedServiceIds);
+                        if ($empId) {
+                            $sub->orWhere('assigned_employee_id', $empId);
+                        }
+                    });
+                }
             });
         }
 

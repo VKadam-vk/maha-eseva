@@ -1065,13 +1065,13 @@
                                         <i class="fa-solid fa-receipt"></i>
                                     </button>
 
-                                    @if(auth()->user()?->isAdmin())
+                                    @if(auth()->user()?->canDeleteServices())
                                         <form action="{{ route('applications.destroy', $app->id) }}" method="POST" style="display: inline-flex; margin: 0; padding: 0;"
                                               onsubmit="return confirm('Are you sure you want to delete application {{ $app->application_number }}? This action cannot be undone.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-row-action btn-row-delete"
-                                                    title="Delete Application (Admin Only)">
+                                                    title="Delete Application">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>

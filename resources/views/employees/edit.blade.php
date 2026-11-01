@@ -322,6 +322,22 @@
                             <span class="switch-slider"></span>
                         </label>
                     </div>
+
+                    <!-- 7. Delete Services Button Control -->
+                    <div class="quick-toggle-card" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: #9f1239; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-trash-can" style="color: #e11d48;"></i> Delete Services Button
+                            </div>
+                            <div style="font-size: 11.5px; color: #be123c; margin-top: 2px;">
+                                Allow operator to delete service entries & applications
+                            </div>
+                        </div>
+                        <label class="switch-control" title="Toggle Delete Services Permission">
+                            <input type="checkbox" id="toggleQuickDeleteServices">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -528,13 +544,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const toggleReports = document.getElementById('toggleQuickReports');
     const toggleCRM = document.getElementById('toggleQuickCRM');
     const toggleFollowups = document.getElementById('toggleQuickFollowups');
+    const toggleDeleteServices = document.getElementById('toggleQuickDeleteServices');
 
     const defaultOperatorSlugs = [
         'customers.view', 'customers.create', 'customers.edit',
         'applications.view', 'applications.create', 'applications.edit',
         'documents.view', 'documents.upload',
         'payments.view', 'payments.create'
-    ]; // NO 'services.view'! Operator has NO service master by default!
+    ]; // NO 'services.view'! Operator has NO service master by default! NO 'applications.delete'!
 
     function updatePermCheckboxesUI() {
         permCheckboxes.forEach(cb => {
@@ -566,8 +583,12 @@ document.addEventListener('DOMContentLoaded', function () {
             toggleReports.checked = Array.from(repCheckboxes).some(cb => cb.checked);
         }
         if (toggleCRM) {
-            const crmCheckboxes = document.querySelectorAll('.perm-checkbox[data-module="customers"], .perm-checkbox[data-module="applications"]');
+            const crmCheckboxes = document.querySelectorAll('.perm-checkbox[data-module="customers"], .perm-checkbox[data-module="applications"]:not([data-slug="applications.delete"])');
             toggleCRM.checked = Array.from(crmCheckboxes).some(cb => cb.checked);
+        }
+        if (toggleDeleteServices) {
+            const delCb = document.querySelector('.perm-checkbox[data-slug="applications.delete"]');
+            toggleDeleteServices.checked = delCb ? delCb.checked : false;
         }
     }
 
@@ -605,7 +626,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (toggleCRM) {
         toggleCRM.addEventListener('change', function () {
-            document.querySelectorAll('.perm-checkbox[data-module="customers"], .perm-checkbox[data-module="applications"], .perm-checkbox[data-module="documents"]').forEach(cb => cb.checked = toggleCRM.checked);
+            document.querySelectorAll('.perm-checkbox[data-module="customers"], .perm-checkbox[data-module="applications"], .perm-checkbox[data-module="documents"]').forEach(cb => {
+                if (cb.getAttribute('data-slug') !== 'applications.delete') {
+                    cb.checked = toggleCRM.checked;
+                }
+            });
             updatePermCheckboxesUI();
         });
     }
@@ -613,6 +638,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggleFollowups) {
         toggleFollowups.addEventListener('change', function () {
             document.querySelectorAll('.perm-checkbox[data-slug="leads.view"], .perm-checkbox[data-slug="applications.view"]').forEach(cb => cb.checked = toggleFollowups.checked);
+            updatePermCheckboxesUI();
+        });
+    }
+
+    if (toggleDeleteServices) {
+        toggleDeleteServices.addEventListener('change', function () {
+            const delCb = document.querySelector('.perm-checkbox[data-slug="applications.delete"]');
+            if (delCb) {
+                delCb.checked = toggleDeleteServices.checked;
+            }
             updatePermCheckboxesUI();
         });
     }

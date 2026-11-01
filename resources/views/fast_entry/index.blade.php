@@ -2159,6 +2159,7 @@ let loadedApplications = {};
 const allServices = @json($services);
 const allEmployees = @json($employees);
 const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
+const CAN_DELETE_SERVICES = {{ auth()->user()?->canDeleteServices() ? 'true' : 'false' }};
 window.activeFamilyFilter = 'ALL';
 window.activeBeneficiaryMemberId = null;
 let currentCustomerAllApplications = [];
@@ -4413,9 +4414,9 @@ function getCommittedRowInnerHtml(app) {
                    title="View & Print Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i>
                 </button>
-                ${IS_ADMIN ? `
+                ${CAN_DELETE_SERVICES ? `
                 <button type="button" class="btn-row-action btn-row-delete" onclick="deleteCommittedRow(${app.id})"
-                   title="Delete Service Application (Admin Only)">
+                   title="Delete Service Application">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
                 ` : ''}
@@ -4437,8 +4438,8 @@ function openQuickReceiptModal(appId) {
 }
 
 function deleteCommittedRow(appId) {
-    if (!IS_ADMIN) {
-        showAlert('Unauthorized', 'Only administrators can delete service applications.');
+    if (!CAN_DELETE_SERVICES) {
+        showAlert('Unauthorized', 'You do not have permission to delete service applications.');
         return;
     }
 

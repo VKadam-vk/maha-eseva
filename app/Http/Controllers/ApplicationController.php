@@ -396,8 +396,8 @@ class ApplicationController extends Controller
     public function destroy(Application $application): RedirectResponse|JsonResponse
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin()) {
-            abort(403, 'Unauthorized. Only administrators can delete applications.');
+        if (!$user || !$user->canDeleteServices()) {
+            abort(403, 'Unauthorized: You do not have permission to delete applications.');
         }
 
         DB::transaction(function () use ($application) {

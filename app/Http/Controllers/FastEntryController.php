@@ -931,10 +931,10 @@ class FastEntryController extends Controller
     public function destroyServiceRow(Application $application): JsonResponse
     {
         $user = Auth::user();
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || !$user->canDeleteServices()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized: Only administrators can delete service applications.'
+                'message' => 'Unauthorized: You do not have permission to delete service applications.'
             ], 403);
         }
 

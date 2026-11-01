@@ -151,6 +151,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is permitted to delete services / applications.
+     */
+    public function canDeleteServices(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->hasPermission('applications.delete') || $this->hasPermission('services.delete');
+    }
+
+    /**
      * Check if this user has restricted services access.
      */
     public function hasServiceRestrictions(): bool
