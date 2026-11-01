@@ -1058,6 +1058,20 @@
         box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
     }
 
+    .btn-row-action.btn-row-delete {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    .btn-row-action.btn-row-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+        border-color: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(220, 38, 38, 0.35);
+    }
+
     .btn-row-view {
         background: #f1f5f9;
         color: #334155;
@@ -1600,10 +1614,17 @@
                     </div>
 
                     <!-- Footer Actions -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
-                        <button type="button" id="btn-toggle-blacklist" onclick="promptCustomerBlacklist()" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <i class="fa-solid fa-ban"></i> <span id="btn-blacklist-label">Blacklist Customer</span>
-                        </button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" id="btn-toggle-blacklist" onclick="promptCustomerBlacklist()" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <i class="fa-solid fa-ban"></i> <span id="btn-blacklist-label">Blacklist Customer</span>
+                            </button>
+                            @if(auth()->user()?->isAdmin())
+                                <button type="button" id="btn-delete-customer" onclick="deleteCurrentCustomer()" class="btn btn-sm" style="background: #fef2f2; color: #b91c1c; border: 1.5px solid #ef4444; font-weight: 700; font-size: 11.5px; border-radius: 6px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Delete Customer Profile & All Applications (Admin Only)">
+                                    <i class="fa-solid fa-trash-can"></i> <span>Delete Customer</span>
+                                </button>
+                            @endif
+                        </div>
                         <a id="cd-full-profile-link" href="#" class="btn btn-sm" style="color: #0284c7; font-weight: 700; font-size: 12px; text-decoration: none;">
                             Open Full CRM Profile <i class="fa-solid fa-arrow-right"></i>
                         </a>
@@ -2133,6 +2154,7 @@ let currentLoadedCustomer = null;
 let loadedApplications = {};
 const allServices = @json($services);
 const allEmployees = @json($employees);
+const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
 window.activeFamilyFilter = 'ALL';
 window.activeBeneficiaryMemberId = null;
 let currentCustomerAllApplications = [];
@@ -2183,7 +2205,7 @@ function renderFamilyMembers(members) {
                     <button type="button" class="fm-edit-btn" onclick="openEditFamilyMemberModal(${m.id}, event)" title="Edit / View details of ${escapeHtml(m.name)}">
                         <i class="fa-solid fa-pencil"></i>
                     </button>
-                    <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
+                    ${IS_ADMIN ? `<button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>` : ''}
                 </div>
             `;
         });
@@ -2555,6 +2577,10 @@ function deleteFamilyMember(memberId, e) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+    }
+    if (!IS_ADMIN) {
+        showAlert('Unauthorized', 'Only administrators can remove family members.');
+        return;
     }
     if (!confirm('Are you sure you want to remove this family member?')) {
         return;
@@ -3133,6 +3159,46 @@ function saveCustomerInlineDetails() {
             saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save';
         }
         alert('Server error while saving customer details.');
+    });
+}
+
+function deleteCurrentCustomer() {
+    if (!IS_ADMIN) {
+        showAlert('Unauthorized', 'Only administrators can delete customers.');
+        return;
+    }
+
+    if (!currentLoadedCustomer) {
+        showAlert('No Customer Selected', 'Please load a customer first.');
+        return;
+    }
+
+    const custName = currentLoadedCustomer.name || 'this customer';
+    const custCode = currentLoadedCustomer.customer_code || '';
+
+    if (!confirm(`Are you sure you want to permanently delete customer "${custName}" (${custCode})?\n\nWARNING: All services, applications, payments, documents, and family member records for this customer will be permanently deleted!\n\nThis action CANNOT be undone.`)) {
+        return;
+    }
+
+    fetch(`/fast-entry/customers/${currentLoadedCustomer.id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            showAlert('Customer Deleted', res.message || 'Customer profile deleted successfully.');
+            resetEntireDesk();
+        } else {
+            alert(res.message || 'Failed to delete customer.');
+        }
+    })
+    .catch(err => {
+        alert('Server error while deleting customer.');
     });
 }
 
@@ -4300,6 +4366,12 @@ function getCommittedRowInnerHtml(app) {
                    title="View & Print Citizen Receipt (पावती)">
                     <i class="fa-solid fa-receipt"></i>
                 </button>
+                ${IS_ADMIN ? `
+                <button type="button" class="btn-row-action btn-row-delete" onclick="deleteCommittedRow(${app.id})"
+                   title="Delete Service Application (Admin Only)">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                ` : ''}
                 <span id="saved-indicator-${app.id}" class="saved-pulse-badge" style="display: none;">
                     <i class="fa-solid fa-check"></i>
                 </span>
@@ -4315,6 +4387,79 @@ function openQuickReceiptModal(appId) {
     } else {
         window.open(`/applications/${appId}/receipt`, '_blank');
     }
+}
+
+function deleteCommittedRow(appId) {
+    if (!IS_ADMIN) {
+        showAlert('Unauthorized', 'Only administrators can delete service applications.');
+        return;
+    }
+
+    const app = (window.loadedApplications && window.loadedApplications[appId]) || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
+    const appNum = app ? (app.application_number || `ID #${appId}`) : `ID #${appId}`;
+    const sName = app ? (app.service_name || 'Service') : 'Service';
+
+    if (!confirm(`Are you sure you want to delete this service application?\n\nApplication: ${appNum} (${sName})\n\nThis will permanently remove this service entry and its associated records. This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch(`/fast-entry/service-row/${appId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            // Remove DOM row
+            const row = document.getElementById(`committed-row-${appId}`);
+            if (row) row.remove();
+
+            // Update in-memory lists
+            if (window.loadedApplications && window.loadedApplications[appId]) {
+                delete window.loadedApplications[appId];
+            }
+            if (window.committedApplications) {
+                window.committedApplications = window.committedApplications.filter(a => a.id != appId);
+            }
+            if (window.currentCustomerAllApplications) {
+                window.currentCustomerAllApplications = window.currentCustomerAllApplications.filter(a => a.id != appId);
+            }
+
+            // Update right card metrics
+            if (res.customer) {
+                const sCountEl = document.getElementById('cd-services-count');
+                if (sCountEl) sCountEl.innerText = `${res.customer.total_services} Services`;
+
+                const outEl = document.getElementById('cd-outstanding');
+                if (outEl) {
+                    const outVal = parseFloat(res.customer.total_outstanding) || 0;
+                    outEl.innerText = `₹ ${outVal.toFixed(2)}`;
+                    outEl.style.color = outVal > 0 ? '#dc2626' : '#166534';
+                }
+
+                if (currentLoadedCustomer) {
+                    currentLoadedCustomer.total_services = res.customer.total_services;
+                    currentLoadedCustomer.total_outstanding = res.customer.total_outstanding;
+                }
+            }
+
+            // Re-render family members pills to update counts
+            if (currentLoadedCustomer && currentLoadedCustomer.family_members) {
+                renderFamilyMembers(currentLoadedCustomer.family_members);
+            }
+
+            showAlert('Service Deleted', res.message || 'Service application deleted successfully.');
+        } else {
+            alert(res.message || 'Failed to delete service application.');
+        }
+    })
+    .catch(err => {
+        alert('Server error while deleting service application.');
+    });
 }
 
 function handleCommittedKey(e, appId) {

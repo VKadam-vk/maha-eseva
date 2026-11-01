@@ -85,8 +85,8 @@ class CustomerPolicy
             return false;
         }
 
-        if (!$user->isBusinessOwner()) {
-            return false; // Only Business Owner or Super Admin can delete customers
+        if ($user->isAdmin()) {
+            return true;
         }
 
         return $user->hasPermission('customers.delete');

@@ -680,6 +680,16 @@
                    style="font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-pen-to-square"></i> Edit Profile
                 </a>
+                @if(auth()->user()?->isAdmin())
+                    <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display: inline; margin: 0; padding: 0;"
+                          onsubmit="return confirm('Are you sure you want to permanently delete customer {{ $customer->name }}? All records, applications, and documents will be deleted. This cannot be undone.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm" style="font-size: 12px; font-weight: 700; background: #fee2e2; color: #dc2626; border: 1.5px solid #ef4444; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Delete Customer (Admin Only)">
+                            <i class="fa-solid fa-trash-can"></i> Delete Customer
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 
@@ -1226,6 +1236,7 @@
 const currentCustomerId = {{ $customer->id }};
 const allServices = @json($activeServices);
 const allEmployees = @json($employees);
+const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
 let loadedApplications = {};
 const initialApps = @json($formattedApps);
 const currentCustomerName = @json($customer->name);
@@ -1280,7 +1291,7 @@ function renderFamilyMembers(members) {
                     <button type="button" class="fm-edit-btn" onclick="openEditFamilyMemberModal(${m.id}, event)" title="Edit / View details of ${escapeHtml(m.name)}">
                         <i class="fa-solid fa-pencil"></i>
                     </button>
-                    <button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>
+                    ${IS_ADMIN ? `<button type="button" class="fm-delete-btn" onclick="deleteFamilyMember(${m.id}, event)" title="Remove ${escapeHtml(m.name)}">&times;</button>` : ''}
                 </div>
             `;
         });
@@ -1624,6 +1635,10 @@ function deleteFamilyMember(memberId, e) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
+    }
+    if (!IS_ADMIN) {
+        alert('Unauthorized: Only administrators can remove family members.');
+        return;
     }
     if (!confirm('Are you sure you want to remove this family member?')) {
         return;

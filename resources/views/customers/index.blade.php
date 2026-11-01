@@ -140,9 +140,21 @@
                         <td><span class="badge badge-process">{{ $c->applications_count }} Apps</span></td>
                         <td><strong>₹{{ number_format($c->total_paid, 2) }}</strong></td>
                         <td>
-                            <a href="{{ route('customers.show', $c->id) }}" class="btn btn-secondary btn-sm" title="View 360 Profile">
-                                <i class="fa-solid fa-eye"></i> View
-                            </a>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <a href="{{ route('customers.show', $c->id) }}" class="btn btn-secondary btn-sm" title="View 360 Profile">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                                @if(auth()->user()?->isAdmin())
+                                    <form action="{{ route('customers.destroy', $c->id) }}" method="POST" style="display: inline; margin: 0; padding: 0;"
+                                          onsubmit="return confirm('Are you sure you want to delete customer {{ $c->name }}? All records and applications will be deleted permanently.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" style="padding: 5px 8px; font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer;" title="Delete Customer (Admin Only)">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

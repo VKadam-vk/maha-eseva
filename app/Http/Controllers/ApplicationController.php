@@ -353,4 +353,35 @@ class ApplicationController extends Controller
             }),
         ]);
     }
+
+    /**
+     * Delete an application and its associated records. (Admin only)
+     */
+    public function destroy(Application $application): RedirectResponse|JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can delete applications.');
+        }
+
+        DB::transaction(function () use ($application) {
+            $application->payments()->delete();
+            $application->documents()->delete();
+            $application->customValues()->delete();
+            $application->statusHistories()->delete();
+            $application->followUps()->delete();
+            $application->fieldHistories()->delete();
+            $application->invoices()->delete();
+            $application->delete();
+        });
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Application deleted successfully.'
+            ]);
+        }
+
+        return redirect()->route('applications.index')->with('success', 'Application deleted successfully.');
+    }
 }

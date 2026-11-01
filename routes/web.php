@@ -99,6 +99,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/{application}/status', [ApplicationController::class, 'updateStatus'])->name('status.update')->middleware('permission:applications.edit');
         Route::put('/{application}/details', [ApplicationController::class, 'updateDetails'])->name('details.update')->middleware('permission:applications.edit');
         Route::get('/{application}/field-history', [ApplicationController::class, 'fieldHistory'])->name('field_history')->middleware('permission:applications.view');
+        Route::delete('/{application}', [ApplicationController::class, 'destroy'])->name('destroy');
     });
 
     // Private Document Vault
@@ -137,6 +138,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/family-members', [FastEntryController::class, 'storeFamilyMember'])->name('family_members.store')->middleware('permission:customers.edit');
         Route::match(['put', 'patch', 'post'], '/family-members/{familyMember}', [FastEntryController::class, 'updateFamilyMember'])->name('family_members.update')->middleware('permission:customers.edit');
         Route::delete('/family-members/{familyMember}', [FastEntryController::class, 'destroyFamilyMember'])->name('family_members.destroy')->middleware('permission:customers.edit');
+        Route::delete('/service-row/{application}', [FastEntryController::class, 'destroyServiceRow'])->name('service_row.destroy');
+        Route::delete('/customers/{customer}', [FastEntryController::class, 'destroyCustomer'])->name('customer.destroy');
     });
 
     // Staff & Employee Management

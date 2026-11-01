@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CustomerController extends Controller
@@ -260,7 +261,21 @@ class CustomerController extends Controller
     {
         $this->authorize('delete', $customer);
 
-        $customer->delete();
+        DB::transaction(function () use ($customer) {
+            foreach ($customer->applications as $app) {
+                $app->payments()->delete();
+                $app->documents()->delete();
+                $app->customValues()->delete();
+                $app->statusHistories()->delete();
+                $app->followUps()->delete();
+                $app->fieldHistories()->delete();
+                $app->invoices()->delete();
+                $app->delete();
+            }
+            $customer->familyMembers()->delete();
+            $customer->followUps()->delete();
+            $customer->delete();
+        });
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }

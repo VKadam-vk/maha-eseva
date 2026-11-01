@@ -461,6 +461,19 @@
     .modal-close-btn:hover {
         color: #ffffff;
     }
+
+    .btn-row-action.btn-row-delete {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+    .btn-row-action.btn-row-delete:hover {
+        background: #dc2626;
+        color: #ffffff;
+        border-color: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(220, 38, 38, 0.35);
+    }
 </style>
 
 <div class="recent-services-container">
@@ -1001,6 +1014,18 @@
                                             title="View & Print Citizen Receipt (पावती)">
                                         <i class="fa-solid fa-receipt"></i>
                                     </button>
+
+                                    @if(auth()->user()?->isAdmin())
+                                        <form action="{{ route('applications.destroy', $app->id) }}" method="POST" style="display: inline-flex; margin: 0; padding: 0;"
+                                              onsubmit="return confirm('Are you sure you want to delete application {{ $app->application_number }}? This action cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-row-action btn-row-delete"
+                                                    title="Delete Application (Admin Only)">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    @endif
 
                                     <span id="saved-indicator-{{ $app->id }}" class="saved-pulse-badge" style="display: none;">
                                         <i class="fa-solid fa-check"></i>

@@ -865,10 +865,18 @@ class FastEntryController extends Controller
     }
 
     /**
-     * Delete a Family Member.
+     * Delete a Family Member. (Admin only)
      */
     public function destroyFamilyMember(FamilyMember $familyMember): JsonResponse
     {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only administrators can remove family members.'
+            ], 403);
+        }
+
         $customer = $familyMember->customer;
         $name = $familyMember->name;
         $familyMember->delete();
@@ -891,6 +899,101 @@ class FastEntryController extends Controller
             'success' => true,
             'message' => "Family member {$name} removed.",
             'family_members' => $allMembers,
+        ]);
+    }
+
+    /**
+     * Delete a service row (application) from Fast Daily Entry. (Admin only)
+     */
+    public function destroyServiceRow(Application $application): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only administrators can delete service applications.'
+            ], 403);
+        }
+
+        if ($user->tenant_id && $application->tenant_id !== $user->tenant_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Cannot delete application from another center.'
+            ], 403);
+        }
+
+        $customer = $application->customer;
+
+        DB::transaction(function () use ($application) {
+            $application->payments()->delete();
+            $application->documents()->delete();
+            $application->customValues()->delete();
+            $application->statusHistories()->delete();
+            $application->followUps()->delete();
+            $application->fieldHistories()->delete();
+            $application->invoices()->delete();
+            $application->delete();
+        });
+
+        // Recalculate customer metrics if customer exists
+        $totalServices = 0;
+        $totalOutstanding = 0.00;
+        if ($customer) {
+            $totalServices = $customer->applications()->count();
+            $totalOutstanding = (float) $customer->applications()
+                ->whereNotIn('work_status', ['CANCELLED', 'REJECTED'])
+                ->sum('remaining_amount');
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Service application deleted successfully.',
+            'customer' => [
+                'total_services' => $totalServices,
+                'total_outstanding' => $totalOutstanding,
+            ]
+        ]);
+    }
+
+    /**
+     * Delete an entire customer and their associated applications from Fast Entry. (Admin only)
+     */
+    public function destroyCustomer(Customer $customer): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only administrators can delete customers.'
+            ], 403);
+        }
+
+        if ($user->tenant_id && $customer->tenant_id !== $user->tenant_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Cannot delete customer from another center.'
+            ], 403);
+        }
+
+        DB::transaction(function () use ($customer) {
+            foreach ($customer->applications as $app) {
+                $app->payments()->delete();
+                $app->documents()->delete();
+                $app->customValues()->delete();
+                $app->statusHistories()->delete();
+                $app->followUps()->delete();
+                $app->fieldHistories()->delete();
+                $app->invoices()->delete();
+                $app->delete();
+            }
+            $customer->familyMembers()->delete();
+            $customer->followUps()->delete();
+            $customer->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer profile and all records deleted successfully.'
         ]);
     }
 

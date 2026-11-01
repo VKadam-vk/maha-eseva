@@ -69,8 +69,8 @@ class ApplicationPolicy
             return false;
         }
 
-        if (!$user->isBusinessOwner()) {
-            return false;
+        if ($user->isAdmin()) {
+            return true;
         }
 
         return $user->hasPermission('applications.delete');

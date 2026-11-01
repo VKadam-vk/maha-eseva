@@ -97,6 +97,11 @@ class User extends Authenticatable
         return $this->hasRole('BRANCH_ADMIN');
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->isBusinessOwner() || $this->isBranchAdmin();
+    }
+
     public function isEmployee(): bool
     {
         return $this->hasRole('EMPLOYEE');
