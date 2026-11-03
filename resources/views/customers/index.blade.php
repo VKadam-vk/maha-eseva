@@ -396,7 +396,7 @@ function startBroadcast() {
         btn.disabled = false;
         btnText.innerHTML = 'Send Broadcast Now';
 
-        if (res.success) {
+        if (res.success && res.sent_count > 0) {
             statusBox.style.background = '#dcfce7';
             statusBox.style.border = '1.5px solid #86efac';
             statusBox.style.color = '#15803d';
@@ -408,7 +408,16 @@ function startBroadcast() {
             statusBox.style.background = '#fee2e2';
             statusBox.style.border = '1.5px solid #fca5a5';
             statusBox.style.color = '#991b1b';
-            statusBox.innerHTML = `<strong>Error:</strong> ${res.error || 'Failed to dispatch broadcast.'}`;
+            let errHtml = `<div style="font-weight: 800; font-size: 13px;"><i class="fa-solid fa-triangle-exclamation"></i> ${res.message || 'Broadcast Failed'}</div>`;
+            if (res.errors && res.errors.length) {
+                errHtml += `<ul style="margin: 6px 0 0 16px; padding: 0; font-size: 11.5px; font-family: var(--font-mono);">`;
+                res.errors.forEach(e => errHtml += `<li>${e}</li>`);
+                errHtml += `</ul>`;
+            } else if (res.error) {
+                errHtml += `<div style="margin-top: 4px; font-size: 11.5px;">${res.error}</div>`;
+            }
+            errHtml += `<div style="font-size: 11px; margin-top: 6px; color: #7f1d1d;">💡 <em>टीप: Meta चा Test Number फक्त Developer पोर्टलवर OTP ने verify केलेल्या नंबरवरच मेसेज पाठवू शकतो. इतर कोणत्याही नवीन नंबरसाठी किंवा साध्या टेक्स्टसाठी Meta कडून 24-hr विंडो किंवा Template आवश्यक असते.</em></div>`;
+            statusBox.innerHTML = errHtml;
         }
     })
     .catch(err => {

@@ -400,12 +400,15 @@ class CustomerController extends Controller
         }
 
         return response()->json([
-            'success' => true,
+            'success' => $sentCount > 0,
             'sent_count' => $sentCount,
             'failed_count' => $failedCount,
             'total' => $customers->count(),
-            'message' => "Broadcast completed: {$sentCount} sent successfully" . ($failedCount > 0 ? ", {$failedCount} failed." : "."),
+            'message' => $sentCount > 0
+                ? "Broadcast completed: {$sentCount} sent successfully" . ($failedCount > 0 ? ", {$failedCount} failed." : ".")
+                : "Broadcast failed: 0 sent, {$failedCount} failed.",
             'errors' => array_slice($errors, 0, 5),
+            'error' => !empty($errors) ? implode('; ', array_slice($errors, 0, 2)) : null,
         ]);
     }
 }
