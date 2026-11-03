@@ -196,9 +196,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Append-Only Audit Logging Trail
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit.index')->middleware('permission:settings.manage');
 
+    // WhatsApp Background Direct Actions
+    Route::post('/applications/{application}/send-whatsapp', [ApplicationController::class, 'sendWhatsAppStatus'])->name('applications.send_whatsapp');
+    Route::post('/customers/broadcast-whatsapp', [CustomerController::class, 'broadcastWhatsApp'])->name('customers.broadcast_whatsapp');
+
     // Organization & Branch Settings
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('index')->middleware('permission:settings.manage');
         Route::put('/update', [SettingController::class, 'update'])->name('update')->middleware('permission:settings.manage');
+        Route::post('/whatsapp/test', [SettingController::class, 'testWhatsApp'])->name('whatsapp.test')->middleware('permission:settings.manage');
     });
 });

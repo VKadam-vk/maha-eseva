@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\CustomerCategory;
+use App\Models\NotificationLog;
 use App\Models\Service;
 use App\Services\CustomerService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -319,5 +321,91 @@ class CustomerController extends Controller
         });
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
+    }
+
+    /**
+     * Broadcast WhatsApp message to customers (Owner only).
+     */
+    public function broadcastWhatsApp(Request $request, WhatsAppService $whatsAppService): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized: Only business owner can broadcast messages.'], 403);
+        }
+
+        $request->validate([
+            'message' => ['required', 'string', 'max:2000'],
+            'audience' => ['required', 'in:all,filtered,selected'],
+            'customer_ids' => ['nullable', 'array'],
+            'customer_ids.*' => ['integer'],
+            'category_id' => ['nullable', 'integer'],
+        ]);
+
+        $tenant = $user->tenant;
+        $settings = $tenant?->settings_json ?? [];
+        if (empty($settings['whatsapp_enabled']) || !WhatsAppService::isConfigured($tenant)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'WhatsApp Cloud API is not configured or disabled in Settings.'
+            ], 422);
+        }
+
+        $query = Customer::where('tenant_id', $tenant->id)->whereNotNull('mobile')->where('mobile', '!=', '');
+
+        if ($request->audience === 'selected' && !empty($request->customer_ids)) {
+            $query->whereIn('id', $request->customer_ids);
+        } elseif ($request->audience === 'filtered' && $request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $customers = $query->get(['id', 'name', 'mobile']);
+        if ($customers->isEmpty()) {
+            return response()->json(['success' => false, 'error' => 'No customers found matching the selected criteria.'], 422);
+        }
+
+        $rawMessage = $request->input('message');
+        $centerName = $tenant->name ?? 'Maha E-Seva Kendra';
+        $centerPhone = $tenant->contact_mobile ?? '';
+
+        $sentCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        foreach ($customers as $customer) {
+            $personalized = str_replace(
+                ['{name}', '{customer_name}', '{center_name}', '{center_mobile}'],
+                [$customer->name, $customer->name, $centerName, $centerPhone],
+                $rawMessage
+            );
+
+            $res = $whatsAppService->sendMessage($customer->mobile, $personalized, $tenant);
+            if ($res['success']) {
+                $sentCount++;
+                NotificationLog::create([
+                    'tenant_id' => $tenant->id,
+                    'customer_id' => $customer->id,
+                    'type' => 'BROADCAST',
+                    'channel' => 'WHATSAPP',
+                    'recipient' => $customer->mobile,
+                    'title' => 'Broadcast Campaign',
+                    'message' => $personalized,
+                    'status' => 'SENT',
+                    'provider_response' => json_encode($res),
+                    'sent_at' => now(),
+                ]);
+            } else {
+                $failedCount++;
+                $errors[] = "{$customer->name} ({$customer->mobile}): " . ($res['error'] ?? 'Unknown error');
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'sent_count' => $sentCount,
+            'failed_count' => $failedCount,
+            'total' => $customers->count(),
+            'message' => "Broadcast completed: {$sentCount} sent successfully" . ($failedCount > 0 ? ", {$failedCount} failed." : "."),
+            'errors' => array_slice($errors, 0, 5),
+        ]);
     }
 }

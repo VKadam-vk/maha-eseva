@@ -736,10 +736,10 @@
                                             {{ $cust->name }}
                                         </a>
                                         @if($cust->mobile)
-                                            <a href="https://wa.me/91{{ preg_replace('/[^0-9]/', '', $cust->mobile) }}" target="_blank"
-                                               style="color: #16a34a; font-size: 13px; text-decoration: none;" title="Send WhatsApp">
+                                            <button type="button" onclick="sendDirectWhatsApp({{ $app->id }}, event)"
+                                               style="background: none; border: none; color: #16a34a; font-size: 13px; cursor: pointer; padding: 0; line-height: 1;" title="Send 1-Click WhatsApp Status (Silent API, No popup)">
                                                 <i class="fa-brands fa-whatsapp"></i>
-                                            </a>
+                                            </button>
                                         @endif
                                     </div>
                                     <div style="margin-top: 3px; font-size: 11.5px; color: #334155;">
@@ -1842,6 +1842,32 @@
                 modal.style.setProperty('visibility', 'hidden', 'important');
             }
         }
+    }
+
+    // 1-Click Silent WhatsApp status dispatch
+    function sendDirectWhatsApp(appId, e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        if (!confirm('Send direct WhatsApp status update to customer?')) return;
+
+        fetch(`/applications/${appId}/send-whatsapp`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                alert('✓ ' + (res.message || 'WhatsApp message sent successfully!'));
+            } else {
+                alert('WhatsApp Error: ' + (res.error || 'Failed to dispatch WhatsApp. Please check Settings.'));
+            }
+        })
+        .catch(err => {
+            alert('Server error while sending WhatsApp message.');
+        });
     }
 
     // Instant Live Search on typing without having to click Search button

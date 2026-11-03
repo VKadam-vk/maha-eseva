@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Service;
 use App\Services\ApplicationService;
 use App\Services\NotificationService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -294,6 +295,13 @@ class ApplicationController extends Controller
         // Trigger status notification
         $this->notificationService->notifyStatusChanged($application->fresh(), $validated['work_status']);
 
+        // Auto WhatsApp notification if enabled
+        $tenant = $application->tenant;
+        $settings = $tenant?->settings_json ?? [];
+        if (!empty($settings['whatsapp_enabled']) && !empty($settings['whatsapp_auto_status_notify']) && WhatsAppService::isConfigured($tenant)) {
+            app(WhatsAppService::class)->sendApplicationStatusNotification($application->fresh(), $validated['work_status']);
+        }
+
         return back()->with('success', "Application status updated to {$validated['work_status']}.");
     }
 
@@ -419,5 +427,41 @@ class ApplicationController extends Controller
         }
 
         return redirect()->route('applications.index')->with('success', 'Application deleted successfully.');
+    }
+
+    /**
+     * Send instant 1-click status update via WhatsApp Cloud API (Silent, no browser popup).
+     */
+    public function sendWhatsAppStatus(Request $request, Application $application, WhatsAppService $whatsAppService): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'error' => 'Unauthenticated.'], 401);
+        }
+
+        $tenant = $application->tenant;
+        $settings = $tenant?->settings_json ?? [];
+        if (empty($settings['whatsapp_enabled']) || !WhatsAppService::isConfigured($tenant)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'WhatsApp Cloud API is not configured or disabled in Settings.'
+            ], 422);
+        }
+
+        $res = $whatsAppService->sendApplicationStatusNotification($application);
+        $customer = $application->customer;
+
+        if ($res['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => "WhatsApp status update sent successfully to {$customer?->name} ({$customer?->mobile})!",
+                'message_id' => $res['message_id'] ?? null,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => $res['error'] ?? 'Failed to send WhatsApp message.',
+        ], 400);
     }
 }
