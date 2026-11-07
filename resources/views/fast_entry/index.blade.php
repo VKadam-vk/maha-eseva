@@ -1722,7 +1722,7 @@
                 <table id="fast-entry-table" class="pocket-excel-table">
                     <thead>
                         <tr>
-                            <th style="min-width: 130px;"># SR Number</th>
+                            <th style="width: 180px; min-width: 180px; max-width: 180px; padding: 8px 10px;"># SR Number</th>
                             <th style="min-width: 160px;">
                                 <div class="excel-th-inner">
                                     <span>1. Main Service *</span>
@@ -1781,11 +1781,13 @@
                         <!-- ACTIVE SPREADSHEET INPUT ROW (Always present right below existing rows!) -->
                         <tr id="active-service-row" class="active-entry-row">
                             <!-- SR Number Column -->
-                            <td style="padding: 6px 8px;">
-                                <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 11px; padding: 4px 7px; border-radius: 5px; font-family: var(--font-mono);">
-                                    <i class="fa-solid fa-plus"></i> NEW ROW
-                                </span>
-                                <div style="font-size: 10.5px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 3px;">
+                            <td style="width: 180px; min-width: 180px; max-width: 180px; padding: 6px 10px; box-sizing: border-box;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; font-family: var(--font-mono); letter-spacing: 0.3px;">
+                                        <i class="fa-solid fa-plus"></i> NEW ROW
+                                    </span>
+                                </div>
+                                <div style="font-size: 11px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 4px; white-space: nowrap;">
                                     {{ now()->format('d-m-Y h:i A') }}
                                 </div>
                                 <div id="se-active-beneficiary-tag" style="margin-top: 4px;"></div>
@@ -2376,8 +2378,8 @@ function updateActiveBeneficiaryIndicator() {
         const mem = currentLoadedCustomer.family_members.find(m => m.id == window.activeBeneficiaryMemberId);
         if (mem) {
             tag.innerHTML = `
-                <span class="badge" style="background: #0284c7; color: white; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="This service will be recorded for ${escapeHtml(mem.name)}">
-                    <i class="fa-solid fa-users"></i> For: ${escapeHtml(mem.name)} (${escapeHtml(mem.relation_label || mem.relation)})
+                <span class="badge" style="background: #0284c7; color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; max-width: 165px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="For: ${escapeHtml(mem.name)} (${escapeHtml(mem.relation_label || mem.relation)})">
+                    <i class="fa-solid fa-users" style="font-size: 9px; flex-shrink: 0;"></i> <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">For: ${escapeHtml(mem.name)} (${escapeHtml(mem.relation_label || mem.relation)})</span>
                 </span>
             `;
             return;
@@ -2387,8 +2389,8 @@ function updateActiveBeneficiaryIndicator() {
     // Default: Head (Self)
     const custName = currentLoadedCustomer ? currentLoadedCustomer.name : 'Self';
     tag.innerHTML = `
-        <span class="badge" style="background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="This service will be recorded for Head of Family">
-            <i class="fa-solid fa-user-check"></i> For: ${escapeHtml(custName)} (Self)
+        <span class="badge" style="background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; max-width: 165px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="For: ${escapeHtml(custName)} (Self)">
+            <i class="fa-solid fa-user-check" style="font-size: 9px; flex-shrink: 0;"></i> <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">For: ${escapeHtml(custName)} (Self)</span>
         </span>
     `;
 }
@@ -4256,17 +4258,17 @@ function getCommittedRowInnerHtml(app) {
     const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
-        <td class="font-mono" style="white-space: nowrap; user-select: text; cursor: default; padding: 6px 8px;">
-            <div style="font-weight: 800; color: #0f172a; font-size: 12.5px; line-height: 1.2;">
+        <td class="font-mono" style="width: 180px; min-width: 180px; max-width: 180px; white-space: nowrap; user-select: text; cursor: default; padding: 6px 10px; box-sizing: border-box;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 12.5px; line-height: 1.25; letter-spacing: -0.2px;">
                 ${escapeHtml(app.application_number)}
             </div>
-            <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 3px; white-space: nowrap;">
                 ${escapeHtml(app.formatted_date_time || (app.application_date ? app.application_date : 'Today'))}
             </div>
             ${app.beneficiary_name && (!currentLoadedCustomer || app.beneficiary_name !== currentLoadedCustomer.name) ? `
                 <div style="margin-top: 4px;">
-                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Beneficiary: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})">
-                        <i class="fa-solid fa-users" style="font-size: 9px;"></i> For: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})
+                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; max-width: 165px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Beneficiary: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})">
+                        <i class="fa-solid fa-users" style="font-size: 9px; flex-shrink: 0;"></i> <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">For: ${escapeHtml(app.beneficiary_name)}</span>
                     </span>
                 </div>
             ` : ''}

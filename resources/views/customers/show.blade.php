@@ -974,7 +974,7 @@
             <table id="customer-services-table" class="pocket-excel-table">
                 <thead>
                     <tr>
-                        <th style="min-width: 80px;"># SR Number</th>
+                        <th style="width: 175px; min-width: 175px; padding: 8px 10px;"># SR Number</th>
                         <th style="min-width: 150px;">
                             <div class="excel-th-inner">
                                 <span>1. Main Service *</span>
@@ -1029,11 +1029,11 @@
                     <!-- ACTIVE EXCEL LIVE INPUT ROW (Always on Top for instant 5-second entry) -->
                     <tr id="active-service-row" class="active-entry-row">
                         <!-- SR Number Column -->
-                        <td style="padding: 4px 6px;">
+                        <td style="width: 175px; min-width: 175px; padding: 6px 10px;">
                             <span class="badge" style="background: #f59e0b; color: white; font-weight: 800; font-size: 10px; padding: 4px 6px; border-radius: 4px; font-family: var(--font-mono);">
                                 <i class="fa-solid fa-plus"></i> NEW
                             </span>
-                            <div style="font-size: 10px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 2px;">
+                            <div style="font-size: 10.5px; color: #64748b; font-family: var(--font-mono); font-weight: 600; margin-top: 3px; white-space: nowrap;">
                                 <i class="fa-regular fa-clock" style="font-size: 9px; color: #94a3b8; margin-right: 2px;"></i>Today
                             </div>
                             <div id="se-active-beneficiary-tag" style="margin-top: 4px;"></div>
@@ -2181,17 +2181,17 @@ function getCommittedRowInnerHtml(app) {
     const datalistId = ensureServiceStatusDatalist(serviceName);
 
     return `
-        <td class="font-mono" style="white-space: nowrap; user-select: text; cursor: default; padding: 4px 6px;">
-            <div style="font-weight: 800; color: #0f172a; font-size: 12px; line-height: 1.2;">
+        <td class="font-mono" style="width: 175px; min-width: 175px; white-space: nowrap; user-select: text; cursor: default; padding: 6px 10px;">
+            <div style="font-weight: 800; color: #0f172a; font-size: 12.5px; line-height: 1.25;">
                 ${escapeHtml(app.application_number)}
             </div>
-            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-top: 2px;">
+            <div style="font-size: 10.5px; color: #64748b; font-weight: 600; margin-top: 3px; white-space: nowrap;">
                 <i class="fa-regular fa-clock" style="font-size: 9px; color: #94a3b8; margin-right: 2px;"></i>${escapeHtml(app.application_date_time || app.application_date || 'Today')}
             </div>
             ${app.beneficiary_name && app.beneficiary_name !== currentCustomerName ? `
-                <div style="margin-top: 3px;">
-                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 9.5px; font-weight: 700; padding: 2px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Beneficiary: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})">
-                        <i class="fa-solid fa-users" style="font-size: 9px;"></i> For: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})
+                <div style="margin-top: 4px;">
+                    <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Beneficiary: ${escapeHtml(app.beneficiary_name)} (${escapeHtml(app.beneficiary_relation || 'Family')})">
+                        <i class="fa-solid fa-users" style="font-size: 9px; flex-shrink: 0;"></i> <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">For: ${escapeHtml(app.beneficiary_name)}</span>
                     </span>
                 </div>
             ` : ''}
