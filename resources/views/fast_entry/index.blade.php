@@ -1238,6 +1238,27 @@
 </style>
 
 <div class="fast-entry-container">
+    <!-- ========================================================================= -->
+    <!-- TOP ADVERTISING & ANNOUNCEMENT BANNER                                     -->
+    <!-- ========================================================================= -->
+    <div class="advertising-banner-card" style="margin-bottom: 12px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%); border: 1.5px solid #fcd34d; border-radius: 8px; padding: 7px 14px; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 280px;">
+            <span class="badge" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: #ffffff; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 1px 3px rgba(194, 65, 12, 0.35); display: inline-flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-bullhorn" style="font-size: 11px;"></i> ADVERTISING
+            </span>
+            <div style="flex: 1; overflow: hidden; white-space: nowrap;">
+                <marquee behavior="scroll" direction="left" scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();" style="font-size: 12.5px; font-weight: 700; color: #9a3412; vertical-align: middle;">
+                    📢 <strong>महा ई-सेवा केंद्र विशेष सूचना / जाहिरात:</strong> नवीन पॅन कार्ड (२ तासांत), आधार अपडेट, उत्पन्न दाखला, डोमिसाईल, नॉन-क्रिमिलेअर, लाडकी बहीण योजना, शेतकरी सन्मान निधी, रेशन कार्ड ई-केवायसी व सर्व शासकीय योजनांचे अर्ज आपल्या केंद्रावर जलद गतीने भरून मिळतील! त्वरित संपर्क साधा.
+                </marquee>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; font-weight: 700; color: #9a3412; background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: 5px; border: 1px solid #fed7aa;">
+                <i class="fa-solid fa-bolt" style="font-size: 10.5px; color: #ea580c; margin-right: 3px;"></i> Fast Counter
+            </span>
+        </div>
+    </div>
+
     <!-- Top Header -->
     <div class="page-header" style="margin-bottom: 0;">
         <div>
@@ -1281,98 +1302,95 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- SERVICES QUICK CATALOG & DOCUMENT CHECKLIST (Above Customer Quick Entry)  -->
+    <!-- SERVICES MASTER CATALOG & RATES (Compact Aligned Toolbar Strip)           -->
     <!-- ========================================================================= -->
     @php
         $uniqueMainServices = $services->pluck('main_service_name')->filter()->unique()->sort()->values();
     @endphp
-    <div class="pocket-card" style="border: 1.5px solid #cbd5e1; margin-bottom: 8px; background: #ffffff;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-radius: 8px 8px 0 0;">
-            <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-layer-group" style="color: #38bdf8; font-size: 14px;"></i>
+    <div class="pocket-card" style="border: 1.5px solid #cbd5e1; margin-bottom: 10px; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden;">
+        <!-- Catalog Header -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 7px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 12.5px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: 0.3px;">
+                <i class="fa-solid fa-layer-group" style="color: #38bdf8; font-size: 13.5px;"></i>
                 <span>SERVICES MASTER CATALOG & RATES</span>
-                <span class="badge" style="background: #334155; color: #38bdf8; font-size: 10px; font-weight: 700; border-radius: 8px; padding: 2px 7px;">
+                <span class="badge" style="background: #334155; color: #38bdf8; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 7px;">
                     {{ $services->count() }} Services
                 </span>
             </div>
-
-            <!-- Dropdown Selectors -->
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <!-- 1. Main Service Dropdown -->
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <label style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 0; white-space: nowrap;">Main:</label>
-                    <select id="catalog_main_service_select" onchange="onCatalogMainSelectChange(this.value)"
-                            style="height: 30px; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #ffffff; min-width: 170px; outline: none; cursor: pointer;">
-                        <option value="">-- Choose Main Service --</option>
-                        @foreach($uniqueMainServices as $mainName)
-                            <option value="{{ $mainName }}">{{ strtoupper($mainName) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- 2. Sub Service Dropdown -->
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <label style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 0; white-space: nowrap;">Sub:</label>
-                    <select id="catalog_sub_service_select" onchange="onCatalogSubSelectChange(this.value)" disabled
-                            style="height: 30px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #ffffff; min-width: 210px; max-width: 340px; outline: none; cursor: pointer;">
-                        <option value="">-- Choose Sub Service --</option>
-                    </select>
-                </div>
-
-                <!-- Reset Button -->
-                <button type="button" onclick="resetCatalogSelection()" title="Reset Selection"
-                        style="height: 30px; padding: 2px 10px; background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                    <i class="fa-solid fa-rotate-left"></i> Reset
-                </button>
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 600;">
+                <i class="fa-solid fa-bolt" style="color: #f59e0b; margin-right: 4px;"></i> Instant Rates, Processing Days & Documents Checklist
             </div>
         </div>
 
-        <!-- Particular Service Details Display Strip -->
-        <div id="catalog-card-body" style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
-            <!-- Placeholder (when nothing selected) -->
-            <div id="catalog-empty-placeholder" style="display: flex; align-items: center; justify-content: space-between; color: #64748b; font-size: 12px; padding: 3px 4px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-circle-info" style="color: #0284c7; font-size: 13px;"></i>
-                    <span>वरून <strong>Main Service</strong> व <strong>Sub Service</strong> निवडा — त्या विशिष्ट सेवेचे दर, अपेक्षित दिवस आणि 👁️ कागदपत्रे बटण येथे दिसेल.</span>
-                </div>
-                <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">Fast Counter Catalog</span>
+        <!-- Integrated Single-Row Catalog Strip (MAIN SERVICES | SUB SERVICE | DOCUMENTS | RATE | DAYS | RESET) -->
+        <div style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;">
+            <!-- 1. MAIN SERVICES -->
+            <div style="flex: 1.2; min-width: 210px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px;">
+                    <i class="fa-solid fa-folder-open" style="color: #0284c7; margin-right: 4px;"></i> Main Services
+                </label>
+                <select id="catalog_main_service_select" onchange="onCatalogMainSelectChange(this.value)"
+                        style="width: 100%; height: 35px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #0f172a; outline: none; cursor: pointer; transition: all 0.15s ease;">
+                    <option value="">-- Choose Main Service --</option>
+                    @foreach($uniqueMainServices as $mainName)
+                        <option value="{{ $mainName }}">{{ strtoupper($mainName) }}</option>
+                    @endforeach
+                </select>
             </div>
 
-            <!-- Particular Service Details (Visible when selected) -->
-            <div id="catalog-selected-view" style="display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                <!-- Left: Service Identity -->
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <span id="cat-view-main" style="background: #e0e7ff; color: #3730a3; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; text-transform: uppercase;">
-                        MAIN SERVICE
-                    </span>
-                    <span id="cat-view-sub" style="font-size: 13px; font-weight: 800; color: #0f172a;">
-                        Sub Service Name
-                    </span>
+            <!-- 2. SUB SERVICE -->
+            <div style="flex: 1.4; min-width: 240px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px;">
+                    <i class="fa-solid fa-tag" style="color: #0284c7; margin-right: 4px;"></i> Sub Service
+                </label>
+                <select id="catalog_sub_service_select" onchange="onCatalogSubSelectChange(this.value)" disabled
+                        style="width: 100%; height: 35px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #f1f5f9; color: #64748b; outline: none; cursor: not-allowed; transition: all 0.15s ease;">
+                    <option value="">-- Choose Sub Service --</option>
+                </select>
+            </div>
+
+            <!-- 3. DOCUMENTS (Eye Button) -->
+            <div style="min-width: 125px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                    <i class="fa-solid fa-file-lines" style="color: #0284c7; margin-right: 3px;"></i> Documents
+                </label>
+                <button type="button" id="cat-view-doc-btn" onclick="openCatalogServiceDocs()" disabled
+                        title="View Required Documents for Selected Service"
+                        style="width: 100%; height: 35px; padding: 0 12px; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 6px; color: #94a3b8; font-size: 12px; font-weight: 700; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-eye" style="font-size: 13.5px;"></i>
+                    <span>Documents</span>
+                </button>
+            </div>
+
+            <!-- 4. RATE -->
+            <div style="min-width: 120px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                    <i class="fa-solid fa-indian-rupee-sign" style="color: #16a34a; margin-right: 2px;"></i> Rate
+                </label>
+                <div id="cat-view-rate-box" style="height: 35px; padding: 0 10px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14.5px; font-weight: 800; color: #64748b; transition: all 0.2s ease;">
+                    ₹ 0.00
                 </div>
+            </div>
 
-                <!-- Right: Price, Expected Days, Document Eye Icon, and Use Button -->
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                    <!-- Price -->
-                    <div style="display: flex; align-items: baseline; gap: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 3px 10px; border-radius: 6px;">
-                        <span style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">दर (Price):</span>
-                        <span id="cat-view-price" style="font-size: 14.5px; font-weight: 800; font-family: var(--font-mono); color: #166534;">
-                            ₹ 0.00
-                        </span>
-                    </div>
-
-                    <!-- Expected Days -->
-                    <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 3px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 700; color: #0369a1; display: flex; align-items: center; gap: 4px;">
-                        <i class="fa-regular fa-clock" style="color: #0284c7;"></i>
-                        <span id="cat-view-days">7 Days</span>
-                    </div>
-
-                    <!-- Eye Icon for Documents -->
-                    <button type="button" id="cat-view-doc-btn" onclick="openCatalogServiceDocs()" class="btn-doc-eye"
-                            title="View Required Documents" style="width: auto; height: 30px; padding: 0 12px; gap: 6px; font-size: 11.5px; font-weight: 700; background: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8;">
-                        <i class="fa-solid fa-eye" style="font-size: 13px; color: #2563eb;"></i>
-                        <span>लागणारी कागदपत्रे (Documents)</span>
-                    </button>
+            <!-- 5. DAYS -->
+            <div style="min-width: 105px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                    <i class="fa-regular fa-clock" style="color: #0284c7; margin-right: 3px;"></i> Days
+                </label>
+                <div id="cat-view-days-box" style="height: 35px; padding: 0 10px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #64748b; gap: 4px; transition: all 0.2s ease;">
+                    <span id="cat-view-days-text">--</span>
                 </div>
+            </div>
+
+            <!-- 6. RESET -->
+            <div style="min-width: 90px;">
+                <label style="display: block; font-size: 11px; font-weight: 800; color: transparent; margin-bottom: 4px; user-select: none;">
+                    Reset
+                </label>
+                <button type="button" onclick="resetCatalogSelection()" title="Reset Service Selection"
+                        style="width: 100%; height: 35px; padding: 0 12px; background: #ffffff; color: #dc2626; border: 1.5px solid #fca5a5; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s ease;">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
             </div>
         </div>
     </div>
@@ -5303,6 +5321,10 @@ function onCatalogMainSelectChange(mainName) {
 
     if (!mainName) {
         subSel.disabled = true;
+        subSel.style.background = '#f1f5f9';
+        subSel.style.borderColor = '#cbd5e1';
+        subSel.style.color = '#64748b';
+        subSel.style.cursor = 'not-allowed';
         renderCatalogParticularView(null);
         return;
     }
@@ -5316,6 +5338,10 @@ function onCatalogMainSelectChange(mainName) {
     });
 
     subSel.disabled = false;
+    subSel.style.background = '#ffffff';
+    subSel.style.borderColor = '#0284c7';
+    subSel.style.color = '#0f172a';
+    subSel.style.cursor = 'pointer';
 
     // If there is only 1 sub-service under this main service, auto-select it!
     if (matched.length === 1) {
@@ -5338,37 +5364,65 @@ function onCatalogSubSelectChange(serviceId) {
 }
 
 function renderCatalogParticularView(srv) {
-    const placeholder = document.getElementById('catalog-empty-placeholder');
-    const selectedView = document.getElementById('catalog-selected-view');
-    if (!placeholder || !selectedView) return;
+    const docBtn = document.getElementById('cat-view-doc-btn');
+    const rateBox = document.getElementById('cat-view-rate-box');
+    const daysBox = document.getElementById('cat-view-days-box');
+    const daysText = document.getElementById('cat-view-days-text');
 
     if (!srv) {
-        placeholder.style.display = 'flex';
-        selectedView.style.display = 'none';
+        if (docBtn) {
+            docBtn.disabled = true;
+            docBtn.style.background = '#f1f5f9';
+            docBtn.style.borderColor = '#cbd5e1';
+            docBtn.style.color = '#94a3b8';
+            docBtn.style.cursor = 'not-allowed';
+            docBtn.style.boxShadow = 'none';
+        }
+        if (rateBox) {
+            rateBox.textContent = '₹ 0.00';
+            rateBox.style.background = '#f8fafc';
+            rateBox.style.borderColor = '#cbd5e1';
+            rateBox.style.color = '#64748b';
+        }
+        if (daysBox) {
+            daysBox.style.background = '#f8fafc';
+            daysBox.style.borderColor = '#cbd5e1';
+            daysBox.style.color = '#64748b';
+        }
+        if (daysText) daysText.textContent = '--';
         return;
     }
 
-    placeholder.style.display = 'none';
-    selectedView.style.display = 'flex';
-
-    const mainEl = document.getElementById('cat-view-main');
-    const subEl = document.getElementById('cat-view-sub');
-    const priceEl = document.getElementById('cat-view-price');
-    const daysEl = document.getElementById('cat-view-days');
-
-    if (mainEl) mainEl.textContent = (srv.main_service_name || 'SERVICE').toUpperCase();
-    if (subEl) subEl.textContent = srv.sub_service_name || '';
-
     const price = parseFloat(srv.price > 0 ? srv.price : ((parseFloat(srv.govt_fee) || 0) + (parseFloat(srv.service_charge) || 0))) || 0;
-    if (priceEl) priceEl.textContent = '₹ ' + price.toFixed(2);
-
     const days = srv.expected_processing_days || 7;
-    if (daysEl) daysEl.textContent = days + ' Days';
+
+    if (docBtn) {
+        docBtn.disabled = false;
+        docBtn.style.background = '#eff6ff';
+        docBtn.style.borderColor = '#3b82f6';
+        docBtn.style.color = '#1d4ed8';
+        docBtn.style.cursor = 'pointer';
+        docBtn.style.boxShadow = '0 1px 3px rgba(37, 99, 235, 0.25)';
+    }
+
+    if (rateBox) {
+        rateBox.textContent = '₹ ' + price.toFixed(2);
+        rateBox.style.background = '#f0fdf4';
+        rateBox.style.borderColor = '#86efac';
+        rateBox.style.color = '#166534';
+    }
+
+    if (daysBox) {
+        daysBox.style.background = '#e0f2fe';
+        daysBox.style.borderColor = '#7dd3fc';
+        daysBox.style.color = '#0369a1';
+    }
+    if (daysText) daysText.textContent = days + ' Days';
 }
 
 function openCatalogServiceDocs() {
     if (!currentCatalogSelectedService) {
-        alert('Please select a service first.');
+        alert('Please choose a Sub Service first to view required documents.');
         return;
     }
     openDocsModalWithService(currentCatalogSelectedService);
@@ -5399,6 +5453,10 @@ function resetCatalogSelection() {
     if (subSel) {
         subSel.innerHTML = '<option value="">-- Choose Sub Service --</option>';
         subSel.disabled = true;
+        subSel.style.background = '#f1f5f9';
+        subSel.style.borderColor = '#cbd5e1';
+        subSel.style.color = '#64748b';
+        subSel.style.cursor = 'not-allowed';
     }
     currentCatalogSelectedService = null;
     renderCatalogParticularView(null);
