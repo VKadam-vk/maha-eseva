@@ -27,12 +27,15 @@ class ServiceController extends Controller
         $query = Service::with(['category', 'customFields'])->withCount('applications');
 
         // Branch-level isolation:
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } else {
+        if ($user->isSuperAdmin() || $user->isBusinessOwner()) {
+            // SuperAdmin and Owner see all tenant services (global and all branches)
+        } elseif ($user->branch_id) {
+            // Branch operator / manager sees global services (branch_id null) + their branch services
             $query->where(function ($q) use ($user) {
                 $q->whereNull('branch_id')->orWhere('branch_id', $user->branch_id);
             });
+        } else {
+            $query->whereNull('branch_id');
         }
 
         // Restrict services if logged in employee has specific assigned services
@@ -60,10 +63,14 @@ class ServiceController extends Controller
         });
 
         $mainServicesQuery = Service::distinct();
-        if ($user->branch_id) {
-            $mainServicesQuery->where('branch_id', $user->branch_id);
-        } else {
-            $mainServicesQuery->whereNull('branch_id');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id) {
+                $mainServicesQuery->where(function ($q) use ($user) {
+                    $q->whereNull('branch_id')->orWhere('branch_id', $user->branch_id);
+                });
+            } else {
+                $mainServicesQuery->whereNull('branch_id');
+            }
         }
         $mainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
 
@@ -77,10 +84,14 @@ class ServiceController extends Controller
     {
         $user = Auth::user();
         $mainServicesQuery = Service::distinct();
-        if ($user->branch_id) {
-            $mainServicesQuery->where('branch_id', $user->branch_id);
-        } else {
-            $mainServicesQuery->whereNull('branch_id');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id) {
+                $mainServicesQuery->where(function ($q) use ($user) {
+                    $q->whereNull('branch_id')->orWhere('branch_id', $user->branch_id);
+                });
+            } else {
+                $mainServicesQuery->whereNull('branch_id');
+            }
         }
         $existingMainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
         return view('services.create', compact('existingMainServices'));
@@ -173,15 +184,21 @@ class ServiceController extends Controller
     public function edit(Service $service): View
     {
         $user = Auth::user();
-        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Unauthorized: Cannot edit services from another branch.');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Unauthorized: Cannot edit services from another branch.');
+            }
         }
 
         $mainServicesQuery = Service::distinct();
-        if ($user->branch_id) {
-            $mainServicesQuery->where('branch_id', $user->branch_id);
-        } else {
-            $mainServicesQuery->whereNull('branch_id');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id) {
+                $mainServicesQuery->where(function ($q) use ($user) {
+                    $q->whereNull('branch_id')->orWhere('branch_id', $user->branch_id);
+                });
+            } else {
+                $mainServicesQuery->whereNull('branch_id');
+            }
         }
         $existingMainServices = $mainServicesQuery->pluck('main_service_name')->filter()->values();
         return view('services.edit', compact('service', 'existingMainServices'));
@@ -193,8 +210,10 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service): RedirectResponse
     {
         $user = Auth::user();
-        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Unauthorized: Cannot update services from another branch.');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Unauthorized: Cannot update services from another branch.');
+            }
         }
 
         $validated = $request->validate([
@@ -253,8 +272,10 @@ class ServiceController extends Controller
         if (!$user->isAdmin()) {
             abort(403, 'Unauthorized: Only admins can delete services.');
         }
-        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Unauthorized: Cannot delete services from another branch.');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Unauthorized: Cannot delete services from another branch.');
+            }
         }
 
         $old = $service->toArray();
@@ -270,8 +291,10 @@ class ServiceController extends Controller
     public function show(Service $service): View
     {
         $user = Auth::user();
-        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Unauthorized: Cannot access services from another branch.');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Unauthorized: Cannot access services from another branch.');
+            }
         }
         $service->load(['category', 'customFields']);
         return view('services.show', compact('service'));
@@ -283,8 +306,10 @@ class ServiceController extends Controller
     public function storeCustomField(Request $request, Service $service): RedirectResponse
     {
         $user = Auth::user();
-        if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Unauthorized.');
+        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
+            if ($user->branch_id && $service->branch_id && (int) $service->branch_id !== (int) $user->branch_id) {
+                abort(403, 'Unauthorized.');
+            }
         }
         $validated = $request->validate([
             'field_name' => ['required', 'string', 'max:255'],

@@ -197,12 +197,17 @@ class User extends Authenticatable
     {
         if (!$this->hasServiceRestrictions()) {
             $query = Service::where('is_active', true);
+            if ($this->isSuperAdmin() || $this->isBusinessOwner()) {
+                // Owner / SuperAdmin has full access to all services (global and branch-specific)
+                return $query;
+            }
             if ($this->branch_id) {
-                $query->where('branch_id', $this->branch_id);
-            } else {
+                // Branch operator sees all global services (branch_id null) plus their branch services
                 $query->where(function ($q) {
                     $q->whereNull('branch_id')->orWhere('branch_id', $this->branch_id);
                 });
+            } else {
+                $query->whereNull('branch_id');
             }
             return $query;
         }
