@@ -5459,6 +5459,7 @@ function resetCatalogSelection() {
         subSel.style.cursor = 'not-allowed';
     }
     currentCatalogSelectedService = null;
+    
     renderCatalogParticularView(null);
 }
 
