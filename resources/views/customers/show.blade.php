@@ -241,34 +241,104 @@
         transition: all 0.15s ease;
     }
 
-    .pocket-excel-table tr.committed-row-unlocked .excel-cell-input {
-        border-color: #cbd5e1;
-        background: #ffffff;
+    /* Strict Locked Mode for Customer Committed Services */
+    .pocket-excel-table tr.committed-row-locked input,
+    .pocket-excel-table tr.committed-row-locked select,
+    .pocket-excel-table tr.committed-row-locked textarea,
+    .pocket-excel-table tr.committed-row-locked .excel-cell-input,
+    .pocket-excel-table tr.committed-row-locked .excel-status-input,
+    .pocket-excel-table tr.committed-row-locked .excel-work-details,
+    .pocket-excel-table tr.committed-row-locked .excel-operator-select,
+    .pocket-excel-table tr.committed-row-locked .excel-date-input,
+    .pocket-excel-table tr.committed-row-locked .payment-mode-select,
+    .pocket-excel-table tr.committed-row-locked .btn-cell-history,
+    .pocket-excel-table tr.committed-row-locked .btn-doc-eye-small {
+        pointer-events: none !important;
+        user-select: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        cursor: default !important;
     }
 
-    .pocket-excel-table tr.committed-row-unlocked .excel-cell-input:focus {
-        border-color: #0284c7;
-        background: #ffffff;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+    .pocket-excel-table tr.committed-row-locked input.excel-cell-input,
+    .pocket-excel-table tr.committed-row-locked input.excel-date-input,
+    .pocket-excel-table tr.committed-row-locked textarea.excel-work-details {
+        background: transparent !important;
     }
 
-    .pocket-excel-table .excel-status-input {
-        width: 100%;
-        height: 30px;
-        font-size: 11.5px;
-        font-weight: 800;
-        border: 1px solid transparent;
-        border-radius: 5px;
-        padding: 3px 6px;
-        text-align: center;
-        background: #ffffff;
-        text-transform: uppercase;
+    /* Hide History Buttons & Sub-Service Small Eye When Row is Locked */
+    .pocket-excel-table tr.committed-row-locked .btn-cell-history,
+    .pocket-excel-table tr.committed-row-locked .btn-doc-eye-small {
+        display: none !important;
     }
 
-    .pocket-excel-table tr.committed-row-unlocked .excel-status-input {
-        border: 1.5px solid #0284c7;
-        cursor: pointer;
+    /* Locked Appearance for Selects */
+    .pocket-excel-table tr.committed-row-locked select.payment-mode-select,
+    .pocket-excel-table tr.committed-row-locked select.excel-status-input,
+    .pocket-excel-table tr.committed-row-locked select.excel-operator-select,
+    .pocket-excel-table tr.committed-row-locked select.excel-cell-input {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important;
+        background-color: transparent !important;
+        border-color: transparent !important;
+        padding-right: 4px !important;
+        font-weight: 800 !important;
+    }
+
+    /* Keep Action Buttons strictly clickable even in locked row */
+    .pocket-excel-table tr.committed-row-locked .sticky-action-td,
+    .pocket-excel-table tr.committed-row-locked .sticky-action-td *,
+    .pocket-excel-table tr.committed-row-locked .btn-row-action {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+
+    /* Unlocked Editing Mode for Committed Rows */
+    .pocket-excel-table tr.committed-row-unlocked {
+        background-color: #f0f9ff !important;
+        box-shadow: inset 0 0 0 2px #0284c7;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked td {
+        background-color: #f0f9ff !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked input,
+    .pocket-excel-table tr.committed-row-unlocked select,
+    .pocket-excel-table tr.committed-row-unlocked textarea,
+    .pocket-excel-table tr.committed-row-unlocked .excel-cell-input,
+    .pocket-excel-table tr.committed-row-unlocked .excel-status-input,
+    .pocket-excel-table tr.committed-row-unlocked .excel-operator-select,
+    .pocket-excel-table tr.committed-row-unlocked .excel-date-input,
+    .pocket-excel-table tr.committed-row-unlocked .payment-mode-select,
+    .pocket-excel-table tr.committed-row-unlocked .excel-work-details {
+        background: #ffffff !important;
+        border: 1.5px solid #0284c7 !important;
+        border-radius: 5px !important;
+        pointer-events: auto !important;
+        user-select: auto !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked select {
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+        appearance: auto !important;
+        cursor: pointer !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked input,
+    .pocket-excel-table tr.committed-row-unlocked textarea {
+        cursor: text !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked .btn-cell-history,
+    .pocket-excel-table tr.committed-row-unlocked .btn-doc-eye-small {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        display: inline-flex !important;
     }
 
     .pocket-excel-table .excel-work-details {
@@ -292,7 +362,7 @@
         overflow: hidden !important;
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
-        pointer-events: none;
+        pointer-events: none !important;
     }
 
     .pocket-excel-table tr.committed-row-unlocked .excel-work-details {
@@ -319,19 +389,6 @@
         background: transparent;
         padding: 3px 6px;
         color: #334155;
-    }
-
-    .pocket-excel-table tr.committed-row-unlocked .excel-operator-select {
-        border-color: #cbd5e1;
-        background: #ffffff;
-        cursor: pointer;
-    }
-
-    .pocket-excel-table tr.committed-row-unlocked .excel-operator-select:focus {
-        border-color: #0284c7;
-        background: #ffffff;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
     }
 
     /* Sub-service row mode toggle */
@@ -2135,7 +2192,7 @@ function getCommittedRowInnerHtml(app) {
                     data-app-id="${app.id}"
                     data-prev="${escapeHtml(app.payment_mode || 'Cash')}"
                     tabindex="-1"
-                    style="width: 100%; height: 28px; font-size: 11.5px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; cursor: pointer; background: #ffffff;"
+                    style="width: 100%; height: 28px; font-size: 11.5px; font-weight: 700; color: #4338ca; border-radius: 4px; padding: 2px 4px;"
                     title="Payment Mode (Cash, Online, or Add Custom...)"
                     onchange="onCustomerPaymentModeChange(this, ${app.id})"
                     onkeydown="handleCommittedKey(event, ${app.id})">

@@ -222,13 +222,58 @@
     }
 
     /* Locked vs Unlocked Rows for Recent Services */
+    tr.recent-row-locked input,
+    tr.recent-row-locked select,
+    tr.recent-row-locked textarea,
     tr.recent-row-locked .excel-input,
     tr.recent-row-locked .excel-select,
-    tr.recent-row-locked .excel-work-details {
-        pointer-events: none;
-        user-select: none;
-        background: transparent !important;
+    tr.recent-row-locked .excel-date-input,
+    tr.recent-row-locked .excel-status-input,
+    tr.recent-row-locked .status-select,
+    tr.recent-row-locked .payment-mode-select,
+    tr.recent-row-locked .excel-work-details,
+    tr.recent-row-locked .btn-cell-history,
+    tr.recent-row-locked .btn-doc-eye-small {
+        pointer-events: none !important;
+        user-select: none !important;
         border-color: transparent !important;
+        box-shadow: none !important;
+        cursor: default !important;
+    }
+
+    /* Transparent background for text/number/date inputs when locked */
+    tr.recent-row-locked input.excel-input,
+    tr.recent-row-locked textarea.excel-work-details {
+        background: transparent !important;
+    }
+
+    /* Hide History Buttons and Eye Icon When Row is Locked */
+    tr.recent-row-locked .btn-cell-history,
+    tr.recent-row-locked .btn-doc-eye-small {
+        display: none !important;
+    }
+
+    /* Locked Appearance for Selects */
+    tr.recent-row-locked select.payment-mode-select,
+    tr.recent-row-locked select.excel-status-input,
+    tr.recent-row-locked select.status-select,
+    tr.recent-row-locked select.excel-select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important;
+        background-color: transparent !important;
+        border-color: transparent !important;
+        padding-right: 4px !important;
+        font-weight: 800 !important;
+    }
+
+    /* Keep Action Buttons strictly interactive even in locked row */
+    tr.recent-row-locked .sticky-action-td,
+    tr.recent-row-locked .sticky-action-td *,
+    tr.recent-row-locked .btn-row-action {
+        pointer-events: auto !important;
+        cursor: pointer !important;
     }
 
     tr.recent-row-unlocked {
@@ -240,12 +285,41 @@
         background-color: #f0f9ff !important;
     }
 
+    tr.recent-row-unlocked input,
+    tr.recent-row-unlocked select,
+    tr.recent-row-unlocked textarea,
     tr.recent-row-unlocked .excel-input,
     tr.recent-row-unlocked .excel-select,
+    tr.recent-row-unlocked .excel-date-input,
+    tr.recent-row-unlocked .excel-status-input,
+    tr.recent-row-unlocked .status-select,
+    tr.recent-row-unlocked .payment-mode-select,
     tr.recent-row-unlocked .excel-work-details {
         background: #ffffff !important;
         border: 1.5px solid #0284c7 !important;
+        border-radius: 6px !important;
         pointer-events: auto !important;
+        user-select: auto !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    tr.recent-row-unlocked select {
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+        appearance: auto !important;
+    }
+
+    tr.recent-row-unlocked input,
+    tr.recent-row-unlocked textarea {
+        cursor: text !important;
+    }
+
+    tr.recent-row-unlocked select,
+    tr.recent-row-unlocked .btn-cell-history,
+    tr.recent-row-unlocked .btn-doc-eye-small {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        display: inline-flex !important;
     }
 
     /* Sub-service row mode toggle */
@@ -265,12 +339,8 @@
         line-height: 28px;
         height: 28px;
         padding: 0 4px;
-        cursor: pointer;
+        cursor: default;
         user-select: text;
-    }
-    .row-notes-view:hover {
-        color: #0284c7;
-        text-decoration: underline dotted;
     }
     tr.recent-row-locked .row-notes-view { display: block !important; }
     tr.recent-row-locked .row-notes-edit { display: none !important; }
@@ -877,7 +947,7 @@
                                         data-app-id="{{ $app->id }}"
                                         data-prev="{{ $app->payment_mode ?? 'Cash' }}"
                                         onchange="onGlobalPaymentModeChange(this, {{ $app->id }})"
-                                        style="width: 100%; height: 32px; font-size: 12px; font-weight: 700; color: #4338ca; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 2px 6px; cursor: pointer; background: #ffffff;"
+                                        style="width: 100%; height: 32px; font-size: 12px; font-weight: 700; color: #4338ca; border-radius: 6px; padding: 2px 6px;"
                                         title="Payment Mode (Cash, Online, or Add Custom...)">
                                     <option value="Cash" {{ ($app->payment_mode ?? 'Cash') === 'Cash' ? 'selected' : '' }}>Cash</option>
                                     <option value="Online" {{ ($app->payment_mode ?? 'Cash') === 'Online' ? 'selected' : '' }}>Online</option>
@@ -890,7 +960,7 @@
 
                             <!-- 8. Work Details (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}" onclick="toggleEditRecentRow({{ $app->id }})">{{ $app->work_details ?: '-' }}</div>
+                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
                                               placeholder="Notes / instructions..."
@@ -905,7 +975,7 @@
 
                             <!-- Pending Remark (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}" onclick="toggleEditRecentRow({{ $app->id }})">{{ $app->payment_remarks ?: '-' }}</div>
+                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
                                               placeholder="Pending remark / notes..."
