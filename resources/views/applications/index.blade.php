@@ -135,29 +135,30 @@
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: 12.5px;
+        font-size: 13.5px;
         table-layout: auto;
     }
 
     .sheet-table thead th {
         background: #f8fafc;
         color: #334155;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.4px;
-        padding: 9px 8px;
+        padding: 10px 8px;
         border-bottom: 2px solid #cbd5e1;
         border-right: 1px solid #e2e8f0;
         white-space: nowrap;
     }
 
     .sheet-table tbody td {
-        padding: 4px 5px;
+        padding: 6px 7px;
         border-bottom: 1px solid #e2e8f0;
         border-right: 1px solid #f1f5f9;
         vertical-align: middle;
         background: #ffffff;
+        font-size: 13.5px;
     }
 
     .sheet-table tbody tr:hover td {
@@ -334,10 +335,10 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 11.5px;
+        font-size: 13px;
         color: #334155;
-        line-height: 28px;
-        height: 28px;
+        line-height: 30px;
+        height: 30px;
         padding: 0 4px;
         cursor: default;
         user-select: text;
@@ -350,8 +351,8 @@
     /* Fast Entry Input Styles */
     .excel-input, .excel-select {
         width: 100%;
-        font-size: 12px;
-        padding: 4px 6px;
+        font-size: 13.5px;
+        padding: 5px 8px;
         border: 1px solid transparent;
         border-radius: 4px;
         background: transparent;
@@ -359,6 +360,16 @@
         outline: none;
         transition: all 0.15s ease;
         box-sizing: border-box;
+    }
+
+    /* Hide up/down number spin buttons on number inputs so digits have full space */
+    .excel-input::-webkit-outer-spin-button,
+    .excel-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .excel-input[type=number] {
+        -moz-appearance: textfield;
     }
 
     .excel-input:hover, .excel-select:hover {
@@ -374,9 +385,9 @@
 
     .excel-work-details {
         width: 100%;
-        min-height: 28px;
-        font-size: 11.5px;
-        padding: 4px 6px;
+        min-height: 30px;
+        font-size: 13px;
+        padding: 5px 8px;
         border: 1px solid transparent;
         border-radius: 4px;
         background: transparent;
@@ -404,11 +415,11 @@
     .status-combobox {
         cursor: pointer;
         border-radius: 6px !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
         font-weight: 800 !important;
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        padding: 4px 6px !important;
+        padding: 5px 8px !important;
         text-align: center;
         border: 1.5px solid transparent !important;
     }
@@ -752,11 +763,11 @@
                                 </div>
                             </div>
                         </th>
-                        <th style="text-align: center; min-width: 70px; width: 75px;">Days</th>
-                        <th style="text-align: right; min-width: 80px; width: 85px;">Rate (₹)</th>
-                        <th style="text-align: right; min-width: 85px; width: 90px;">Received</th>
-                        <th style="text-align: right; min-width: 85px; width: 90px;">Remaining</th>
-                        <th style="text-align: center; min-width: 110px; width: 115px; color: #c084fc;">Payment Mode</th>
+                        <th style="text-align: center; min-width: 75px; width: 80px;">Days</th>
+                        <th style="text-align: right; min-width: 125px; width: 130px;">Rate (₹)</th>
+                        <th style="text-align: right; min-width: 115px; width: 120px;">Received</th>
+                        <th style="text-align: right; min-width: 120px; width: 125px;">Remaining</th>
+                        <th style="text-align: center; min-width: 125px; width: 130px; color: #c084fc;">Payment Mode</th>
                         <th style="min-width: 160px;">Work Details</th>
                         <th style="min-width: 150px; width: 160px; color: #10b981;">Pending Remark</th>
                         <th style="min-width: 135px; width: 140px;">
@@ -816,44 +827,44 @@
                                 @if($cust)
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                         <a href="{{ route('customers.show', $cust->id) }}"
-                                           style="font-weight: 800; color: #0f172a; text-decoration: none; font-size: 12.5px; line-height: 1.25;"
+                                           style="font-weight: 800; color: #0f172a; text-decoration: none; font-size: 13.5px; line-height: 1.25;"
                                            title="Open customer profile">
                                             {{ $cust->name }}
                                         </a>
                                         @if($cust->mobile)
                                             <button type="button" onclick="sendDirectWhatsApp({{ $app->id }}, event)"
-                                               style="background: none; border: none; color: #16a34a; font-size: 13px; cursor: pointer; padding: 0; line-height: 1;" title="Send 1-Click WhatsApp Status (Silent API, No popup)">
+                                               style="background: none; border: none; color: #16a34a; font-size: 14px; cursor: pointer; padding: 0; line-height: 1;" title="Send 1-Click WhatsApp Status (Silent API, No popup)">
                                                 <i class="fa-brands fa-whatsapp"></i>
                                             </button>
                                         @endif
                                     </div>
-                                    <div style="margin-top: 3px; font-size: 11.5px; color: #334155;">
-                                        <strong style="font-family: var(--font-mono); color: #0f172a;"><i class="fa-solid fa-phone" style="font-size: 10px; color: #64748b; margin-right: 3px;"></i>{{ $cust->mobile }}</strong>
+                                    <div style="margin-top: 3px; font-size: 12.5px; color: #334155;">
+                                        <strong style="font-family: var(--font-mono); color: #0f172a;"><i class="fa-solid fa-phone" style="font-size: 10.5px; color: #64748b; margin-right: 3px;"></i>{{ $cust->mobile }}</strong>
                                         @if($cust->alternate_mobile)
-                                            <span style="font-size: 10.5px; color: #64748b; margin-left: 4px;">(Alt: {{ $cust->alternate_mobile }})</span>
+                                            <span style="font-size: 11px; color: #64748b; margin-left: 4px;">(Alt: {{ $cust->alternate_mobile }})</span>
                                         @endif
                                     </div>
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
-                                        <span style="font-size: 11px; color: #ea580c; font-family: var(--font-mono); font-weight: 700;">
+                                        <span style="font-size: 11.5px; color: #ea580c; font-family: var(--font-mono); font-weight: 700;">
                                             {{ $cust->customer_code }}
                                         </span>
-                                        <span style="color: #475569; font-size: 10px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
-                                            <i class="fa-regular fa-clock" style="font-size: 9.5px; color: #0284c7;"></i>
+                                        <span style="color: #475569; font-size: 10.5px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
+                                            <i class="fa-regular fa-clock" style="font-size: 10px; color: #0284c7;"></i>
                                             {{ $appDateTime }}
                                         </span>
                                     </div>
                                     @if($app->familyMember)
                                         <div style="margin-top: 4px;">
-                                            <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="Beneficiary: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})">
-                                                <i class="fa-solid fa-users" style="font-size: 9px;"></i> For: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})
+                                            <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="Beneficiary: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})">
+                                                <i class="fa-solid fa-users" style="font-size: 10px;"></i> For: {{ $app->familyMember->name }} ({{ $app->familyMember->relation_label }})
                                             </span>
                                         </div>
                                     @endif
                                 @else
-                                    <div style="font-size: 11.5px; color: #94a3b8; font-style: italic;">No Customer</div>
+                                    <div style="font-size: 12.5px; color: #94a3b8; font-style: italic;">No Customer</div>
                                     <div style="margin-top: 3px;">
-                                        <span style="color: #475569; font-size: 10px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
-                                            <i class="fa-regular fa-clock" style="font-size: 9.5px; color: #0284c7;"></i>
+                                        <span style="color: #475569; font-size: 10.5px; font-weight: 600; font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0;" title="Entry Date & Time">
+                                            <i class="fa-regular fa-clock" style="font-size: 10px; color: #0284c7;"></i>
                                             {{ $appDateTime }}
                                         </span>
                                     </div>
@@ -861,24 +872,24 @@
                             </td>
 
                             <!-- 2. Service & Sub Service -->
-                            <td style="padding: 4px 6px; min-width: 175px;">
+                            <td style="padding: 4px 6px; min-width: 185px;">
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px;">
                                     <div style="flex: 1; min-width: 0;">
-                                        <div style="font-weight: 700; color: #0f172a; font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
+                                        <div style="font-weight: 700; color: #0f172a; font-size: 13.5px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
                                             {{ $serv?->main_service_name ?? 'Service' }}
                                         </div>
-                                        <div class="row-sub-view" id="sub_view_{{ $app->id }}" style="font-size: 11px; font-weight: 600; color: #0284c7; margin-top: 2px;">
+                                        <div class="row-sub-view" id="sub_view_{{ $app->id }}" style="font-size: 12.5px; font-weight: 600; color: #0284c7; margin-top: 2px;">
                                             {{ $app->sub_service ?: '-' }}
                                         </div>
                                         <div class="row-sub-edit" id="sub_edit_{{ $app->id }}" style="display: none; margin-top: 3px;">
                                             @php
-                                                $siblings = $mainName ? ($servicesByMain[$mainName] ?? collect([$serv])) : collect([$serv]);
+                                                 $siblings = $mainName ? ($servicesByMain[$mainName] ?? collect([$serv])) : collect([$serv]);
                                                 $hasMatch = false;
                                             @endphp
                                             <select class="excel-select font-semibold sub-service-dropdown"
                                                     id="sub_service_{{ $app->id }}"
                                                     tabindex="-1"
-                                                    style="width: 100%; font-size: 11px; height: 26px; padding: 2px 4px; border: 1.5px solid #0284c7; border-radius: 4px; color: #0369a1; font-weight: 700; background: #ffffff;"
+                                                    style="width: 100%; font-size: 12.5px; height: 28px; padding: 2px 4px; border: 1.5px solid #0284c7; border-radius: 4px; color: #0369a1; font-weight: 700; background: #ffffff;"
                                                     onchange="onRecentDeskSubServiceChange(this, {{ $app->id }})">
                                                 @foreach($siblings as $sOpt)
                                                     @php
@@ -916,7 +927,7 @@
 
                             <!-- 3. Expected Days Badge -->
                             <td style="text-align: center; padding: 4px 6px; white-space: nowrap;">
-                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 800; font-size: 10.5px; padding: 2px 6px; border-radius: 4px;">
+                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 800; font-size: 11px; padding: 3px 7px; border-radius: 4px;">
                                     ⏱️ {{ $expDays }}d
                                 </span>
                             </td>
@@ -927,7 +938,7 @@
                                     <input type="number" step="0.01" class="excel-input font-mono font-bold"
                                            id="rate_{{ $app->id }}" value="{{ $rate }}"
                                            tabindex="-1"
-                                           style="text-align: right; flex: 1;"
+                                           style="text-align: right; flex: 1; font-size: 13.5px;"
                                            oninput="calculateRowRemaining({{ $app->id }})"
                                            onchange="saveRowField({{ $app->id }}, 'rate', this.value)">
                                     <button type="button" class="btn-cell-history"
@@ -943,7 +954,7 @@
                                 <input type="number" step="0.01" class="excel-input font-mono font-bold"
                                        id="received_{{ $app->id }}" value="{{ $received }}"
                                        tabindex="-1"
-                                       style="text-align: right; color: #166534;"
+                                       style="text-align: right; color: #166534; font-size: 13.5px;"
                                        oninput="calculateRowRemaining({{ $app->id }})"
                                        onchange="saveRowField({{ $app->id }}, 'received', this.value)">
                             </td>
@@ -953,7 +964,7 @@
                                 <input type="text" class="excel-input font-mono font-bold"
                                        id="remaining_{{ $app->id }}"
                                        value="₹ {{ number_format($rem, 2) }}" readonly tabindex="-1"
-                                       style="text-align: right; background: #f8fafc; color: {{ $rem > 0 ? '#b91c1c' : '#166534' }};">
+                                       style="text-align: right; background: #f8fafc; color: {{ $rem > 0 ? '#b91c1c' : '#166534' }}; font-size: 13.5px;">
                             </td>
 
                             <!-- Payment Mode -->
@@ -961,6 +972,7 @@
                                 <select id="payment_mode_{{ $app->id }}" class="excel-select font-bold payment-mode-select"
                                         data-app-id="{{ $app->id }}"
                                         data-prev="{{ $app->payment_mode ?? 'Cash' }}"
+                                        style="font-size: 13px;"
                                         onchange="onGlobalPaymentModeChange(this, {{ $app->id }})"
                                         style="width: 100%; height: 32px; font-size: 12px; font-weight: 700; color: #4338ca; border-radius: 6px; padding: 2px 6px;"
                                         title="Payment Mode (Cash, Online, or Add Custom...)">

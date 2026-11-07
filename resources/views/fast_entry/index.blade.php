@@ -407,7 +407,7 @@
         min-width: 1450px;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: 13px;
+        font-size: 13.5px;
     }
 
     .pocket-excel-table thead tr {
@@ -417,7 +417,7 @@
 
     .pocket-excel-table th {
         padding: 10px 12px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.03em;
@@ -553,12 +553,22 @@
     .pocket-excel-table .excel-select {
         width: 100%;
         height: 34px;
-        font-size: 12.5px;
+        font-size: 13.5px;
         border: 1.5px solid #cbd5e1;
         border-radius: 6px;
         padding: 4px 8px;
         background: #ffffff;
         transition: all 0.15s ease;
+    }
+
+    /* Hide up/down number spin buttons on number inputs */
+    .pocket-excel-table input[type=number]::-webkit-outer-spin-button,
+    .pocket-excel-table input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .pocket-excel-table input[type=number] {
+        -moz-appearance: textfield;
     }
 
     .pocket-excel-table .excel-input:focus,
@@ -577,7 +587,7 @@
     .pocket-excel-table .excel-cell-input {
         width: 100%;
         height: 34px;
-        font-size: 13px;
+        font-size: 13.5px;
         border: 1px solid transparent;
         border-radius: 6px;
         padding: 4px 8px;
@@ -1740,10 +1750,10 @@
                                 </div>
                             </th>
                             <th style="min-width: 110px; color: #38bdf8; text-align: center;">Expected Days</th>
-                            <th style="min-width: 90px;">3. Rate (₹) *</th>
-                            <th style="min-width: 95px; color: #86efac;">4. Received (₹)</th>
-                            <th style="min-width: 95px;">5. Remaining (₹)</th>
-                            <th style="min-width: 120px; color: #c084fc; text-align: center;">6. Payment Mode</th>
+                            <th style="min-width: 125px; width: 130px;">3. Rate (₹) *</th>
+                            <th style="min-width: 115px; width: 120px; color: #86efac;">4. Received (₹)</th>
+                            <th style="min-width: 120px; width: 125px;">5. Remaining (₹)</th>
+                            <th style="min-width: 125px; width: 130px; color: #c084fc; text-align: center;">6. Payment Mode</th>
                             <th style="min-width: 180px; color: #38bdf8;">7. Work Details</th>
                             <th style="min-width: 160px; color: #10b981;">8. Pending Remark</th>
                             <th style="min-width: 145px;">

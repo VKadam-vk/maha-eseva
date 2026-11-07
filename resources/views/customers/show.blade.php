@@ -167,7 +167,7 @@
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: 12.5px;
+        font-size: 13.5px;
     }
 
     .pocket-excel-table thead tr {
@@ -176,8 +176,8 @@
     }
 
     .pocket-excel-table th {
-        padding: 8px 6px;
-        font-size: 11px;
+        padding: 9px 8px;
+        font-size: 12px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.02em;
@@ -192,10 +192,11 @@
     }
 
     .pocket-excel-table td {
-        padding: 4px 5px;
+        padding: 5px 6px;
         vertical-align: middle;
         border-bottom: 1px solid #e2e8f0;
         border-right: 1px solid #e2e8f0;
+        font-size: 13.5px;
     }
 
     .pocket-excel-table td:last-child {
@@ -211,7 +212,7 @@
         background: #fffbeb;
         border-top: 2px solid #f59e0b;
         border-bottom: 2px solid #f59e0b;
-        padding: 5px 5px;
+        padding: 6px 7px;
     }
 
     .pocket-excel-table tbody tr.committed-row:hover {
@@ -222,7 +223,7 @@
     .pocket-excel-table .excel-select {
         width: 100%;
         height: 34px;
-        font-size: 12px;
+        font-size: 13.5px;
         border: 1.5px solid #cbd5e1;
         border-radius: 5px;
         padding: 4px 6px;
@@ -230,10 +231,20 @@
         transition: all 0.15s ease;
     }
 
+    /* Hide up/down number spin buttons on number inputs */
+    .pocket-excel-table input[type=number]::-webkit-outer-spin-button,
+    .pocket-excel-table input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .pocket-excel-table input[type=number] {
+        -moz-appearance: textfield;
+    }
+
     .pocket-excel-table .excel-cell-input {
         width: 100%;
-        height: 30px;
-        font-size: 12px;
+        height: 32px;
+        font-size: 13.5px;
         border: 1px solid transparent;
         border-radius: 5px;
         background: transparent;
@@ -992,10 +1003,10 @@
                             </div>
                         </th>
                         <th style="min-width: 85px; color: #38bdf8; text-align: center;">Exp. Days</th>
-                        <th style="min-width: 75px;">3. Rate (₹) *</th>
-                        <th style="min-width: 75px; color: #86efac;">4. Received (₹)</th>
-                        <th style="min-width: 75px;">5. Remaining (₹)</th>
-                        <th style="min-width: 105px; color: #c084fc; text-align: center;">6. Payment Mode</th>
+                        <th style="min-width: 125px; width: 130px;">3. Rate (₹) *</th>
+                        <th style="min-width: 115px; width: 120px; color: #86efac;">4. Received (₹)</th>
+                        <th style="min-width: 120px; width: 125px;">5. Remaining (₹)</th>
+                        <th style="min-width: 125px; width: 130px; color: #c084fc; text-align: center;">6. Payment Mode</th>
                         <th style="min-width: 140px; color: #38bdf8;">7. Work Details</th>
                         <th style="min-width: 140px; color: #10b981;">8. Pending Remark</th>
                         <th style="min-width: 125px;">
@@ -2253,7 +2264,7 @@ function getCommittedRowInnerHtml(app) {
                    onkeydown="handleCommittedKey(event, ${app.id})">
         </td>
         <td class="font-mono font-bold" style="padding: 4px 6px; white-space: nowrap;">
-            <span id="crow_rem_${app.id}" style="color: ${remColor}; font-size: 12.5px;">
+            <span id="crow_rem_${app.id}" style="color: ${remColor}; font-size: 13.5px;">
                 ₹ ${remNum.toFixed(2)}
             </span>
         </td>
