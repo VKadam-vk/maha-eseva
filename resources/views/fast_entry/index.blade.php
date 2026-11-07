@@ -1239,16 +1239,44 @@
 
 <div class="fast-entry-container">
     <!-- ========================================================================= -->
-    <!-- TOP ADVERTISING & ANNOUNCEMENT BANNER                                     -->
+    <!-- TOP ADVERTISING & ANNOUNCEMENT BANNER (Dynamic from Admin Settings)       -->
     <!-- ========================================================================= -->
+    @php
+        $tenant = Auth::user()->tenant;
+        $adSettings = $tenant?->settings_json ?? [];
+        $isAdEnabled = !array_key_exists('advertising_banner_enabled', $adSettings) || !empty($adSettings['advertising_banner_enabled']);
+        $adTag = !empty($adSettings['advertising_banner_tag']) ? $adSettings['advertising_banner_tag'] : 'ADVERTISING';
+        $defaultAdText = '📢 महा ई-सेवा केंद्र विशेष सूचना / जाहिरात: नवीन पॅन कार्ड (२ तासांत), आधार अपडेट, उत्पन्न दाखला, डोमिसाईल, नॉन-क्रिमिलेअर, लाडकी बहीण योजना, शेतकरी सन्मान निधी, रेशन कार्ड ई-केवायसी व सर्व शासकीय योजनांचे अर्ज आपल्या केंद्रावर जलद गतीने भरून मिळतील! त्वरित संपर्क साधा.';
+        $adText = !empty($adSettings['advertising_banner_text']) ? $adSettings['advertising_banner_text'] : $defaultAdText;
+        $adVisibility = $adSettings['advertising_banner_visibility'] ?? 'ALL';
+        $allowedEmpIds = array_map('intval', (array) ($adSettings['advertising_banner_employee_ids'] ?? []));
+
+        $user = Auth::user();
+        $shouldShowAdBanner = false;
+
+        if ($isAdEnabled) {
+            if ($user->isSuperAdmin() || $user->isBusinessOwner()) {
+                $shouldShowAdBanner = true;
+            } elseif ($adVisibility === 'ALL') {
+                $shouldShowAdBanner = true;
+            } elseif ($adVisibility === 'SPECIFIC') {
+                $currentEmpId = $user->employee?->id;
+                if ($currentEmpId && in_array((int)$currentEmpId, $allowedEmpIds, true)) {
+                    $shouldShowAdBanner = true;
+                }
+            }
+        }
+    @endphp
+
+    @if($shouldShowAdBanner)
     <div class="advertising-banner-card" style="margin-bottom: 12px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%); border: 1.5px solid #fcd34d; border-radius: 8px; padding: 7px 14px; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 280px;">
-            <span class="badge" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: #ffffff; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 1px 3px rgba(194, 65, 12, 0.35); display: inline-flex; align-items: center; gap: 5px;">
-                <i class="fa-solid fa-bullhorn" style="font-size: 11px;"></i> ADVERTISING
+            <span class="badge" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: #ffffff; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 1px 3px rgba(194, 65, 12, 0.35); display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
+                <i class="fa-solid fa-bullhorn" style="font-size: 11px;"></i> {{ $adTag }}
             </span>
             <div style="flex: 1; overflow: hidden; white-space: nowrap;">
                 <marquee behavior="scroll" direction="left" scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();" style="font-size: 12.5px; font-weight: 700; color: #9a3412; vertical-align: middle;">
-                    📢 <strong>महा ई-सेवा केंद्र विशेष सूचना / जाहिरात:</strong> नवीन पॅन कार्ड (२ तासांत), आधार अपडेट, उत्पन्न दाखला, डोमिसाईल, नॉन-क्रिमिलेअर, लाडकी बहीण योजना, शेतकरी सन्मान निधी, रेशन कार्ड ई-केवायसी व सर्व शासकीय योजनांचे अर्ज आपल्या केंद्रावर जलद गतीने भरून मिळतील! त्वरित संपर्क साधा.
+                    {{ $adText }}
                 </marquee>
             </div>
         </div>
@@ -1258,6 +1286,7 @@
             </span>
         </div>
     </div>
+    @endif
 
     <!-- Top Header -->
     <div class="page-header" style="margin-bottom: 0;">

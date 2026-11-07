@@ -19,7 +19,8 @@ class SettingController extends Controller
     public function index(): View
     {
         $tenant = Auth::user()->tenant;
-        return view('settings.index', compact('tenant'));
+        $employees = $tenant ? $tenant->employees()->where('status', 'ACTIVE')->with('user')->get() : collect();
+        return view('settings.index', compact('tenant', 'employees'));
     }
 
     /**
@@ -47,6 +48,12 @@ class SettingController extends Controller
             'whatsapp_phone_number_id' => ['nullable', 'string'],
             'whatsapp_access_token' => ['nullable', 'string'],
             'whatsapp_auto_status_notify' => ['nullable'],
+            'advertising_banner_enabled' => ['nullable'],
+            'advertising_banner_tag' => ['nullable', 'string', 'max:50'],
+            'advertising_banner_text' => ['nullable', 'string', 'max:3000'],
+            'advertising_banner_visibility' => ['nullable', 'string', 'in:ALL,SPECIFIC'],
+            'advertising_banner_employee_ids' => ['nullable', 'array'],
+            'advertising_banner_employee_ids.*' => ['integer'],
         ]);
 
         $tenant = $user->tenant;
@@ -57,6 +64,11 @@ class SettingController extends Controller
             'whatsapp_phone_number_id' => trim($validated['whatsapp_phone_number_id'] ?? ''),
             'whatsapp_access_token' => trim($validated['whatsapp_access_token'] ?? ''),
             'whatsapp_auto_status_notify' => (bool) $request->has('whatsapp_auto_status_notify'),
+            'advertising_banner_enabled' => (bool) $request->has('advertising_banner_enabled'),
+            'advertising_banner_tag' => trim($request->input('advertising_banner_tag', 'ADVERTISING')) ?: 'ADVERTISING',
+            'advertising_banner_text' => trim($request->input('advertising_banner_text', '')) ?: '📢 महा ई-सेवा केंद्र विशेष सूचना / जाहिरात: नवीन पॅन कार्ड (२ तासांत), आधार अपडेट, उत्पन्न दाखला, डोमिसाईल, नॉन-क्रिमिलेअर, लाडकी बहीण योजना, शेतकरी सन्मान निधी, रेशन कार्ड ई-केवायसी व सर्व शासकीय योजनांचे अर्ज आपल्या केंद्रावर जलद गतीने भरून मिळतील! त्वरित संपर्क साधा.',
+            'advertising_banner_visibility' => $request->input('advertising_banner_visibility') === 'SPECIFIC' ? 'SPECIFIC' : 'ALL',
+            'advertising_banner_employee_ids' => is_array($request->input('advertising_banner_employee_ids')) ? array_map('intval', $request->input('advertising_banner_employee_ids')) : [],
         ]);
 
         $tenant->update([

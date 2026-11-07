@@ -154,6 +154,121 @@
                 </div>
             </div>
 
+            <!-- Fast Daily Entry Advertising & Announcement Banner Settings -->
+            @php
+                $adSettings = $tenant->settings_json ?? [];
+                $isAdEnabled = !array_key_exists('advertising_banner_enabled', $adSettings) || !empty($adSettings['advertising_banner_enabled']);
+                $adTag = old('advertising_banner_tag', $adSettings['advertising_banner_tag'] ?? 'ADVERTISING');
+                $defaultAdText = '📢 महा ई-सेवा केंद्र विशेष सूचना / जाहिरাত: नवीन पॅन कार्ड (२ तासांत), आधार अपडेट, उत्पन्न दाखला, डोमिसाईल, नॉन-क्रिमिलेअर, लाडकी बहीण योजना, शेतकरी सन्मान निधी, रेशन कार्ड ई-केवायसी व सर्व शासकीय योजनांचे अर्ज आपल्या केंद्रावर जलद गतीने भरून मिळतील! त्वरित संपर्क साधा.';
+                $adText = old('advertising_banner_text', $adSettings['advertising_banner_text'] ?? $defaultAdText);
+                $adVisibility = old('advertising_banner_visibility', $adSettings['advertising_banner_visibility'] ?? 'ALL');
+                $allowedEmpIds = array_map('intval', (array) old('advertising_banner_employee_ids', $adSettings['advertising_banner_employee_ids'] ?? []));
+            @endphp
+            <div style="background-color: #fffbeb; border: 1.5px solid #fde68a; border-radius: var(--radius-md); padding: 20px; margin: 24px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="font-size: 15px; font-weight: 800; margin: 0; color: #9a3412; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-bullhorn" style="font-size: 18px; color: #ea580c;"></i> Fast Daily Entry - Advertising & Announcement Banner
+                        </h4>
+                        <p style="font-size: 12px; color: #b45309; margin: 4px 0 0 0;">
+                            Configure promotion announcements and scrolling ticker text displayed at the top of the Fast Counter desk.
+                        </p>
+                    </div>
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 700; color: #9a3412; background: #ffffff; padding: 6px 14px; border-radius: 6px; border: 1px solid #fed7aa; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                            <input type="checkbox" name="advertising_banner_enabled" id="ad_banner_enabled" value="1" {{ $isAdEnabled ? 'checked' : '' }} onchange="updateAdLivePreview()" style="width: 17px; height: 17px; accent-color: #ea580c;">
+                            Enable Banner on Fast Entry
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-grid-2" style="margin-bottom: 14px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-weight: 700; color: #9a3412;">
+                            Badge Tag / Title <span style="font-weight: 400; font-size: 11px; color: #b45309;">(e.g. ADVERTISING, विशेष सूचना, OFFER)</span>
+                        </label>
+                        <input type="text" id="ad_banner_tag" name="advertising_banner_tag" class="form-control" value="{{ $adTag }}" placeholder="ADVERTISING" oninput="updateAdLivePreview()" style="border-color: #fcd34d; font-weight: 700; color: #c2410c;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-weight: 700; color: #9a3412;">
+                            Target Audience / Visibility <span style="font-weight: 400; font-size: 11px; color: #b45309;">(Who can see this banner)</span>
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 14px; height: 38px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #7c2d12; cursor: pointer;">
+                                <input type="radio" name="advertising_banner_visibility" value="ALL" {{ $adVisibility === 'ALL' ? 'checked' : '' }} onchange="toggleEmployeeVisibilityOptions(this.value)" style="accent-color: #ea580c;">
+                                All Staff & Operators
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #7c2d12; cursor: pointer;">
+                                <input type="radio" name="advertising_banner_visibility" value="SPECIFIC" {{ $adVisibility === 'SPECIFIC' ? 'checked' : '' }} onchange="toggleEmployeeVisibilityOptions(this.value)" style="accent-color: #ea580c;">
+                                Specific Employees Only
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specific Employees Checklist (Toggled when Specific is chosen) -->
+                <div id="ad_employees_panel" style="display: {{ $adVisibility === 'SPECIFIC' ? 'block' : 'none' }}; background: #ffffff; border: 1px solid #fde68a; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-size: 12.5px; font-weight: 700; color: #9a3412;">
+                            <i class="fa-solid fa-user-check" style="color: #ea580c;"></i> Select Employees who will see the advertising banner:
+                        </span>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="toggleAllAdEmployees(true)" style="font-size: 11px; padding: 2px 8px;">Select All</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary" onclick="toggleAllAdEmployees(false)" style="font-size: 11px; padding: 2px 8px;">Deselect All</button>
+                        </div>
+                    </div>
+                    @if(isset($employees) && $employees->count() > 0)
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+                            @foreach($employees as $emp)
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #334155; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; cursor: pointer;">
+                                    <input type="checkbox" name="advertising_banner_employee_ids[]" value="{{ $emp->id }}" class="ad-emp-checkbox" {{ in_array($emp->id, $allowedEmpIds) ? 'checked' : '' }} style="accent-color: #ea580c;">
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        {{ $emp->user?->name ?? 'Staff #' . $emp->id }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <p style="font-size: 12px; color: #64748b; margin: 0; font-style: italic;">No active employees found in this Kendra.</p>
+                    @endif
+                </div>
+
+                <!-- Scrolling Marquee Textarea -->
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" style="font-weight: 700; color: #9a3412;">
+                        Announcement & Promotion Marquee Text <span style="font-weight: 400; font-size: 11px; color: #b45309;">(This message scrolls continuously across the counter)</span>
+                    </label>
+                    <textarea id="ad_banner_text" name="advertising_banner_text" class="form-control" rows="3" placeholder="Enter continuous scrolling advertisement or announcement message..." oninput="updateAdLivePreview()" style="border-color: #fcd34d; font-size: 13px; line-height: 1.5;">{{ $adText }}</textarea>
+                </div>
+
+                <!-- Real-time Live Preview -->
+                <div style="background: #ffffff; border: 1px dashed #f59e0b; border-radius: 8px; padding: 12px; margin-top: 10px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-eye"></i> Live Marquee Preview (How it will appear on Fast Daily Entry):
+                    </div>
+                    <div id="ad_live_preview_card" class="advertising-banner-card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%); border: 1.5px solid #fcd34d; border-radius: 8px; padding: 7px 14px; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.12); display: {{ $isAdEnabled ? 'flex' : 'none' }}; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px; overflow: hidden;">
+                            <span id="preview_ad_tag" class="badge" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: #ffffff; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 1px 3px rgba(194, 65, 12, 0.35); display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
+                                <i class="fa-solid fa-bullhorn" style="font-size: 11px;"></i> <span>{{ $adTag }}</span>
+                            </span>
+                            <div style="flex: 1; overflow: hidden; white-space: nowrap;">
+                                <marquee id="preview_ad_marquee" behavior="scroll" direction="left" scrollamount="6" style="font-size: 12.5px; font-weight: 700; color: #9a3412; vertical-align: middle;">
+                                    {{ $adText }}
+                                </marquee>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <span style="font-size: 11px; font-weight: 700; color: #9a3412; background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: 5px; border: 1px solid #fed7aa;">
+                                <i class="fa-solid fa-bolt" style="font-size: 10.5px; color: #ea580c; margin-right: 3px;"></i> Fast Counter
+                            </span>
+                        </div>
+                    </div>
+                    <div id="ad_disabled_notice" style="display: {{ $isAdEnabled ? 'none' : 'block' }}; padding: 10px; text-align: center; color: #dc2626; font-size: 12px; font-weight: 700; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
+                        <i class="fa-solid fa-ban"></i> Banner is currently DISABLED. It will not be shown on Fast Daily Entry.
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end;">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Organization & WhatsApp Settings</button>
             </div>
@@ -258,6 +373,44 @@ function runWhatsAppTest() {
         resultBox.style.border = '1.5px solid #fca5a5';
         resultBox.style.color = '#991b1b';
         resultBox.innerHTML = `<strong>Server error:</strong> ${err.message || 'Could not connect to ERP backend.'}`;
+    });
+}
+
+function updateAdLivePreview() {
+    const isEnabledEl = document.getElementById('ad_banner_enabled');
+    const isEnabled = isEnabledEl ? isEnabledEl.checked : true;
+    const tag = (document.getElementById('ad_banner_tag')?.value || '').trim() || 'ADVERTISING';
+    const text = (document.getElementById('ad_banner_text')?.value || '').trim() || 'No announcement message specified.';
+
+    const tagSpan = document.querySelector('#preview_ad_tag span');
+    const marquee = document.getElementById('preview_ad_marquee');
+    const card = document.getElementById('ad_live_preview_card');
+    const disabledNotice = document.getElementById('ad_disabled_notice');
+
+    if (tagSpan) tagSpan.textContent = tag;
+    if (marquee) marquee.textContent = text;
+
+    if (card && disabledNotice) {
+        if (isEnabled) {
+            card.style.display = 'flex';
+            disabledNotice.style.display = 'none';
+        } else {
+            card.style.display = 'none';
+            disabledNotice.style.display = 'block';
+        }
+    }
+}
+
+function toggleEmployeeVisibilityOptions(visibility) {
+    const panel = document.getElementById('ad_employees_panel');
+    if (panel) {
+        panel.style.display = (visibility === 'SPECIFIC') ? 'block' : 'none';
+    }
+}
+
+function toggleAllAdEmployees(check) {
+    document.querySelectorAll('.ad-emp-checkbox').forEach(cb => {
+        cb.checked = check;
     });
 }
 </script>
