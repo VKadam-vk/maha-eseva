@@ -397,33 +397,103 @@
     .pocket-excel-table tr.committed-row-unlocked .crow-sub-view { display: none !important; }
     .pocket-excel-table tr.committed-row-unlocked .crow-sub-edit { display: flex !important; }
 
-    /* Status and Action Columns (Natural table flow) */
-    .sticky-status-th,
-    .sticky-status-td {
-        width: 145px;
-        min-width: 145px;
-        max-width: 145px;
-        box-sizing: border-box;
+    /* Status and Action Columns (Sticky Right like All Entries Desk) */
+    .sticky-status-th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 210px !important;
+        background: #0f172a !important;
+        z-index: 85 !important;
+        border-left: 2px solid #334155 !important;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.25);
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+        box-sizing: border-box !important;
     }
+
+    .sticky-status-td {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 210px !important;
+        background: #ffffff !important;
+        z-index: 80 !important;
+        border-left: 2px solid #cbd5e1 !important;
+        box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+        box-sizing: border-box !important;
+    }
+
     .pocket-excel-table thead th.sticky-status-th {
         background: #0f172a !important;
     }
+
     .pocket-excel-table tr.active-entry-row td.sticky-status-td {
         background: #fffbeb !important;
+        z-index: 84 !important;
     }
 
-    .sticky-action-th,
-    .sticky-action-td {
-        width: 210px;
-        min-width: 210px;
-        max-width: 210px;
-        box-sizing: border-box;
+    .pocket-excel-table tbody tr:hover td.sticky-status-td {
+        background-color: #f8fafc !important;
     }
+
+    .pocket-excel-table tr.active-entry-row:hover td.sticky-status-td {
+        background-color: #fef3c7 !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked td.sticky-status-td {
+        background-color: #f0f9ff !important;
+    }
+
+    .sticky-action-th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 0 !important;
+        background: #0f172a !important;
+        z-index: 95 !important;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.15);
+        width: 210px !important;
+        min-width: 210px !important;
+        max-width: 210px !important;
+        box-sizing: border-box !important;
+        text-align: center;
+    }
+
+    .sticky-action-td {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        right: 0 !important;
+        background: #ffffff !important;
+        z-index: 90 !important;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.04);
+        width: 210px !important;
+        min-width: 210px !important;
+        max-width: 210px !important;
+        box-sizing: border-box !important;
+        text-align: center;
+    }
+
     .pocket-excel-table thead th.sticky-action-th {
         background: #0f172a !important;
     }
+
     .pocket-excel-table tr.active-entry-row td.sticky-action-td {
         background: #fffbeb !important;
+        z-index: 94 !important;
+    }
+
+    .pocket-excel-table tbody tr:hover td.sticky-action-td {
+        background-color: #f8fafc !important;
+    }
+
+    .pocket-excel-table tr.active-entry-row:hover td.sticky-action-td {
+        background-color: #fef3c7 !important;
+    }
+
+    .pocket-excel-table tr.committed-row-unlocked td.sticky-action-td {
+        background-color: #f0f9ff !important;
     }
 
     /* Sub-Service Eye Icon Button */
@@ -1088,7 +1158,7 @@
                         </td>
 
                         <!-- Actions (Sticky Right) -->
-                        <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 260px; min-width: 260px; max-width: 260px;">
+                        <td class="sticky-action-td" style="text-align: center; white-space: nowrap; padding: 4px 6px; width: 210px; min-width: 210px; max-width: 210px;">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap;">
                                 <button type="button" id="btn-save-service" class="btn-save-excel-row" onclick="saveActiveServiceRow()"
                                         style="height: 27px; padding: 0 10px; font-size: 11px; font-weight: 800; border-radius: 4px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: 1px solid #c2410c; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"
