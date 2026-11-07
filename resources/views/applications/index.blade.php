@@ -592,6 +592,14 @@
                style="font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-list-check"></i> Services Master
             </a>
+            <a href="{{ route('applications.export', request()->query()) }}"
+               class="btn btn-sm"
+               id="btn-export-applications-top"
+               onclick="exportFilteredApplications(event)"
+               style="font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; background: #059669; border: 1px solid #047857; color: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
+               title="Export all or filtered entries to CSV / Excel">
+                <i class="fa-solid fa-file-excel"></i> Export CSV
+            </a>
         </div>
     </div>
 
@@ -648,6 +656,13 @@
                 <button type="submit" class="btn btn-sm btn-primary" style="font-weight: 700; font-size: 12px; padding: 5px 12px;">
                     <i class="fa-solid fa-filter"></i> Filter
                 </button>
+                <a href="{{ route('applications.export', request()->query()) }}"
+                   class="btn btn-sm"
+                   onclick="exportFilteredApplications(event)"
+                   style="font-weight: 700; font-size: 12px; padding: 5px 12px; background: #10b981; border: 1px solid #059669; color: white; display: inline-flex; align-items: center; gap: 5px;"
+                   title="Export currently filtered entries to CSV">
+                    <i class="fa-solid fa-file-csv"></i> Export CSV
+                </a>
                 <a href="{{ route('applications.index') }}" class="btn btn-sm btn-secondary" style="font-weight: 700; font-size: 12px; padding: 5px 10px;">
                     Reset
                 </a>
@@ -1959,6 +1974,20 @@
                 badge.innerText = `${visibleCount} Records`;
             }
         }, 120);
+    }
+
+    // Export All / Filtered Applications to CSV
+    function exportFilteredApplications(e) {
+        if (e) e.preventDefault();
+        const form = document.getElementById('recentServicesFilterForm');
+        let url = "{{ route('applications.export') }}";
+        if (form) {
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            params.set('export', '1');
+            url += '?' + params.toString();
+        }
+        window.location.href = url;
     }
 </script>
 @endpush

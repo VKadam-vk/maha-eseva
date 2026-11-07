@@ -243,23 +243,77 @@ class ImportExportService
     public function exportApplications(User $user, array $filters = []): StreamedResponse
     {
         $tenantId = $user->tenant_id;
-        $query = Application::where('tenant_id', $tenantId)->with(['customer', 'service', 'assignedEmployee.user', 'branch']);
+        $query = Application::where('tenant_id', $tenantId)
+            ->with(['customer', 'service', 'assignedEmployee.user', 'branch']);
 
-        if ($user->isBranchAdmin() || $user->isEmployee()) {
+        // Search filter
+        if (!empty($filters['search'])) {
+            $s = trim($filters['search']);
+            $query->where(function ($q) use ($s) {
+                $q->where('application_number', 'like', "%{$s}%")
+                    ->orWhere('external_acknowledgement_no', 'like', "%{$s}%")
+                    ->orWhereHas('customer', function ($c) use ($s) {
+                        $c->where('name', 'like', "%{$s}%")
+                            ->orWhere('mobile', 'like', "%{$s}%")
+                            ->orWhere('alternate_mobile', 'like', "%{$s}%")
+                            ->orWhere('customer_code', 'like', "%{$s}%");
+                    });
+            });
+        }
+
+        // Branch filter
+        if ($user->branch_id) {
             $query->where('branch_id', $user->branch_id);
-        } elseif (!empty($filters['branch_id'])) {
+        } elseif (!empty($filters['branch_id']) && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
             $query->where('branch_id', $filters['branch_id']);
         }
 
-        if (!empty($filters['status'])) {
-            $query->where('work_status', $filters['status']);
+        // Service filter
+        if (!empty($filters['service_id'])) {
+            $query->where('service_id', $filters['service_id']);
+        }
+
+        // Status filter (accept both 'work_status' and 'status')
+        $status = $filters['work_status'] ?? $filters['status'] ?? null;
+        if (!empty($status)) {
+            $query->where('work_status', $status);
+        }
+
+        // Payment status filter
+        if (!empty($filters['payment_status'])) {
+            $query->where('payment_status', $filters['payment_status']);
+        }
+
+        // Employee filter
+        if (!empty($filters['employee_id'])) {
+            $query->where('assigned_employee_id', $filters['employee_id']);
+        }
+
+        // Date range filters
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('application_date', '>=', $filters['from_date']);
+        }
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('application_date', '<=', $filters['to_date']);
+        }
+
+        // Restrict employee visibility to only their allowed services or assigned applications
+        if ($user->hasServiceRestrictions()) {
+            $allowedServiceIds = $user->getAllowedServiceIds();
+            $empId = $user->employee?->id;
+            $query->where(function ($q) use ($allowedServiceIds, $empId) {
+                $q->whereIn('service_id', $allowedServiceIds);
+                if ($empId) {
+                    $q->orWhere('assigned_employee_id', $empId);
+                }
+            });
         }
 
         AuditService::log('EXPORT_APPLICATIONS', null, null, ['user_id' => $user->id]);
 
         $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="applications_export_' . date('Y-m-d_His') . '.csv"',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="all_entries_export_' . date('Y-m-d_His') . '.csv"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
@@ -267,28 +321,57 @@ class ImportExportService
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM for seamless Marathi / Unicode rendering in Excel
+            fputs($handle, "\xEF\xBB\xBF");
+
             fputcsv($handle, [
-                'SR Number', 'Application Date', 'Customer Name', 'Mobile', 'Service Name',
-                'Branch', 'Assigned Employee', 'Work Status', 'Payment Status',
-                'Total Amount', 'Received Amount', 'Remaining Amount', 'Due Date'
+                'SR Number',
+                'Application Date',
+                'Customer Code',
+                'Customer Name',
+                'Mobile',
+                'Main Service',
+                'Sub Service',
+                'Expected Days',
+                'Rate (INR)',
+                'Received (INR)',
+                'Remaining (INR)',
+                'Payment Mode',
+                'Work Details',
+                'Pending Remark',
+                'Follow-Up Date',
+                'Status',
+                'Operator',
+                'Branch'
             ]);
 
-            $query->chunk(200, function ($apps) use ($handle) {
+            $query->latest('id')->chunk(200, function ($apps) use ($handle) {
                 foreach ($apps as $app) {
+                    $mainService = $app->service?->main_service_name ?? 'N/A';
+                    $subService = $app->sub_service ?: ($app->service?->sub_service_name ?? 'N/A');
+                    $expDays = $app->service?->expected_processing_days ?? '-';
+                    $paymentMode = $app->payment_mode ?: ($app->payments->first()?->payment_mode ?? 'Cash');
+                    $operator = $app->assignedEmployee?->user?->name ?? 'Unassigned';
+
                     fputcsv($handle, [
                         self::sanitizeCsvField($app->application_number),
-                        self::sanitizeCsvField($app->application_date?->format('Y-m-d')),
-                        self::sanitizeCsvField($app->customer?->name),
-                        self::sanitizeCsvField($app->customer?->mobile),
-                        self::sanitizeCsvField($app->service?->full_name),
-                        self::sanitizeCsvField($app->branch?->name),
-                        self::sanitizeCsvField($app->assignedEmployee?->user?->name ?? 'Unassigned'),
-                        self::sanitizeCsvField($app->work_status),
-                        self::sanitizeCsvField($app->payment_status),
-                        self::sanitizeCsvField((string) $app->total_amount),
-                        self::sanitizeCsvField((string) $app->received_amount),
-                        self::sanitizeCsvField((string) $app->remaining_amount),
-                        self::sanitizeCsvField($app->due_date?->format('Y-m-d')),
+                        self::sanitizeCsvField($app->application_date ? $app->application_date->format('Y-m-d') : ($app->created_at ? $app->created_at->format('Y-m-d') : '')),
+                        self::sanitizeCsvField($app->customer?->customer_code ?? ''),
+                        self::sanitizeCsvField($app->customer?->name ?? ''),
+                        self::sanitizeCsvField($app->customer?->mobile ?? ''),
+                        self::sanitizeCsvField($mainService),
+                        self::sanitizeCsvField($subService),
+                        self::sanitizeCsvField((string)$expDays),
+                        self::sanitizeCsvField(number_format((float)$app->total_amount, 2, '.', '')),
+                        self::sanitizeCsvField(number_format((float)$app->received_amount, 2, '.', '')),
+                        self::sanitizeCsvField(number_format((float)$app->remaining_amount, 2, '.', '')),
+                        self::sanitizeCsvField((string)$paymentMode),
+                        self::sanitizeCsvField($app->work_details ?? ''),
+                        self::sanitizeCsvField($app->pending_remarks ?? ''),
+                        self::sanitizeCsvField($app->follow_up_date ? (is_string($app->follow_up_date) ? $app->follow_up_date : $app->follow_up_date->format('Y-m-d')) : ''),
+                        self::sanitizeCsvField($app->work_status ?? ''),
+                        self::sanitizeCsvField($operator),
+                        self::sanitizeCsvField($app->branch?->name ?? '')
                     ]);
                 }
             });

@@ -92,6 +92,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Applications & State Workflow
     Route::prefix('applications')->name('applications.')->group(function () {
         Route::get('/', [ApplicationController::class, 'index'])->name('index')->middleware('permission:applications.view');
+        Route::get('/export', [ApplicationController::class, 'export'])->name('export')->middleware('permission:applications.view');
         Route::get('/create', [ApplicationController::class, 'create'])->name('create')->middleware('permission:applications.create');
         Route::post('/', [ApplicationController::class, 'store'])->name('store')->middleware('permission:applications.create');
         Route::get('/{application}', [ApplicationController::class, 'show'])->name('show')->middleware('permission:applications.view');

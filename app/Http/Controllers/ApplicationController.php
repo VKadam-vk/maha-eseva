@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Services\ApplicationService;
+use App\Services\ImportExportService;
 use App\Services\NotificationService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
@@ -18,21 +19,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicationController extends Controller
 {
     public function __construct(
         protected ApplicationService $applicationService,
-        protected NotificationService $notificationService
+        protected NotificationService $notificationService,
+        protected ImportExportService $importExportService
     ) {
     }
 
     /**
      * Display list of applications with filter filters and server-side pagination.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|StreamedResponse
     {
         $user = Auth::user();
+
+        if ($request->boolean('export')) {
+            return $this->importExportService->exportApplications($user, $request->all());
+        }
         $query = Application::with(['customer', 'service', 'assignedEmployee.user', 'branch', 'familyMember']);
 
         if ($request->filled('search')) {
@@ -144,6 +151,14 @@ class ApplicationController extends Controller
             'totalRemaining',
             'existingPaymentModes'
         ));
+    }
+
+    /**
+     * Export applications to CSV stream.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        return $this->importExportService->exportApplications(Auth::user(), $request->all());
     }
 
     /**
