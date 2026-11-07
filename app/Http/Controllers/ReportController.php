@@ -51,6 +51,24 @@ class ReportController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        if ($request->filled('search')) {
+            $term = trim($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('mobile', 'like', "%{$term}%")
+                  ->orWhere('customer_code', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%");
+            });
+        }
+
         $customers = $query->latest()->paginate(20)->withQueryString();
         $totalCustomers = Customer::count();
 

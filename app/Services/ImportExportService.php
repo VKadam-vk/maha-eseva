@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Application;
 use App\Models\Customer;
+use App\Models\CustomerCategory;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -70,6 +71,7 @@ class ImportExportService
 
         $nameIdx = array_search('name', $normalizedHeaders);
         $mobileIdx = array_search('mobile', $normalizedHeaders);
+        $categoryIdx = array_search('category', $normalizedHeaders);
         $genderIdx = array_search('gender', $normalizedHeaders);
         $emailIdx = array_search('email', $normalizedHeaders);
         $addressIdx = array_search('address', $normalizedHeaders);
@@ -114,10 +116,24 @@ class ImportExportService
                     $gender = 'MALE';
                 }
 
+                $categoryId = null;
+                if ($categoryIdx !== false && !empty($row[$categoryIdx])) {
+                    $catRaw = self::cleanImportField($row[$categoryIdx]);
+                    if (!empty($catRaw) && strtolower($catRaw) !== 'general') {
+                        $matchedCategory = CustomerCategory::where('tenant_id', $tenantId)
+                            ->where(function ($q) use ($catRaw) {
+                                $q->whereRaw('LOWER(name) = ?', [strtolower($catRaw)])
+                                  ->orWhereRaw('LOWER(code) = ?', [strtolower($catRaw)]);
+                            })->first();
+                        $categoryId = $matchedCategory?->id;
+                    }
+                }
+
                 $customerService->createCustomer([
                     'branch_id' => $branchId,
                     'name' => $name,
                     'mobile' => $mobile,
+                    'category_id' => $categoryId,
                     'gender' => $gender,
                     'email' => ($emailIdx !== false) ? self::cleanImportField($row[$emailIdx] ?? '') : null,
                     'address' => ($addressIdx !== false) ? self::cleanImportField($row[$addressIdx] ?? '') : null,
@@ -155,12 +171,34 @@ class ImportExportService
     public function exportCustomers(User $user, array $filters = []): StreamedResponse
     {
         $tenantId = $user->tenant_id;
-        $query = Customer::where('tenant_id', $tenantId)->with('branch');
+        $query = Customer::where('tenant_id', $tenantId)->with(['branch', 'category']);
 
         if ($user->isBranchAdmin() || $user->isEmployee()) {
             $query->where('branch_id', $user->branch_id);
         } elseif (!empty($filters['branch_id'])) {
             $query->where('branch_id', $filters['branch_id']);
+        }
+
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (!empty($filters['search'])) {
+            $term = trim($filters['search']);
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('mobile', 'like', "%{$term}%")
+                  ->orWhere('customer_code', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%");
+            });
+        }
+
+        if (!empty($filters['from_date'])) {
+            $query->whereDate('created_at', '>=', $filters['from_date']);
+        }
+
+        if (!empty($filters['to_date'])) {
+            $query->whereDate('created_at', '<=', $filters['to_date']);
         }
 
         AuditService::log('EXPORT_CUSTOMERS', null, null, ['user_id' => $user->id]);
@@ -175,7 +213,7 @@ class ImportExportService
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Customer Code', 'Name', 'Mobile', 'Gender', 'Email', 'Address', 'City', 'Pincode', 'Branch', 'Created At']);
+            fputcsv($handle, ['Customer Code', 'Name', 'Mobile', 'Category', 'Gender', 'Email', 'Address', 'City', 'Pincode', 'Branch', 'Created At']);
 
             $query->chunk(200, function ($customers) use ($handle) {
                 foreach ($customers as $c) {
@@ -183,6 +221,7 @@ class ImportExportService
                         self::sanitizeCsvField($c->customer_code),
                         self::sanitizeCsvField($c->name),
                         self::sanitizeCsvField($c->mobile),
+                        self::sanitizeCsvField($c->category?->name ?? 'General'),
                         self::sanitizeCsvField($c->gender),
                         self::sanitizeCsvField($c->email),
                         self::sanitizeCsvField($c->address),

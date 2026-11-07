@@ -17,7 +17,7 @@
         <a href="{{ route('import_export.import.customers') }}" class="btn btn-secondary">
             <i class="fa-solid fa-file-import"></i> Import CSV
         </a>
-        <a href="{{ route('reports.customers', ['export' => 1]) }}" class="btn btn-secondary">
+        <a href="{{ route('reports.customers', array_merge(request()->query(), ['export' => 1])) }}" class="btn btn-secondary" onclick="exportFilteredCustomers(event)" title="Export customers with Category to CSV">
             <i class="fa-solid fa-file-export"></i> Export CSV
         </a>
         <a href="{{ route('customers.create') }}" class="btn btn-primary">
@@ -428,6 +428,13 @@ function startBroadcast() {
         statusBox.style.color = '#991b1b';
         statusBox.innerHTML = `<strong>Server error:</strong> ${err.message || 'Could not connect.'}`;
     });
+}
+function exportFilteredCustomers(e) {
+    if (e) e.preventDefault();
+    const form = document.getElementById('customerFilterForm');
+    const params = new URLSearchParams(form ? new FormData(form) : {});
+    params.set('export', '1');
+    window.location.href = "{{ route('reports.customers') }}?" + params.toString();
 }
 </script>
 @endpush

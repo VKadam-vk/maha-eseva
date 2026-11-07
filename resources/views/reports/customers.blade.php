@@ -29,6 +29,7 @@
                     <th>Customer Code</th>
                     <th>Name</th>
                     <th>Mobile</th>
+                    <th>Category</th>
                     <th>Gender</th>
                     <th>City / District</th>
                     <th>Branch</th>
@@ -42,6 +43,7 @@
                         <td><span style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">{{ $c->customer_code }}</span></td>
                         <td><strong>{{ $c->name }}</strong></td>
                         <td>{{ $c->mobile }}</td>
+                        <td><span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">{{ $c->category?->name ?? 'General' }}</span></td>
                         <td>{{ $c->gender }}</td>
                         <td>{{ $c->city ?? 'Pune' }}, {{ $c->district ?? 'Pune' }}</td>
                         <td>{{ $c->branch->name }}</td>
@@ -50,7 +52,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No records found.</td>
+                        <td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">No records found.</td>
                     </tr>
                 @endforelse
             </tbody>
