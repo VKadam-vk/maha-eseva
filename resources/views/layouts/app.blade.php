@@ -13,7 +13,7 @@
 <body>
     <div class="erp-container">
         <!-- Sidebar -->
-        <aside class="erp-sidebar">
+        <aside class="erp-sidebar" style="position: -webkit-sticky; position: sticky; top: 0; height: 100vh; max-height: 100vh; overflow-y: hidden;">
             <div class="brand-header">
                 <div class="brand-logo-icon">
                     <i class="fa-solid fa-landmark"></i>
@@ -125,14 +125,7 @@
         <!-- Main Wrapper -->
         <div class="erp-main-content">
             <!-- Topbar -->
-            <header class="erp-topbar">
-                <div class="erp-topbar-left">
-                    <form action="{{ route('applications.index') }}" method="GET" class="erp-search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" name="search" placeholder="Search SR number, Customer name, Mobile or Ack..." value="{{ request('search') }}">
-                    </form>
-                </div>
-
+            <header class="erp-topbar" style="justify-content: flex-end;">
                 <div class="erp-topbar-right">
                     @if(Auth::user()->branch)
                         <span class="badge-branch">
@@ -145,10 +138,6 @@
                             {{ Auth::user()->tenant->name ?? 'Headquarters' }}
                         </span>
                     @endif
-
-                    <a href="{{ route('portal.track') }}" class="btn btn-secondary btn-sm" title="Customer Tracker">
-                        <i class="fa-solid fa-magnifying-glass"></i> Customer Tracker
-                    </a>
 
                     <a href="{{ route('profile') }}" class="user-profile-pill">
                         <div class="user-avatar">

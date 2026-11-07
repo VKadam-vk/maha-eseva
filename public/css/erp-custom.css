@@ -92,6 +92,12 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.3s ease;
   z-index: 50;
   border-right: 1px solid rgba(255, 255, 255, 0.07);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: hidden;
 }
 
 .erp-sidebar .brand-header {
@@ -101,6 +107,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  flex-shrink: 0;
 }
 
 .erp-sidebar .brand-logo-icon {

@@ -12,9 +12,6 @@
         <a href="{{ route('fast_entry.index') }}" class="btn btn-indigo">
             <i class="fa-solid fa-table-cells"></i> Fast Daily Entry
         </a>
-        <a href="{{ route('applications.create') }}" class="btn btn-primary">
-            <i class="fa-solid fa-plus"></i> New Application
-        </a>
     </div>
 </div>
 
