@@ -133,9 +133,22 @@ class EmployeeController extends Controller
                 $user->permissions()->sync($employeeRole->permissions()->pluck('permissions.id')->toArray());
             }
 
-            $count = Employee::where('tenant_id', $tenantId)->count() + 1;
+            $latest = Employee::withTrashed()
+                ->withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->where('employee_code', 'like', 'EMP-%')
+                ->orderByRaw('LENGTH(employee_code) DESC, employee_code DESC')
+                ->value('employee_code');
+
+            $count = 1;
+            if ($latest && preg_match('/EMP-(\d+)/', $latest, $matches)) {
+                $count = ((int) $matches[1]) + 1;
+            } else {
+                $count = Employee::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->count() + 1;
+            }
+
             $code = sprintf('EMP-%04d', $count);
-            while (Employee::where('tenant_id', $tenantId)->where('employee_code', $code)->exists()) {
+            while (Employee::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->where('employee_code', $code)->exists()) {
                 $count++;
                 $code = sprintf('EMP-%04d', $count);
             }

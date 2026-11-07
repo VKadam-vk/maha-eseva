@@ -19,12 +19,28 @@ class BillingService
     public function generateInvoiceNumber(int $tenantId): string
     {
         $year = date('Y');
-        $count = Invoice::where('tenant_id', $tenantId)->count() + 1;
-        $num = sprintf('INV-%s-%05d', $year, $count);
+        $prefix = "INV-{$year}-";
 
-        while (Invoice::where('tenant_id', $tenantId)->where('invoice_number', $num)->exists()) {
-            $count++;
-            $num = sprintf('INV-%s-%05d', $year, $count);
+        // Query the highest existing invoice number with this prefix, including soft deleted records
+        $latest = Invoice::withTrashed()
+            ->withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('invoice_number', 'like', "{$prefix}%")
+            ->orderByRaw('LENGTH(invoice_number) DESC, invoice_number DESC')
+            ->value('invoice_number');
+
+        $nextNumber = 1;
+        if ($latest && preg_match('/INV-\d{4}-(\d+)/', $latest, $matches)) {
+            $nextNumber = ((int) $matches[1]) + 1;
+        } else {
+            $nextNumber = Invoice::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->count() + 1;
+        }
+
+        $num = sprintf('INV-%s-%05d', $year, $nextNumber);
+
+        while (Invoice::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->where('invoice_number', $num)->exists()) {
+            $nextNumber++;
+            $num = sprintf('INV-%s-%05d', $year, $nextNumber);
         }
 
         return $num;
@@ -36,12 +52,28 @@ class BillingService
     public function generateReceiptNumber(int $tenantId): string
     {
         $year = date('Y');
-        $count = Payment::where('tenant_id', $tenantId)->count() + 1;
-        $num = sprintf('REC-%s-%05d', $year, $count);
+        $prefix = "REC-{$year}-";
 
-        while (Payment::where('tenant_id', $tenantId)->where('receipt_number', $num)->exists()) {
-            $count++;
-            $num = sprintf('REC-%s-%05d', $year, $count);
+        // Query the highest existing receipt number with this prefix, including soft deleted records
+        $latest = Payment::withTrashed()
+            ->withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('receipt_number', 'like', "{$prefix}%")
+            ->orderByRaw('LENGTH(receipt_number) DESC, receipt_number DESC')
+            ->value('receipt_number');
+
+        $nextNumber = 1;
+        if ($latest && preg_match('/REC-\d{4}-(\d+)/', $latest, $matches)) {
+            $nextNumber = ((int) $matches[1]) + 1;
+        } else {
+            $nextNumber = Payment::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->count() + 1;
+        }
+
+        $num = sprintf('REC-%s-%05d', $year, $nextNumber);
+
+        while (Payment::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->where('receipt_number', $num)->exists()) {
+            $nextNumber++;
+            $num = sprintf('REC-%s-%05d', $year, $nextNumber);
         }
 
         return $num;

@@ -42,12 +42,28 @@ class CustomerService
     public function generateCustomerCode(int $tenantId): string
     {
         $year = date('Y');
-        $count = Customer::where('tenant_id', $tenantId)->count() + 1;
-        $code = sprintf('CUST-%s-%05d', $year, $count);
+        $prefix = "CUST-{$year}-";
 
-        while (Customer::where('tenant_id', $tenantId)->where('customer_code', $code)->exists()) {
-            $count++;
-            $code = sprintf('CUST-%s-%05d', $year, $count);
+        // Query the highest existing customer code with this prefix, including soft deleted records
+        $latest = Customer::withTrashed()
+            ->withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('customer_code', 'like', "{$prefix}%")
+            ->orderByRaw('LENGTH(customer_code) DESC, customer_code DESC')
+            ->value('customer_code');
+
+        $nextNumber = 1;
+        if ($latest && preg_match('/CUST-\d{4}-(\d+)/', $latest, $matches)) {
+            $nextNumber = ((int) $matches[1]) + 1;
+        } else {
+            $nextNumber = Customer::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->count() + 1;
+        }
+
+        $code = sprintf('CUST-%s-%05d', $year, $nextNumber);
+
+        while (Customer::withTrashed()->withoutGlobalScopes()->where('tenant_id', $tenantId)->where('customer_code', $code)->exists()) {
+            $nextNumber++;
+            $code = sprintf('CUST-%s-%05d', $year, $nextNumber);
         }
 
         return $code;
@@ -67,36 +83,51 @@ class CustomerService
             return $existing;
         }
 
-        return DB::transaction(function () use ($data, $tenantId, $branchId, $creator) {
-            $customerCode = $this->generateCustomerCode($tenantId);
+        $maxAttempts = 5;
+        $attempt = 0;
 
-            $customer = Customer::create([
-                'tenant_id' => $tenantId,
-                'branch_id' => $branchId,
-                'customer_code' => $customerCode,
-                'name' => trim($data['name']),
-                'mobile' => trim($data['mobile']),
-                'gender' => $data['gender'] ?? 'MALE',
-                'email' => $data['email'] ?? null,
-                'address' => $data['address'] ?? null,
-                'city' => $data['city'] ?? null,
-                'district' => $data['district'] ?? null,
-                'state' => $data['state'] ?? 'Maharashtra',
-                'pincode' => $data['pincode'] ?? null,
-                'birth_date' => $data['birth_date'] ?? null,
-                'alternate_mobile' => $data['alternate_mobile'] ?? null,
-                'occupation' => $data['occupation'] ?? null,
-                'star_rating' => isset($data['star_rating']) ? (int) $data['star_rating'] : 5,
-                'category_id' => $data['category_id'] ?? null,
-                'notes' => $data['notes'] ?? null,
-                'created_by' => $creator->id,
-                'updated_by' => $creator->id,
-            ]);
+        while ($attempt < $maxAttempts) {
+            $attempt++;
+            try {
+                return DB::transaction(function () use ($data, $tenantId, $branchId, $creator) {
+                    $customerCode = $this->generateCustomerCode($tenantId);
 
-            AuditService::log('CUSTOMER_CREATED', $customer, null, $customer->toArray());
+                    $customer = Customer::create([
+                        'tenant_id' => $tenantId,
+                        'branch_id' => $branchId,
+                        'customer_code' => $customerCode,
+                        'name' => trim($data['name']),
+                        'mobile' => trim($data['mobile']),
+                        'gender' => $data['gender'] ?? 'MALE',
+                        'email' => $data['email'] ?? null,
+                        'address' => $data['address'] ?? null,
+                        'city' => $data['city'] ?? null,
+                        'district' => $data['district'] ?? null,
+                        'state' => $data['state'] ?? 'Maharashtra',
+                        'pincode' => $data['pincode'] ?? null,
+                        'birth_date' => $data['birth_date'] ?? null,
+                        'alternate_mobile' => $data['alternate_mobile'] ?? null,
+                        'occupation' => $data['occupation'] ?? null,
+                        'star_rating' => isset($data['star_rating']) ? (int) $data['star_rating'] : 5,
+                        'category_id' => $data['category_id'] ?? null,
+                        'notes' => $data['notes'] ?? null,
+                        'created_by' => $creator->id,
+                        'updated_by' => $creator->id,
+                    ]);
 
-            return $customer;
-        });
+                    AuditService::log('CUSTOMER_CREATED', $customer, null, $customer->toArray());
+
+                    return $customer;
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($attempt >= $maxAttempts || (!str_contains($e->getMessage(), 'UNIQUE constraint') && !str_contains($e->getMessage(), 'Duplicate entry') && !str_contains($e->getMessage(), 'customer_code'))) {
+                    throw $e;
+                }
+                usleep(50000); // 50ms pause before retry
+            }
+        }
+
+        throw new \RuntimeException('Failed to generate a unique customer code after multiple attempts.');
     }
 
     /**
