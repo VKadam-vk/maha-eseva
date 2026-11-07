@@ -286,13 +286,57 @@
     }
 
     /* Locked vs Unlocked Rows for Follow-up Services */
+    tr.followup-row-locked input,
+    tr.followup-row-locked select,
+    tr.followup-row-locked textarea,
     tr.followup-row-locked .excel-input,
     tr.followup-row-locked .excel-select,
-    tr.followup-row-locked .excel-work-details {
-        pointer-events: none;
-        user-select: none;
-        background: transparent !important;
+    tr.followup-row-locked .excel-date-input,
+    tr.followup-row-locked .status-select,
+    tr.followup-row-locked .payment-mode-select,
+    tr.followup-row-locked .excel-work-details,
+    tr.followup-row-locked .btn-cell-history,
+    tr.followup-row-locked .btn-doc-eye {
+        pointer-events: none !important;
+        user-select: none !important;
         border-color: transparent !important;
+        box-shadow: none !important;
+        cursor: default !important;
+    }
+
+    /* Transparent background for text/number/date inputs when locked */
+    tr.followup-row-locked input.excel-input,
+    tr.followup-row-locked textarea.excel-work-details {
+        background: transparent !important;
+    }
+
+    /* Hide History Buttons and Eye Icon When Row is Locked */
+    tr.followup-row-locked .btn-cell-history,
+    tr.followup-row-locked .btn-doc-eye {
+        display: none !important;
+    }
+
+    /* Locked Appearance for Selects */
+    tr.followup-row-locked select.payment-mode-select,
+    tr.followup-row-locked select.status-select,
+    tr.followup-row-locked select.excel-select,
+    tr.followup-row-locked select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important;
+        background-color: transparent !important;
+        border-color: transparent !important;
+        padding-right: 4px !important;
+        font-weight: 800 !important;
+    }
+
+    /* Keep Action Buttons strictly interactive even in locked row */
+    tr.followup-row-locked .sticky-action-td,
+    tr.followup-row-locked .sticky-action-td *,
+    tr.followup-row-locked .btn-row-action {
+        pointer-events: auto !important;
+        cursor: pointer !important;
     }
 
     tr.followup-row-unlocked {
@@ -304,12 +348,40 @@
         background-color: #f0f9ff !important;
     }
 
+    tr.followup-row-unlocked input,
+    tr.followup-row-unlocked select,
+    tr.followup-row-unlocked textarea,
     tr.followup-row-unlocked .excel-input,
     tr.followup-row-unlocked .excel-select,
+    tr.followup-row-unlocked .excel-date-input,
+    tr.followup-row-unlocked .status-select,
+    tr.followup-row-unlocked .payment-mode-select,
     tr.followup-row-unlocked .excel-work-details {
         background: #ffffff !important;
         border: 1.5px solid #0284c7 !important;
+        border-radius: 6px !important;
         pointer-events: auto !important;
+        user-select: auto !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    tr.followup-row-unlocked select {
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+        appearance: auto !important;
+    }
+
+    tr.followup-row-unlocked input,
+    tr.followup-row-unlocked textarea {
+        cursor: text !important;
+    }
+
+    tr.followup-row-unlocked select,
+    tr.followup-row-unlocked .btn-cell-history,
+    tr.followup-row-unlocked .btn-doc-eye {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        display: inline-flex !important;
     }
 
     /* Sub-service row mode toggle */
@@ -329,12 +401,8 @@
         line-height: 28px;
         height: 28px;
         padding: 0 4px;
-        cursor: pointer;
+        cursor: default;
         user-select: text;
-    }
-    .row-notes-view:hover {
-        color: #0284c7;
-        text-decoration: underline dotted;
     }
     tr.followup-row-locked .row-notes-view { display: block !important; }
     tr.followup-row-locked .row-notes-edit { display: none !important; }
@@ -927,7 +995,7 @@
 
                             <!-- 7. Work Details (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}" onclick="toggleEditFollowupRow({{ $app->id }})">{{ $app->work_details ?: '-' }}</div>
+                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
                                               placeholder="Notes / instructions..."
@@ -942,7 +1010,7 @@
 
                             <!-- Pending Remark (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}" onclick="toggleEditFollowupRow({{ $app->id }})">{{ $app->payment_remarks ?: '-' }}</div>
+                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
                                               placeholder="Pending remark / notes..."
