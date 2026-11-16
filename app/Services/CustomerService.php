@@ -151,7 +151,7 @@ class CustomerService
             'alternate_mobile' => $data['alternate_mobile'] ?? $customer->alternate_mobile,
             'occupation' => array_key_exists('occupation', $data) ? $data['occupation'] : $customer->occupation,
             'star_rating' => isset($data['star_rating']) ? (int) $data['star_rating'] : $customer->star_rating,
-            'category_id' => $data['category_id'] ?? $customer->category_id,
+            'category_id' => array_key_exists('category_id', $data) ? $data['category_id'] : $customer->category_id,
             'notes' => $data['notes'] ?? $customer->notes,
             'updated_by' => $updater->id,
         ]);

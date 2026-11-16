@@ -43,7 +43,13 @@
                         <td><span style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">{{ $c->customer_code }}</span></td>
                         <td><strong>{{ $c->name }}</strong></td>
                         <td>{{ $c->mobile }}</td>
-                        <td><span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">{{ $c->category?->name ?? 'General' }}</span></td>
+                        <td>
+                            @if($c->category)
+                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">{{ $c->category->name }}</span>
+                            @else
+                                <span style="color: #94a3b8; font-style: italic;">-</span>
+                            @endif
+                        </td>
                         <td>{{ $c->gender }}</td>
                         <td>{{ $c->city ?? 'Pune' }}, {{ $c->district ?? 'Pune' }}</td>
                         <td>{{ $c->branch->name }}</td>

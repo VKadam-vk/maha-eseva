@@ -73,13 +73,16 @@
                 <label class="form-label" style="display: block; font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                     <i class="fa-solid fa-layer-group" style="color: #f59e0b; width: 16px;"></i> Customer Category
                 </label>
-                <select name="category_id" class="form-select"
+                <select name="category_id" id="customer_category_select" class="form-select" onchange="checkNewCategoryOption(this)"
                         style="width: 100%; height: 44px; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; box-sizing: border-box; cursor: pointer;">
-                    <option value="">Regular Citizen</option>
+                    <option value="">-- No Category (कोणतीही नाही) --</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ old('category_id', $customer->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                     @endforeach
+                    <option value="__NEW_CATEGORY__" style="color: #0284c7; font-weight: 800;">➕ नवीन कॅटेगरी जोडा (Add New)...</option>
                 </select>
+                <input type="text" name="new_category_name" id="new_category_input" placeholder="नवीन कॅटेगरीचे नाव टाका (उदा. शेतकरी, पेन्शनर, महिला)..."
+                       style="display: none; width: 100%; height: 42px; margin-top: 8px; border: 1.5px solid #0284c7; border-radius: 8px; padding: 8px 14px; font-size: 13.5px; font-weight: 600; color: #0f172a; background: #f0f9ff; box-sizing: border-box;">
             </div>
 
             <!-- 6. Birth Date -->
@@ -161,4 +164,22 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function checkNewCategoryOption(selectEl) {
+    const input = document.getElementById('new_category_input');
+    if (!input) return;
+    if (selectEl.value === '__NEW_CATEGORY__') {
+        input.style.display = 'block';
+        input.required = true;
+        input.focus();
+    } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+@endpush
 @endsection

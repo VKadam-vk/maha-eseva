@@ -104,6 +104,23 @@ class CustomerController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = Auth::user();
+
+        // Handle dynamic category creation
+        if ($request->input('category_id') === '__NEW_CATEGORY__' || $request->filled('new_category_name')) {
+            $catName = trim($request->input('new_category_name', ''));
+            if (!empty($catName)) {
+                $category = CustomerCategory::firstOrCreate(
+                    ['tenant_id' => $user->tenant_id, 'name' => $catName],
+                    ['code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $catName), 0, 4))]
+                );
+                $request->merge(['category_id' => $category->id]);
+            } else {
+                $request->merge(['category_id' => null]);
+            }
+        } elseif ($request->input('category_id') === '') {
+            $request->merge(['category_id' => null]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'mobile' => ['required', 'string', 'max:20'],
@@ -272,6 +289,23 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer): RedirectResponse
     {
         $this->authorize('update', $customer);
+        $user = Auth::user();
+
+        // Handle dynamic category creation
+        if ($request->input('category_id') === '__NEW_CATEGORY__' || $request->filled('new_category_name')) {
+            $catName = trim($request->input('new_category_name', ''));
+            if (!empty($catName)) {
+                $category = CustomerCategory::firstOrCreate(
+                    ['tenant_id' => $user->tenant_id, 'name' => $catName],
+                    ['code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $catName), 0, 4))]
+                );
+                $request->merge(['category_id' => $category->id]);
+            } else {
+                $request->merge(['category_id' => null]);
+            }
+        } elseif ($request->input('category_id') === '') {
+            $request->merge(['category_id' => null]);
+        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],

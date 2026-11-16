@@ -39,7 +39,7 @@
                 </label>
                 <div style="position: relative;">
                     <input type="text" name="search" id="customerSearchInput" class="form-control" 
-                           placeholder="Type customer name or mobile (auto-searches)..." 
+                           placeholder="Search customer name, mobile or code..." 
                            value="{{ request('search') }}"
                            oninput="autoFilterCustomers(this.value)"
                            autocomplete="off"
@@ -146,7 +146,15 @@
                             </div>
                         </td>
                         <td><span class="badge badge-hold" style="font-size: 10px;">{{ $c->gender }}</span></td>
-                        <td>{{ $c->category?->name ?? 'Regular' }}</td>
+                        <td>
+                            @if($c->category)
+                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; font-size: 11px;">
+                                    {{ $c->category->name }}
+                                </span>
+                            @else
+                                <span style="color: #94a3b8; font-size: 11.5px; font-style: italic;">-</span>
+                            @endif
+                        </td>
                         <td><span class="badge badge-process">{{ $c->applications_count }} Apps</span></td>
                         <td><strong>₹{{ number_format($c->total_paid, 2) }}</strong></td>
                         <td>
@@ -270,34 +278,26 @@
 
 @push('scripts')
 <script>
-let custSearchTimer = null;
-
 function autoFilterCustomers(query) {
     const q = (query || '').trim().toLowerCase();
     const rows = document.querySelectorAll('.erp-table tbody tr');
     const indicator = document.getElementById('custSearchIndicator');
 
-    if (indicator) indicator.style.display = 'inline-block';
+    if (indicator) indicator.style.display = q ? 'inline-block' : 'none';
 
-    let visibleCount = 0;
     rows.forEach(row => {
         if (row.querySelector('td[colspan]')) return;
         const text = row.innerText.toLowerCase();
         if (!q || text.includes(q)) {
             row.style.display = '';
-            visibleCount++;
         } else {
             row.style.display = 'none';
         }
     });
 
-    clearTimeout(custSearchTimer);
-    custSearchTimer = setTimeout(() => {
-        const form = document.getElementById('customerFilterForm');
-        if (form) {
-            form.submit();
-        }
-    }, 600);
+    if (indicator) {
+        setTimeout(() => { indicator.style.display = 'none'; }, 300);
+    }
 }
 
 // ==========================================

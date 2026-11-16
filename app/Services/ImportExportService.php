@@ -221,7 +221,7 @@ class ImportExportService
                         self::sanitizeCsvField($c->customer_code),
                         self::sanitizeCsvField($c->name),
                         self::sanitizeCsvField($c->mobile),
-                        self::sanitizeCsvField($c->category?->name ?? 'General'),
+                        self::sanitizeCsvField($c->category?->name ?? 'None'),
                         self::sanitizeCsvField($c->gender),
                         self::sanitizeCsvField($c->email),
                         self::sanitizeCsvField($c->address),

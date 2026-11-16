@@ -798,9 +798,11 @@
                         <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-family: var(--font-mono); font-weight: 800;">
                             {{ $customer->customer_code }}
                         </span>
-                        <span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;">
-                            {{ $customer->category?->name ?? 'Regular Citizen' }}
-                        </span>
+                        @if($customer->category)
+                            <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700;">
+                                <i class="fa-solid fa-layer-group" style="font-size: 10px; margin-right: 3px;"></i> {{ $customer->category->name }}
+                            </span>
+                        @endif
                         @if($customer->is_blacklisted)
                             <span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; font-weight: 800;">
                                 <i class="fa-solid fa-ban"></i> BLACKLISTED
