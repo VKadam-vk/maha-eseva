@@ -150,10 +150,13 @@
             <span>Service:</span>
             <span class="bold" style="text-align: right; max-width: 55%;">{{ $application->service?->main_service_name ?? 'Government Service' }}</span>
         </div>
-        @if($application->sub_service)
+        @php
+            $subService = trim($application->sub_service ?: ($application->service?->sub_service_name ?? ''));
+        @endphp
+        @if(!empty($subService) && strcasecmp($subService, $application->service?->main_service_name ?? '') !== 0)
             <div class="flex-between">
                 <span>Sub-Service:</span>
-                <span style="text-align: right; max-width: 55%; font-size: 11px;">{{ $application->sub_service }}</span>
+                <span class="bold" style="text-align: right; max-width: 55%; font-size: 11.5px;">{{ $subService }}</span>
             </div>
         @endif
         <div class="flex-between">

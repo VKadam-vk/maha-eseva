@@ -57,8 +57,17 @@
             </div>
             <div class="flex-between">
                 <span>Service:</span>
-                <span>{{ $payment->application->service->main_service_name }}</span>
+                <span class="bold">{{ $payment->application->service->main_service_name ?? 'Service' }}</span>
             </div>
+            @php
+                $subService = trim($payment->application->sub_service ?: ($payment->application->service?->sub_service_name ?? ''));
+            @endphp
+            @if(!empty($subService) && strcasecmp($subService, $payment->application->service->main_service_name ?? '') !== 0)
+                <div class="flex-between">
+                    <span>Sub-Service:</span>
+                    <span>{{ $subService }}</span>
+                </div>
+            @endif
             <div class="flex-between">
                 <span>Total Fee:</span>
                 <span>Rs. {{ number_format($payment->application->total_amount, 2) }}</span>

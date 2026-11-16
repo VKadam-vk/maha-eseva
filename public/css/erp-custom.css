@@ -1104,3 +1104,86 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateX(20px);
 }
 
+/* ==========================================================================
+   ERP CUSTOM PAGINATION
+   ========================================================================== */
+.erp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: #475569;
+  padding: 4px 0;
+}
+.erp-pagination-info {
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+.erp-pagination-info strong,
+.erp-pagination-info .font-bold {
+  color: #0f172a;
+  font-weight: 700;
+}
+.erp-pagination-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.erp-pagination-links li {
+  margin: 0;
+  padding: 0;
+}
+.erp-pagination-links li a,
+.erp-pagination-links li span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+.erp-pagination-links li.active span {
+  background: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+}
+.erp-pagination-links li.disabled span {
+  color: #94a3b8 !important;
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  cursor: not-allowed;
+}
+.erp-pagination-links li a:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+/* Safety clamp on ANY SVG inside pagination navigation so it never blows up */
+nav[role="navigation"] svg,
+.pagination svg,
+.erp-pagination svg {
+  width: 14px !important;
+  height: 14px !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+  display: inline-block !important;
+  vertical-align: middle;
+}
+
+
