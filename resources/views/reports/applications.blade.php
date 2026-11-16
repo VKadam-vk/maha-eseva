@@ -99,9 +99,9 @@
                 @forelse($applications as $app)
                     <tr>
                         <td>
-                            <a href="{{ route('applications.show', $app->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">
+                            <span style="font-family: var(--font-mono); font-weight: 700; color: #1e293b;">
                                 {{ $app->application_number }}
-                            </a>
+                            </span>
                         </td>
                         <td>{{ $app->application_date->format('d M Y') }}</td>
                         <td><strong>{{ $app->customer->name }}</strong></td>

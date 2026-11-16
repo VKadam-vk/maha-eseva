@@ -128,9 +128,9 @@
                         </td>
                         <td>
                             @if($p->application)
-                                <a href="{{ route('applications.show', $p->application_id) }}" style="font-family: var(--font-mono); font-weight: 600; color: #4f46e5;">
+                                <span style="font-family: var(--font-mono); font-weight: 700; color: #1e293b; font-size: 13px;">
                                     {{ $p->application->application_number }}
-                                </a>
+                                </span>
                                 <div style="font-size: 11px; color: var(--text-muted);">{{ $p->application->service?->main_service_name ?? 'Service' }}</div>
                             @else
                                 <span style="color: var(--text-muted);">Direct Advance</span>

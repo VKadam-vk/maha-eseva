@@ -75,9 +75,9 @@
                 @forelse($tasks as $app)
                     <tr>
                         <td>
-                            <a href="{{ route('applications.show', $app->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">
+                            <span style="font-family: var(--font-mono); font-weight: 700; color: #1e293b;">
                                 {{ $app->application_number }}
-                            </a>
+                            </span>
                         </td>
                         <td><strong>{{ $app->customer->name }}</strong></td>
                         <td>{{ $app->customer->mobile }}</td>
@@ -93,7 +93,7 @@
                         </td>
                         <td><span class="badge badge-process">{{ $app->work_status }}</span></td>
                         <td>
-                            <a href="{{ route('applications.show', $app->id) }}" class="btn btn-secondary btn-sm">Process Work <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="{{ route('fast_entry.index') }}" class="btn btn-secondary btn-sm">Process in Fast Entry <i class="fa-solid fa-arrow-right"></i></a>
                         </td>
                     </tr>
                 @empty

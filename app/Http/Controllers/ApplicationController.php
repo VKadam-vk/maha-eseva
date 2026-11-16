@@ -237,51 +237,19 @@ class ApplicationController extends Controller
     }
 
     /**
-     * Display application details, dynamic values, workflow actions, documents, payments.
+     * Display application details - redirect to Fast Daily Entry workspace or receipt.
      */
-    public function show(Application $application): View
+    public function show(Application $application): RedirectResponse
     {
-        $user = Auth::user();
-        if ($user->hasServiceRestrictions() && !$user->canAccessService($application->service_id)) {
-            abort(403, 'Unauthorized: You do not have permission to view applications for this service.');
+        if (request()->boolean('receipt')) {
+            return redirect()->route('applications.receipt', $application->id);
         }
 
-        $this->authorize('view', $application);
+        if ($application->customer && $application->customer->mobile) {
+            return redirect()->route('fast_entry.index', ['search' => $application->customer->mobile]);
+        }
 
-        $application->load([
-            'customer',
-            'service.category',
-            'service.customFields',
-            'assignedEmployee.user',
-            'branch',
-            'customValues.field',
-            'statusHistories.changer',
-            'documents.verifier',
-            'payments.receiver',
-            'followUps.assignedEmployee.user',
-            'tasks.employee.user',
-        ]);
-
-        $employees = Auth::user()->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
-
-        $statuses = [
-            Application::STATUS_NEW,
-            Application::STATUS_DOCUMENT_PENDING,
-            Application::STATUS_DOCUMENT_VERIFIED,
-            Application::STATUS_IN_PROCESS,
-            Application::STATUS_SUBMITTED,
-            Application::STATUS_UNDER_PROCESS,
-            Application::STATUS_RETURNED_CORRECTION,
-            Application::STATUS_APPROVED,
-            Application::STATUS_READY,
-            Application::STATUS_DELIVERED,
-            Application::STATUS_CLOSED,
-            Application::STATUS_ON_HOLD,
-            Application::STATUS_REJECTED,
-            Application::STATUS_CANCELLED,
-        ];
-
-        return view('applications.show', compact('application', 'employees', 'statuses'));
+        return redirect()->route('fast_entry.index');
     }
 
     /**

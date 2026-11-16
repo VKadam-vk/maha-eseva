@@ -91,15 +91,17 @@
                     @forelse($employee->applications as $app)
                         <tr>
                             <td>
-                                <a href="{{ route('applications.show', $app->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c;">
+                                <span style="font-family: var(--font-mono); font-weight: 700; color: #1e293b;">
                                     {{ $app->application_number }}
-                                </a>
+                                </span>
                             </td>
                             <td>{{ $app->customer->name }}</td>
                             <td>{{ $app->service->main_service_name }}</td>
                             <td><span class="badge badge-process">{{ $app->work_status }}</span></td>
                             <td>
-                                <a href="{{ route('applications.show', $app->id) }}" class="btn btn-secondary btn-sm">View</a>
+                                <a href="{{ route('applications.receipt', $app->id) }}" target="_blank" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-print"></i> Receipt
+                                </a>
                             </td>
                         </tr>
                     @empty
