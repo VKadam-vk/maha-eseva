@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         if (!app()->environment('testing') && User::where('email', 'admin@mahaeseva.com')->exists()) {
+            $this->seedShravaniBranchData();
             return;
         }
 
@@ -655,6 +656,561 @@ class DatabaseSeeder extends Seeder
                 'work_details' => 'New PAN Form 49A submitted with Aadhaar biometric e-KYC',
                 'documents_list' => 'Aadhaar Card, Passport Photo',
             ]);
+        }
+
+        $this->seedShravaniBranchData();
+    }
+
+    /**
+     * Seed comprehensive realistic test data for Shravani E-Seva Kendra and Vinod B Kadam.
+     */
+    public function seedShravaniBranchData(): void
+    {
+        $tenant = Tenant::first();
+        if (!$tenant) {
+            return;
+        }
+
+        // 1. Shravani E-Seva Kendra Branch
+        $shravaniBranch = Branch::firstOrCreate(
+            ['name' => 'Shravani E-Seva Kendra'],
+            [
+                'uuid' => (string) Str::uuid(),
+                'tenant_id' => $tenant->id,
+                'branch_code' => 'MH-SEVA-SHRAVANI',
+                'contact_person' => 'VINOD B KADAM',
+                'contact_mobile' => '9876543211',
+                'contact_email' => 'branchadmin@mahaeseva.com',
+                'address' => 'Shop No. 5, Near Bus Stand, Pune-Solapur Road',
+                'city' => 'Pune',
+                'district' => 'Pune',
+                'state' => 'Maharashtra',
+                'pincode' => '411028',
+                'status' => 'ACTIVE',
+                'is_main_branch' => false,
+            ]
+        );
+
+        // 2. VINOD B KADAM User
+        $branchAdminRole = Role::where('slug', 'BRANCH_ADMIN')->first();
+        $seedPassword = env('SEED_DEFAULT_PASSWORD', 'Password@123');
+
+        $vinodUser = User::where('email', 'branchadmin@mahaeseva.com')->first();
+        if ($vinodUser) {
+            $vinodUser->update([
+                'name' => 'VINOD B KADAM',
+                'branch_id' => $shravaniBranch->id,
+            ]);
+            if ($branchAdminRole && !$vinodUser->roles()->where('slug', 'BRANCH_ADMIN')->exists()) {
+                $vinodUser->roles()->syncWithoutDetaching([$branchAdminRole->id]);
+            }
+        } else {
+            $vinodUser = User::create([
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'name' => 'VINOD B KADAM',
+                'email' => 'branchadmin@mahaeseva.com',
+                'mobile' => '9876543211',
+                'password' => Hash::make($seedPassword),
+                'status' => 'ACTIVE',
+            ]);
+            if ($branchAdminRole) {
+                $vinodUser->roles()->attach($branchAdminRole->id);
+            }
+        }
+
+        $vinodAlias = User::firstOrCreate(
+            ['email' => 'vinod@mahaeseva.com'],
+            [
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'name' => 'VINOD B KADAM',
+                'mobile' => '9876543299',
+                'password' => Hash::make($seedPassword),
+                'status' => 'ACTIVE',
+            ]
+        );
+        if ($branchAdminRole && !$vinodAlias->roles()->where('slug', 'BRANCH_ADMIN')->exists()) {
+            $vinodAlias->roles()->syncWithoutDetaching([$branchAdminRole->id]);
+        }
+
+        // 3. Ensure required testing services exist
+        $serviceSpecs = [
+            ['code' => 'PF-KYC-01', 'name' => 'PF', 'sub' => 'KYC', 'price' => 200.00],
+            ['code' => 'PF-ADV-01', 'name' => 'PF', 'sub' => 'ADVANCE WITHDRAWAL', 'price' => 300.00],
+            ['code' => 'FARM-SAT-01', 'name' => 'FARMAR', 'sub' => 'SATBARA', 'price' => 50.00],
+            ['code' => 'FARM-ID-01', 'name' => 'FARMAR', 'sub' => 'FARMAR ID Registration', 'price' => 200.00],
+            ['code' => 'MAHA-ID-01', 'name' => 'MAHA ID CARD', 'sub' => 'REGISTRATION + SMARTCARD', 'price' => 200.00],
+            ['code' => 'AADHAR-UPD-01', 'name' => 'ADHARCARD', 'sub' => 'ADDRESS UPDATE', 'price' => 200.00],
+            ['code' => 'GST-REG-01', 'name' => 'GST REGISTRATION', 'sub' => 'NEW', 'price' => 1800.00],
+            ['code' => 'RENT-5YR-01', 'name' => 'RENT AGREEMENT', 'sub' => '5 Years Registered 2000+ Gov Fee', 'price' => 2000.00],
+        ];
+
+        $serviceMap = [];
+        $generalCat = ServiceCategory::firstOrCreate(
+            ['slug' => 'general-services', 'tenant_id' => $tenant->id],
+            ['name' => 'General Citizen Services', 'icon' => 'fa-solid fa-file-shield']
+        );
+
+        foreach ($serviceSpecs as $spec) {
+            $srv = Service::firstOrCreate(
+                ['service_code' => $spec['code'], 'tenant_id' => $tenant->id],
+                [
+                    'uuid' => (string) Str::uuid(),
+                    'category_id' => $generalCat->id,
+                    'main_service_name' => $spec['name'],
+                    'sub_service_name' => $spec['sub'],
+                    'govt_fee' => 0.00,
+                    'service_charge' => $spec['price'],
+                    'price' => $spec['price'],
+                    'expected_processing_days' => 5,
+                    'is_active' => true,
+                ]
+            );
+            $serviceMap[$spec['name'] . '::' . $spec['sub']] = $srv;
+        }
+
+        // Check if customer directory already has records
+        if (Customer::where('branch_id', $shravaniBranch->id)->count() >= 50) {
+            return;
+        }
+
+        $defaultCat = CustomerCategory::firstOrCreate(
+            ['slug' => 'regular-citizen', 'tenant_id' => $tenant->id],
+            ['name' => 'Regular Citizen']
+        );
+
+        // 4. Primary 16 Follow-up Customers from screenshot
+        $primaryCustomers = [
+            [
+                'code' => 'CUST-2026-00027',
+                'name' => 'PRADIP PANDHARINATH PAYGUDE',
+                'mobile' => '8329155138',
+                'occupation' => 'PRIVATE SERVICE',
+                'service' => 'PF',
+                'sub' => 'KYC',
+                'rate' => 200.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'PF UAN KYC document submission pending',
+            ],
+            [
+                'code' => 'CUST-2026-00035',
+                'name' => 'PRASHANT ANKUSH BORKAR',
+                'mobile' => '8262071719',
+                'occupation' => 'FARMER',
+                'service' => 'FARMAR',
+                'sub' => 'SATBARA',
+                'rate' => 50.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Digital 7/12 & 8A Ferfar Nakal print inquiry',
+            ],
+            [
+                'code' => 'CUST-2026-00046',
+                'name' => 'MACHINDRA SAMBHAJI SAKHARE',
+                'mobile' => '9527621851',
+                'occupation' => 'FARMER',
+                'service' => 'FARMAR',
+                'sub' => 'FARMAR ID Registration',
+                'rate' => 200.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Farmer ID registration and land verification',
+            ],
+            [
+                'code' => 'CUST-2026-00071',
+                'name' => 'SOMNATH RAVINDRA SARVADE',
+                'mobile' => '9307007147',
+                'occupation' => 'SALARIED',
+                'service' => 'PF',
+                'sub' => 'ADVANCE WITHDRAWAL',
+                'rate' => 300.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'PF Form 31 Advance withdrawal claim apply',
+            ],
+            [
+                'code' => 'CUST-2026-00038',
+                'name' => 'VIJAY BHIMRAO NANAWARE',
+                'mobile' => '7757997079',
+                'occupation' => 'BUSINESS',
+                'service' => 'PF',
+                'sub' => 'KYC',
+                'rate' => 200.00,
+                'received' => 200.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Bank KYC seeded successfully, waiting for employer approval',
+            ],
+            [
+                'code' => 'CUST-2026-00041',
+                'name' => 'Pratik Raju Warpe',
+                'mobile' => '7020715056',
+                'occupation' => 'STUDENT',
+                'service' => 'PF',
+                'sub' => 'KYC',
+                'rate' => 200.00,
+                'received' => 200.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Aadhaar name mismatch rectified in EPFO',
+            ],
+            [
+                'code' => 'CUST-2026-00077',
+                'name' => 'SATISH BHAGWAT KSHIRSAGAR',
+                'mobile' => '9767162368',
+                'occupation' => 'BUSINESS',
+                'service' => 'MAHA ID CARD',
+                'sub' => 'REGISTRATION + SMARTCARD',
+                'rate' => 200.00,
+                'received' => 200.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Maha ID card registration completed, card printing pending',
+            ],
+            [
+                'code' => 'CUST-2026-00066',
+                'name' => 'DNYANESHWAR NARAYAN SHEDGE',
+                'mobile' => '8975424571',
+                'occupation' => 'FARMER',
+                'service' => 'ADHARCARD',
+                'sub' => 'ADDRESS UPDATE',
+                'rate' => 200.00,
+                'received' => 200.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'UIDAI address update token generated',
+            ],
+            [
+                'code' => 'CUST-2026-00083',
+                'name' => 'Indrani Abhay Kale',
+                'mobile' => '8484986130',
+                'occupation' => 'HOMEMAKER',
+                'service' => 'MAHA ID CARD',
+                'sub' => 'REGISTRATION + SMARTCARD',
+                'rate' => 200.00,
+                'received' => 200.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Biometric verified, dispatch scheduled',
+            ],
+            [
+                'code' => 'CUST-2026-00016',
+                'name' => 'NAGNATH SHANKAR KAMBLE',
+                'mobile' => '9657192543',
+                'occupation' => 'BUSINESS',
+                'service' => 'GST REGISTRATION',
+                'sub' => 'NEW',
+                'rate' => 1800.00,
+                'received' => 1800.00,
+                'status' => 'PENDING',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'GST portal TRN generated, electricity bill uploaded',
+            ],
+            [
+                'code' => 'CUST-2026-00008',
+                'name' => 'RUPESH NARAYAN SUBHEDAR',
+                'mobile' => '9881479719',
+                'occupation' => 'BUSINESS',
+                'service' => 'RENT AGREEMENT',
+                'sub' => '5 Years Registered 2000+ Gov Fee',
+                'rate' => 2000.00,
+                'received' => 0.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => '5-year registered rent agreement draft prepared',
+            ],
+            [
+                'code' => 'CUST-2026-00019',
+                'name' => 'Kailas Bhimrao Jagtap',
+                'mobile' => '9822144551',
+                'occupation' => 'FARMER',
+                'service' => 'FARMAR',
+                'sub' => 'SATBARA',
+                'rate' => 50.00,
+                'received' => 50.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Online ferfar entry verification',
+            ],
+            [
+                'code' => 'CUST-2026-00022',
+                'name' => 'Sunil Mahadev Thorat',
+                'mobile' => '9822144552',
+                'occupation' => 'SALARIED',
+                'service' => 'PF',
+                'sub' => 'KYC',
+                'rate' => 200.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Joint declaration document submit',
+            ],
+            [
+                'code' => 'CUST-2026-00029',
+                'name' => 'Vilas Pandurang More',
+                'mobile' => '9822144553',
+                'occupation' => 'BUSINESS',
+                'service' => 'GST REGISTRATION',
+                'sub' => 'NEW',
+                'rate' => 1800.00,
+                'received' => 900.00,
+                'status' => 'PENDING',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Clarification reply submit on GST portal',
+            ],
+            [
+                'code' => 'CUST-2026-00031',
+                'name' => 'Anil Tukaram Shinde',
+                'mobile' => '9822144554',
+                'occupation' => 'FARMER',
+                'service' => 'ADHARCARD',
+                'sub' => 'ADDRESS UPDATE',
+                'rate' => 200.00,
+                'received' => 0.00,
+                'status' => 'INQUIRY',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Gazetted officer sign on address certificate',
+            ],
+            [
+                'code' => 'CUST-2026-00034',
+                'name' => 'Gajanan Dnyandev Pawar',
+                'mobile' => '9822144555',
+                'occupation' => 'PRIVATE SERVICE',
+                'service' => 'PF',
+                'sub' => 'ADVANCE WITHDRAWAL',
+                'rate' => 300.00,
+                'received' => 300.00,
+                'status' => 'IN_PROGRESS',
+                'follow_date' => now()->toDateString(),
+                'work_details' => 'Passbook photo re-upload in member portal',
+            ],
+        ];
+
+        $appSeq = 10;
+        $recSeq = 10;
+
+        foreach ($primaryCustomers as $pc) {
+            $cust = Customer::create([
+                'uuid' => (string) Str::uuid(),
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'category_id' => $defaultCat->id,
+                'customer_code' => $pc['code'],
+                'name' => $pc['name'],
+                'mobile' => $pc['mobile'],
+                'gender' => 'MALE',
+                'occupation' => $pc['occupation'],
+                'star_rating' => 5,
+                'created_by' => $vinodUser->id,
+            ]);
+
+            $srvKey = $pc['service'] . '::' . $pc['sub'];
+            $srv = $serviceMap[$srvKey] ?? Service::first();
+
+            $rem = max(0, $pc['rate'] - $pc['received']);
+            $payStatus = $pc['received'] >= $pc['rate'] ? 'PAID' : ($pc['received'] > 0 ? 'PARTIAL' : 'PENDING');
+
+            $app = Application::create([
+                'uuid' => (string) Str::uuid(),
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'customer_id' => $cust->id,
+                'service_id' => $srv->id,
+                'application_number' => 'SR-' . date('Y') . '-' . str_pad($appSeq++, 5, '0', STR_PAD_LEFT),
+                'application_date' => now()->toDateString(),
+                'sub_service' => $pc['sub'],
+                'work_status' => $pc['status'],
+                'payment_status' => $payStatus,
+                'base_amount' => $pc['rate'],
+                'total_amount' => $pc['rate'],
+                'received_amount' => $pc['received'],
+                'remaining_amount' => $rem,
+                'payment_mode' => 'Cash',
+                'follow_up_date' => $pc['follow_date'],
+                'work_details' => $pc['work_details'],
+                'created_by' => $vinodUser->id,
+                'updated_by' => $vinodUser->id,
+            ]);
+
+            FollowUp::create([
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'customer_id' => $cust->id,
+                'application_id' => $app->id,
+                'follow_up_date' => $pc['follow_date'],
+                'reason' => $pc['service'] . ' - ' . $pc['sub'],
+                'remarks' => $pc['work_details'],
+                'status' => FollowUp::STATUS_PENDING,
+                'created_by' => $vinodUser->id,
+            ]);
+
+            if ($pc['received'] > 0) {
+                Payment::create([
+                    'uuid' => (string) Str::uuid(),
+                    'tenant_id' => $tenant->id,
+                    'branch_id' => $shravaniBranch->id,
+                    'customer_id' => $cust->id,
+                    'application_id' => $app->id,
+                    'receipt_number' => 'REC-' . date('Y') . '-' . str_pad($recSeq++, 5, '0', STR_PAD_LEFT),
+                    'payment_date' => now()->toDateString(),
+                    'amount' => $pc['received'],
+                    'payment_mode' => 'CASH',
+                    'payment_status' => 'SUCCESS',
+                    'received_by' => $vinodUser->id,
+                ]);
+            }
+        }
+
+        // 5. Seed additional 65 realistic customer profiles for Shravani E-Seva Kendra
+        $extraNames = [
+            ['Suresh Ramchandra Patil', 'FARMER', '9823112201'],
+            ['Ganesh Dattatray Shinde', 'BUSINESS', '9823112202'],
+            ['Sandip Babanrao Chavan', 'PRIVATE SERVICE', '9823112203'],
+            ['Anil Kashinath Jadhav', 'DAILY WAGES', '9823112204'],
+            ['Pravin Shankar More', 'STUDENT', '9823112205'],
+            ['Sunita Pandurang Gaikwad', 'HOMEMAKER', '9823112206'],
+            ['Ramesh Balasaheb Kadam', 'FARMER', '9823112207'],
+            ['Amol Vishwanath Pawar', 'SELF EMPLOYED', '9823112208'],
+            ['Santosh Nivrutti Thorat', 'BUSINESS', '9823112209'],
+            ['Vikas Tukaram Jagtap', 'SALARIED', '9823112210'],
+            ['Sunil Maruti Bhosale', 'FARMER', '9823112211'],
+            ['Dipak Madhukar Raut', 'PRIVATE SERVICE', '9823112212'],
+            ['Ajay Chandrakant Salunkhe', 'BUSINESS', '9823112213'],
+            ['Mahesh Bhagwan Shinde', 'STUDENT', '9823112214'],
+            ['Nitin Anandrao Deshmukh', 'SALARIED', '9823112215'],
+            ['Sachin Popat Kale', 'FARMER', '9823112216'],
+            ['Manoj Laxman Ghadge', 'BUSINESS', '9823112217'],
+            ['Rahul Namdeo Mohite', 'PRIVATE SERVICE', '9823112218'],
+            ['Ashok Janardan Mane', 'SENIOR CITIZEN', '9823112219'],
+            ['Kiran Govind Sawant', 'STUDENT', '9823112220'],
+            ['Balasaheb Sopan Nalawade', 'FARMER', '9823112221'],
+            ['Shrikant Haribhau Koli', 'DAILY WAGES', '9823112222'],
+            ['Pandurang Sakharam Sutar', 'SELF EMPLOYED', '9823112223'],
+            ['Vitthal Ganpat Lohar', 'SELF EMPLOYED', '9823112224'],
+            ['Dattatray Mahadev Kumbhar', 'BUSINESS', '9823112225'],
+            ['Chandrakant Baburao Sonar', 'BUSINESS', '9823112226'],
+            ['Bhausaheb Vasantrao Tambe', 'FARMER', '9823112227'],
+            ['Kishor Sadashiv Ghule', 'SALARIED', '9823112228'],
+            ['Tukaram Eknath Dhoble', 'FARMER', '9823112229'],
+            ['Babasaheb Bhaurao Wagh', 'FARMER', '9823112230'],
+            ['Kavita Sharad Kadam', 'HOMEMAKER', '9823112231'],
+            ['Rekha Sunil Jadhav', 'HOMEMAKER', '9823112232'],
+            ['Pooja Sachin Bhosale', 'STUDENT', '9823112233'],
+            ['Manisha Pravin Pawar', 'PRIVATE SERVICE', '9823112234'],
+            ['Ujwala Ganesh Jagtap', 'HOMEMAKER', '9823112235'],
+            ['Surekha Suresh Shinde', 'HOMEMAKER', '9823112236'],
+            ['Anita Nitin Chavan', 'HOMEMAKER', '9823112237'],
+            ['Shobha Ramesh Gaikwad', 'SENIOR CITIZEN', '9823112238'],
+            ['Mangal Santosh More', 'HOMEMAKER', '9823112239'],
+            ['Swati Amol Raut', 'SALARIED', '9823112240'],
+            ['Rohit Dilip Salve', 'STUDENT', '9823112241'],
+            ['Swapnil Sanjay Gite', 'PRIVATE SERVICE', '9823112242'],
+            ['Akshay Subhash Tamboli', 'BUSINESS', '9823112243'],
+            ['Suraj Prakash Kasbe', 'DAILY WAGES', '9823112244'],
+            ['Prashant Vilas Kamthe', 'FARMER', '9823112245'],
+            ['Mayur Mohan Kulkarni', 'SALARIED', '9823112246'],
+            ['Abhijit Uttam Godse', 'BUSINESS', '9823112247'],
+            ['Haridas Narayan Zende', 'SENIOR CITIZEN', '9823112248'],
+            ['Anandrao Bhikaji Kadam', 'SENIOR CITIZEN', '9823112249'],
+            ['Sambhaji Raghunath Shitole', 'FARMER', '9823112250'],
+            ['Shantaram Kisan Walke', 'FARMER', '9823112251'],
+            ['Gorakhnath Bapu Bandal', 'FARMER', '9823112252'],
+            ['Nathuram Tanaji Malpote', 'FARMER', '9823112253'],
+            ['Bhagwan Yashwant Temghare', 'FARMER', '9823112254'],
+            ['Dattatraya Shripati Konde', 'BUSINESS', '9823112255'],
+            ['Rajendra Pandurang Marne', 'BUSINESS', '9823112256'],
+            ['Dnyaneshwar Bhimaji Jedhe', 'FARMER', '9823112257'],
+            ['Bhimrao Ganpat Gaikwad', 'SENIOR CITIZEN', '9823112258'],
+            ['Shivaji Ramchandra Kadu', 'FARMER', '9823112259'],
+            ['Khanderao Balu Hargude', 'DAILY WAGES', '9823112260'],
+            ['Avinash Prabhakar Joshi', 'SALARIED', '9823112261'],
+            ['Hemant Vasant Deshpande', 'SALARIED', '9823112262'],
+            ['Gajanan Anant Kulkarni', 'BUSINESS', '9823112263'],
+            ['Shridhar Keshav Bapat', 'SENIOR CITIZEN', '9823112264'],
+            ['Yogesh Vilas Phadke', 'PRIVATE SERVICE', '9823112265'],
+        ];
+
+        $allServices = Service::where('tenant_id', $tenant->id)->get();
+        if ($allServices->isEmpty()) {
+            return;
+        }
+
+        $custSeq = count($primaryCustomers) + 1;
+        $statuses = [
+            'READY', 'DELIVERED', 'READY', 'DELIVERED', // completed (~58)
+            'IN_PROGRESS', 'IN_PROCESS', 'SUBMITTED', 'NEW', 'DOCUMENT_PENDING', // pending (~84)
+        ];
+
+        foreach ($extraNames as $idx => $item) {
+            $extraCust = Customer::create([
+                'uuid' => (string) Str::uuid(),
+                'tenant_id' => $tenant->id,
+                'branch_id' => $shravaniBranch->id,
+                'category_id' => $defaultCat->id,
+                'customer_code' => 'CUST-' . date('Y') . '-' . str_pad($custSeq++, 5, '0', STR_PAD_LEFT),
+                'name' => $item[0],
+                'mobile' => $item[2],
+                'gender' => ($idx % 5 === 0) ? 'FEMALE' : 'MALE',
+                'occupation' => $item[1],
+                'star_rating' => 5,
+                'created_by' => $vinodUser->id,
+            ]);
+
+            // Create 1-2 applications for each customer
+            $appCount = ($idx % 3 === 0) ? 2 : 1;
+            for ($k = 0; $k < $appCount; $k++) {
+                $chosenService = $allServices[($idx + $k) % $allServices->count()];
+                $status = $statuses[($idx * 2 + $k) % count($statuses)];
+                $price = (float) ($chosenService->price > 0 ? $chosenService->price : 200.00);
+
+                $isCompleted = in_array($status, ['READY', 'DELIVERED', 'APPROVED']);
+                $received = $isCompleted ? $price : (($idx % 2 === 0) ? $price * 0.5 : 0.00);
+                $rem = max(0, $price - $received);
+                $payStatus = $received >= $price ? 'PAID' : ($received > 0 ? 'PARTIAL' : 'PENDING');
+
+                $extraApp = Application::create([
+                    'uuid' => (string) Str::uuid(),
+                    'tenant_id' => $tenant->id,
+                    'branch_id' => $shravaniBranch->id,
+                    'customer_id' => $extraCust->id,
+                    'service_id' => $chosenService->id,
+                    'application_number' => 'SR-' . date('Y') . '-' . str_pad($appSeq++, 5, '0', STR_PAD_LEFT),
+                    'application_date' => now()->subDays($idx % 15)->toDateString(),
+                    'sub_service' => $chosenService->sub_service_name,
+                    'work_status' => $status,
+                    'payment_status' => $payStatus,
+                    'base_amount' => $price,
+                    'total_amount' => $price,
+                    'received_amount' => $received,
+                    'remaining_amount' => $rem,
+                    'payment_mode' => ($idx % 2 === 0) ? 'Cash' : 'UPI',
+                    'work_details' => 'Application processing counter submission',
+                    'created_by' => $vinodUser->id,
+                    'updated_by' => $vinodUser->id,
+                ]);
+
+                if ($received > 0) {
+                    Payment::create([
+                        'uuid' => (string) Str::uuid(),
+                        'tenant_id' => $tenant->id,
+                        'branch_id' => $shravaniBranch->id,
+                        'customer_id' => $extraCust->id,
+                        'application_id' => $extraApp->id,
+                        'receipt_number' => 'REC-' . date('Y') . '-' . str_pad($recSeq++, 5, '0', STR_PAD_LEFT),
+                        'payment_date' => now()->subDays($idx % 10)->toDateString(),
+                        'amount' => $received,
+                        'payment_mode' => ($idx % 2 === 0) ? 'CASH' : 'UPI',
+                        'payment_status' => 'SUCCESS',
+                        'received_by' => $vinodUser->id,
+                    ]);
+                }
+            }
         }
     }
 }
