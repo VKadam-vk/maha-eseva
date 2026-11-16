@@ -48,7 +48,9 @@ class CustomerController extends Controller
             $query->where('branch_id', $request->branch_id);
         }
 
-        if ($request->filled('category_id')) {
+        if ($request->filled('occupation')) {
+            $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
+        } elseif ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
@@ -72,13 +74,32 @@ class CustomerController extends Controller
         $customers = $query->latest()->paginate(15)->withQueryString();
         $categories = CustomerCategory::all();
 
+        $tenantId = $user->tenant_id ?? 1;
+        $dbOccupations = Customer::where('tenant_id', $tenantId)
+            ->whereNotNull('occupation')
+            ->where('occupation', '!=', '')
+            ->distinct()
+            ->pluck('occupation')
+            ->toArray();
+
+        $defaultOccupations = [
+            'FARMER', 'BUSINESS', 'STUDENT', 'SERVICE', 'HOUSEWIFE',
+            'PRIVATE JOB', 'GOVT EMPLOYEE', 'LABOUR', 'SELF EMPLOYED',
+            'RETIRED', 'DRIVER', 'TAILOR', 'TEACHER', 'ADVOCATE', 'DOCTOR', 'SHOP', 'OTHER'
+        ];
+
+        $occupations = collect(array_unique(array_merge($defaultOccupations, array_map('trim', array_map('strtoupper', $dbOccupations)))))
+            ->filter()
+            ->sort()
+            ->values();
+
         $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
         if ($user->branch_id) {
             $branchesQuery->where('id', $user->branch_id);
         }
         $branches = $branchesQuery->get() ?? collect();
 
-        return view('customers.index', compact('customers', 'categories', 'branches'));
+        return view('customers.index', compact('customers', 'categories', 'branches', 'occupations'));
     }
 
     /**
@@ -388,8 +409,12 @@ class CustomerController extends Controller
 
         if ($request->audience === 'selected' && !empty($request->customer_ids)) {
             $query->whereIn('id', $request->customer_ids);
-        } elseif ($request->audience === 'filtered' && $request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        } elseif ($request->audience === 'filtered') {
+            if ($request->filled('occupation')) {
+                $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
+            } elseif ($request->filled('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
         }
 
         $customers = $query->get(['id', 'name', 'mobile']);

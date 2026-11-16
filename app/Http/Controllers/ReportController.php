@@ -51,7 +51,9 @@ class ReportController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        if ($request->filled('category_id')) {
+        if ($request->filled('occupation')) {
+            $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
+        } elseif ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 

@@ -179,7 +179,9 @@ class ImportExportService
             $query->where('branch_id', $filters['branch_id']);
         }
 
-        if (!empty($filters['category_id'])) {
+        if (!empty($filters['occupation'])) {
+            $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($filters['occupation']))]);
+        } elseif (!empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
         }
 
@@ -213,7 +215,7 @@ class ImportExportService
 
         return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Customer Code', 'Name', 'Mobile', 'Category', 'Gender', 'Email', 'Address', 'City', 'Pincode', 'Branch', 'Created At']);
+            fputcsv($handle, ['Customer Code', 'Name', 'Mobile', 'Occupation', 'Category', 'Gender', 'Email', 'Address', 'City', 'Pincode', 'Branch', 'Created At']);
 
             $query->chunk(200, function ($customers) use ($handle) {
                 foreach ($customers as $c) {
@@ -221,6 +223,7 @@ class ImportExportService
                         self::sanitizeCsvField($c->customer_code),
                         self::sanitizeCsvField($c->name),
                         self::sanitizeCsvField($c->mobile),
+                        self::sanitizeCsvField($c->occupation ?? ''),
                         self::sanitizeCsvField($c->category?->name ?? 'None'),
                         self::sanitizeCsvField($c->gender),
                         self::sanitizeCsvField($c->email),

@@ -48,24 +48,12 @@
                 </div>
             </div>
 
-            @if(Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner())
-                <div style="min-width: 180px;">
-                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Branch</label>
-                    <select name="branch_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Branches</option>
-                        @foreach($branches as $b)
-                            <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
-
-            <div style="min-width: 180px;">
-                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Category</label>
-                <select name="category_id" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $c)
-                        <option value="{{ $c->id }}" {{ request('category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+            <div style="min-width: 190px;">
+                <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Occupation</label>
+                <select name="occupation" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Occupations</option>
+                    @foreach($occupations as $occ)
+                        <option value="{{ $occ }}" {{ strtoupper(request('occupation')) == strtoupper($occ) ? 'selected' : '' }}>{{ $occ }}</option>
                     @endforeach
                 </select>
             </div>
@@ -88,7 +76,7 @@
                 <tr>
                     <th>Customer (Name, Mobile, Code)</th>
                     <th>Gender</th>
-                    <th>Category</th>
+                    <th>Occupation</th>
                     <th>Applications</th>
                     <th>Total Spent</th>
                     <th>Action</th>
@@ -130,11 +118,6 @@
                                 <a href="{{ route('customers.show', $c->id) }}" style="font-family: var(--font-mono); font-weight: 700; color: #ea580c; text-decoration: none;">
                                     {{ $c->customer_code }}
                                 </a>
-                                @if($c->occupation)
-                                    <span style="background: #f1f5f9; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: #475569; font-size: 10.5px;">
-                                        {{ strtoupper($c->occupation) }}
-                                    </span>
-                                @endif
                                 @if($c->email)
                                     <span style="color: var(--text-muted); font-size: 11px;">&bull; {{ $c->email }}</span>
                                 @endif
@@ -147,9 +130,9 @@
                         </td>
                         <td><span class="badge badge-hold" style="font-size: 10px;">{{ $c->gender }}</span></td>
                         <td>
-                            @if($c->category)
-                                <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 700; font-size: 11px;">
-                                    {{ $c->category->name }}
+                            @if(!empty($c->occupation))
+                                <span class="badge" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; font-size: 11px;">
+                                    <i class="fa-solid fa-briefcase" style="font-size: 10px; margin-right: 3px;"></i> {{ strtoupper($c->occupation) }}
                                 </span>
                             @else
                                 <span style="color: #94a3b8; font-size: 11.5px; font-style: italic;">-</span>
@@ -220,14 +203,14 @@
                     </label>
                     <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer;">
                         <input type="radio" name="broadcast_audience" value="filtered" onchange="toggleAudienceOptions()" style="accent-color: #16a34a;">
-                        Filter by Category
+                        Filter by Occupation
                     </label>
                 </div>
                 <div id="categoryFilterDiv" style="display: none; margin-top: 8px;">
-                    <select id="broadcast_category_id" class="form-select" style="font-size: 12px;">
-                        <option value="">-- All Categories --</option>
-                        @foreach($categories as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                    <select id="broadcast_occupation" class="form-select" style="font-size: 12px;">
+                        <option value="">-- All Occupations --</option>
+                        @foreach($occupations as $occ)
+                            <option value="{{ $occ }}">{{ $occ }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -356,7 +339,7 @@ function setPresetMessage(type) {
 function startBroadcast() {
     const msg = document.getElementById('broadcastMessageText').value.trim();
     const audience = document.querySelector('input[name="broadcast_audience"]:checked').value;
-    const categoryId = document.getElementById('broadcast_category_id') ? document.getElementById('broadcast_category_id').value : '';
+    const occupation = document.getElementById('broadcast_occupation') ? document.getElementById('broadcast_occupation').value : '';
     const statusBox = document.getElementById('broadcastStatusBox');
     const btn = document.getElementById('btnExecuteBroadcast');
     const btnText = document.getElementById('broadcastBtnText');
@@ -388,7 +371,7 @@ function startBroadcast() {
         body: JSON.stringify({
             message: msg,
             audience: audience,
-            category_id: categoryId
+            occupation: occupation
         })
     })
     .then(res => res.json())
