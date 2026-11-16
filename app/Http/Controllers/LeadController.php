@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Services\ApplicationService;
 use App\Services\AuditService;
 use App\Services\CustomerService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,8 +42,19 @@ class LeadController extends Controller
             $query->where('source', $request->source);
         }
 
+        if ($request->filled('followup')) {
+            if ($request->followup === 'today') {
+                $query->whereDate('next_follow_up_date', Carbon::today());
+            } elseif ($request->followup === 'upcoming') {
+                $query->whereDate('next_follow_up_date', '>', Carbon::today());
+            } elseif ($request->followup === 'overdue') {
+                $query->whereDate('next_follow_up_date', '<', Carbon::today());
+            }
+        }
+
         $leads = $query->latest()->paginate(15)->withQueryString();
         $services = Service::where('is_active', true)->get();
+        $uniqueMainServices = $services->pluck('main_service_name')->filter()->unique()->sort()->values();
         $employees = $user->tenant?->employees()->where('status', 'ACTIVE')->with('user')->get() ?? collect();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();
 
@@ -55,7 +67,7 @@ class LeadController extends Controller
             Lead::STATUS_LOST,
         ];
 
-        return view('leads.index', compact('leads', 'services', 'employees', 'branches', 'statuses'));
+        return view('leads.index', compact('leads', 'services', 'uniqueMainServices', 'employees', 'branches', 'statuses'));
     }
 
     /**
@@ -68,15 +80,24 @@ class LeadController extends Controller
             'mobile' => ['required', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'service_id' => ['nullable', 'exists:services,id'],
+            'sub_service' => ['nullable', 'string', 'max:150'],
             'branch_id' => ['nullable', 'exists:branches,id'],
             'source' => ['required', 'in:WEBSITE,WALK_IN,PHONE,WHATSAPP,REFERRAL'],
             'message' => ['nullable', 'string'],
             'assigned_employee_id' => ['nullable', 'exists:employees,id'],
+            'next_follow_up_date' => ['nullable', 'date'],
+            'next_follow_up_time' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = Auth::user();
         $tenantId = $user?->tenant_id ?? Tenant::first()?->id;
         $branchId = $validated['branch_id'] ?? $user?->branch_id ?? Branch::where('tenant_id', $tenantId)->first()?->id;
+
+        $subService = $validated['sub_service'] ?? null;
+        if (!$subService && !empty($validated['service_id'])) {
+            $selectedService = Service::find($validated['service_id']);
+            $subService = $selectedService?->sub_service_name;
+        }
 
         $lead = Lead::create([
             'tenant_id' => $tenantId,
@@ -85,9 +106,12 @@ class LeadController extends Controller
             'mobile' => $validated['mobile'],
             'email' => $validated['email'] ?? null,
             'service_id' => $validated['service_id'] ?? null,
+            'sub_service' => $subService,
             'source' => $validated['source'],
             'message' => $validated['message'] ?? null,
             'assigned_employee_id' => $validated['assigned_employee_id'] ?? null,
+            'next_follow_up_date' => $validated['next_follow_up_date'] ?? null,
+            'next_follow_up_time' => $validated['next_follow_up_time'] ?? null,
             'status' => Lead::STATUS_NEW,
         ]);
 
@@ -102,6 +126,35 @@ class LeadController extends Controller
         }
 
         return back()->with('success', 'Lead recorded successfully.');
+    }
+
+    /**
+     * Update lead follow-up date and time inline.
+     */
+    public function updateFollowUp(Request $request, Lead $lead): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'next_follow_up_date' => ['nullable', 'date'],
+            'next_follow_up_time' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $lead->update([
+            'next_follow_up_date' => $validated['next_follow_up_date'] ?: null,
+            'next_follow_up_time' => $validated['next_follow_up_time'] ?: null,
+        ]);
+
+        AuditService::log('LEAD_FOLLOWUP_UPDATED', $lead);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Next follow-up updated successfully.',
+                'next_follow_up_date' => $lead->next_follow_up_date?->format('Y-m-d'),
+                'next_follow_up_time' => $lead->next_follow_up_time,
+            ]);
+        }
+
+        return back()->with('success', 'Next follow-up date and time updated.');
     }
 
     /**

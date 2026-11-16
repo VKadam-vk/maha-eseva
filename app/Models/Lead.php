@@ -26,13 +26,20 @@ class Lead extends Model
         'mobile',
         'email',
         'service_id',
+        'sub_service',
         'message',
         'source',
         'status',
+        'next_follow_up_date',
+        'next_follow_up_time',
         'assigned_employee_id',
         'remarks',
         'converted_customer_id',
         'converted_application_id',
+    ];
+
+    protected $casts = [
+        'next_follow_up_date' => 'date',
     ];
 
     public function branch(): BelongsTo
