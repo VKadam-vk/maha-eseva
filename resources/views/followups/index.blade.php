@@ -232,7 +232,7 @@
     /* Sticky Right Columns: Status & Actions */
     .sticky-status-th {
         position: sticky;
-        right: 210px;
+        right: 235px;
         background: #f8fafc !important;
         z-index: 85 !important;
         border-left: 2px solid #cbd5e1 !important;
@@ -244,7 +244,7 @@
 
     .sticky-status-td {
         position: sticky;
-        right: 210px;
+        right: 235px;
         background: #ffffff !important;
         z-index: 80 !important;
         border-left: 2px solid #cbd5e1 !important;
@@ -264,9 +264,9 @@
         background: #f8fafc !important;
         z-index: 95 !important;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.04);
-        min-width: 210px;
-        width: 210px;
-        max-width: 210px;
+        min-width: 235px;
+        width: 235px;
+        max-width: 235px;
         text-align: center;
     }
 
@@ -276,14 +276,115 @@
         background: #ffffff !important;
         z-index: 90 !important;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.04);
-        min-width: 210px;
-        width: 210px;
-        max-width: 210px;
+        min-width: 235px;
+        width: 235px;
+        max-width: 235px;
         text-align: center;
     }
 
     .sheet-table tbody tr:hover .sticky-action-td {
         background-color: #f8fafc !important;
+    }
+
+    /* Delete Action Button */
+    .btn-row-action.btn-row-delete {
+        background: #fee2e2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #fca5a5 !important;
+    }
+    .btn-row-action.btn-row-delete:hover {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(220, 38, 38, 0.35);
+    }
+
+    /* Horizontal Scrollbars - High Visibility & Modern Styling */
+    .sheet-table-wrap,
+    #followupTopScrollbar,
+    #followupFloatingScrollbar {
+        scrollbar-width: auto;
+        scrollbar-color: #0284c7 #e2e8f0;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar,
+    #followupTopScrollbar::-webkit-scrollbar,
+    #followupFloatingScrollbar::-webkit-scrollbar {
+        height: 12px !important;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-track,
+    #followupTopScrollbar::-webkit-scrollbar-track,
+    #followupFloatingScrollbar::-webkit-scrollbar-track {
+        background: #e2e8f0 !important;
+        border-radius: 6px;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-thumb,
+    #followupTopScrollbar::-webkit-scrollbar-thumb,
+    #followupFloatingScrollbar::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 6px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-thumb:hover,
+    #followupTopScrollbar::-webkit-scrollbar-thumb:hover,
+    #followupFloatingScrollbar::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+
+    /* Compressed Table Cells & Instant Hover Preview */
+    .cell-hover-preview {
+        cursor: pointer;
+        position: relative;
+        transition: background-color 0.15s ease;
+    }
+    .cell-hover-preview:hover {
+        background-color: #e0f2fe !important;
+        border-radius: 4px;
+    }
+
+    #erpGlobalHoverTooltip {
+        position: fixed;
+        z-index: 9999999;
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 8px;
+        padding: 9px 13px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        max-width: 400px;
+        min-width: 180px;
+        word-break: break-word;
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+        border: 1px solid #334155;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.12s ease, transform 0.12s ease;
+        transform: translateY(4px);
+    }
+    #erpGlobalHoverTooltip.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    #erpGlobalHoverTooltip .tooltip-title {
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #38bdf8;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    #erpGlobalHoverTooltip .tooltip-body {
+        color: #f8fafc;
+        font-weight: 500;
     }
 
     /* Locked vs Unlocked Rows for Follow-up Services */
@@ -783,9 +884,26 @@
                 </div>
             </div>
 
-            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
-                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <!-- Quick Horizontal Scroll Controls -->
+                <div style="display: inline-flex; align-items: center; gap: 4px; background: #e0f2fe; padding: 2px 5px; border-radius: 6px; border: 1px solid #bae6fd;">
+                    <span style="font-size: 11px; font-weight: 700; color: #0369a1; margin-right: 2px;"><i class="fa-solid fa-arrows-left-right"></i> Scroll:</span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="scrollSheetHorizontally(-350)" title="Scroll Left (डावीकडे सरकवा)" style="padding: 2px 8px; font-size: 11px; font-weight: 700; height: 26px; display: inline-flex; align-items: center; gap: 4px; background: #ffffff; color: #0369a1; border-color: #bae6fd; cursor: pointer;">
+                        <i class="fa-solid fa-chevron-left"></i> Left
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="scrollSheetHorizontally(350)" title="Scroll Right (उजवीकडे सरकवा)" style="padding: 2px 8px; font-size: 11px; font-weight: 700; height: 26px; display: inline-flex; align-items: center; gap: 4px; background: #ffffff; color: #0369a1; border-color: #bae6fd; cursor: pointer;">
+                        Right <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
+                    <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
+                </div>
             </div>
+        </div>
+
+        <!-- Top Synced Horizontal Scrollbar -->
+        <div id="followupTopScrollbar" style="overflow-x: auto; overflow-y: hidden; height: 13px; background: #e2e8f0; border-bottom: 1.5px solid #cbd5e1; display: none;">
+            <div id="followupTopScrollbarInner" style="height: 1px;"></div>
         </div>
 
         <div class="sheet-table-wrap">
@@ -837,7 +955,7 @@
                                 </button>
                             </div>
                         </th>
-                        <th class="sticky-action-th" style="text-align: center; min-width: 210px; width: 210px; max-width: 210px;">Actions & Quick Links</th>
+                        <th class="sticky-action-th" style="text-align: center; min-width: 235px; width: 235px; max-width: 235px;">Actions & Quick Links</th>
                     </tr>
                 </thead>
                 <tbody id="followup-sheet-tbody">
@@ -869,6 +987,9 @@
                                 @if($cust)
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                         <a href="{{ route('customers.show', $cust->id) }}"
+                                           class="cell-hover-preview"
+                                           data-hover-title="Customer (ग्राहक माहिती)"
+                                           data-hover-text="{{ $cust->name }} (Code: {{ $cust->customer_code }} • Mobile: {{ $cust->mobile }})"
                                            style="font-weight: 800; color: #0f172a; text-decoration: none; font-size: 13.5px; line-height: 1.25;"
                                            title="Open customer profile">
                                             {{ $cust->name }}
@@ -895,10 +1016,16 @@
                             <td style="padding: 4px 6px; min-width: 185px;">
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px;">
                                     <div style="flex: 1; min-width: 0;">
-                                        <div style="font-weight: 700; color: #0f172a; font-size: 13.5px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
+                                        <div class="cell-hover-preview"
+                                             data-hover-title="Main Service (मुख्य सेवा)"
+                                             data-hover-text="{{ $serv?->main_service_name ?? 'Service' }}"
+                                             style="font-weight: 700; color: #0f172a; font-size: 13.5px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
                                             {{ $serv?->main_service_name ?? 'Service' }}
                                         </div>
-                                        <div class="row-sub-view" id="sub_view_{{ $app->id }}" style="font-size: 12.5px; font-weight: 600; color: #0284c7; margin-top: 2px;">
+                                        <div class="row-sub-view cell-hover-preview" id="sub_view_{{ $app->id }}"
+                                             data-hover-title="Sub-Service (पोट-सेवा)"
+                                             data-hover-text="{{ $app->sub_service ?: ($serv?->sub_service_name ?? '-') }}"
+                                             style="font-size: 12.5px; font-weight: 600; color: #0284c7; margin-top: 2px;">
                                             {{ $app->sub_service ?: '-' }}
                                         </div>
                                         <div class="row-sub-edit" id="sub_edit_{{ $app->id }}" style="display: none; margin-top: 3px;">
@@ -1007,7 +1134,10 @@
 
                             <!-- 7. Work Details (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
+                                <div class="row-notes-view cell-hover-preview" id="view_wd_{{ $app->id }}"
+                                     data-hover-title="Work Details (कामाचा तपशील)"
+                                     data-hover-text="{{ $app->work_details }}"
+                                     title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
                                               placeholder="Notes / instructions..."
@@ -1022,7 +1152,10 @@
 
                             <!-- Pending Remark (Minimized Normal by default) -->
                             <td style="padding: 4px 6px;">
-                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
+                                <div class="row-notes-view cell-hover-preview" id="view_pr_{{ $app->id }}"
+                                     data-hover-title="Pending Remark (पेंडिंग रिमार्क)"
+                                     data-hover-text="{{ $app->payment_remarks }}"
+                                     title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
                                               placeholder="Pending remark / notes..."
@@ -1183,6 +1316,19 @@
                                         <i class="fa-solid fa-receipt"></i>
                                     </button>
 
+                                    <!-- Delete Button (Admin Only) -->
+                                    @if(auth()->user()?->canDeleteServices())
+                                        <form action="{{ route('applications.destroy', $app->id) }}" method="POST" style="display: inline-flex; margin: 0; padding: 0;"
+                                              onsubmit="return confirm('Are you sure you want to delete application {{ $app->application_number }}? This action cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-row-action btn-row-delete"
+                                                    title="Delete Application (हटवा)">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <span id="saved-indicator-{{ $app->id }}" class="saved-pulse-badge" style="display: none;">
                                         <i class="fa-solid fa-check"></i>
                                     </span>
@@ -1220,6 +1366,11 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Sticky Floating Bottom Horizontal Scrollbar -->
+        <div id="followupFloatingScrollbar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #0284c7; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); z-index: 998; overflow-x: auto; overflow-y: hidden; height: 15px; display: none;">
+            <div id="followupFloatingScrollbarInner" style="height: 1px;"></div>
         </div>
     </div>
 </div>
@@ -1948,6 +2099,138 @@
             }
         }, 120);
     }
+
+    // =========================================================================
+    // HORIZONTAL SCROLL MANAGEMENT (Top bar, Floating bar, Quick Scroll buttons)
+    // =========================================================================
+    function scrollSheetHorizontally(amount) {
+        const wrap = document.querySelector('.sheet-table-wrap');
+        if (wrap) {
+            wrap.scrollBy({ left: amount, behavior: 'smooth' });
+        }
+    }
+
+    (function initFollowupHorizontalScrollbars() {
+        const tableWrap = document.querySelector('.sheet-table-wrap');
+        const table = document.getElementById('followup-sheet-table');
+        const topScroll = document.getElementById('followupTopScrollbar');
+        const topInner = document.getElementById('followupTopScrollbarInner');
+        const floatScroll = document.getElementById('followupFloatingScrollbar');
+        const floatInner = document.getElementById('followupFloatingScrollbarInner');
+
+        if (!tableWrap || !table) return;
+
+        function syncScrollWidths() {
+            const scrollW = table.scrollWidth;
+            const clientW = tableWrap.clientWidth;
+            const needsScroll = scrollW > clientW + 5;
+
+            if (topScroll && topInner) {
+                topInner.style.width = scrollW + 'px';
+                topScroll.style.display = needsScroll ? 'block' : 'none';
+            }
+
+            if (floatScroll && floatInner) {
+                floatInner.style.width = scrollW + 'px';
+                const rect = tableWrap.getBoundingClientRect();
+                floatScroll.style.left = rect.left + 'px';
+                floatScroll.style.width = rect.width + 'px';
+
+                const tableBottom = rect.bottom;
+                const tableTop = rect.top;
+                const windowH = window.innerHeight;
+                if (needsScroll && tableBottom > windowH && tableTop < windowH - 50) {
+                    floatScroll.style.display = 'block';
+                } else {
+                    floatScroll.style.display = 'none';
+                }
+            }
+        }
+
+        let isSyncing = false;
+        function syncScroll(source, targets) {
+            if (isSyncing) return;
+            isSyncing = true;
+            targets.forEach(t => {
+                if (t && t !== source) t.scrollLeft = source.scrollLeft;
+            });
+            isSyncing = false;
+        }
+
+        if (topScroll) {
+            topScroll.addEventListener('scroll', () => syncScroll(topScroll, [tableWrap, floatScroll]));
+        }
+        if (tableWrap) {
+            tableWrap.addEventListener('scroll', () => syncScroll(tableWrap, [topScroll, floatScroll]));
+            tableWrap.addEventListener('wheel', (e) => {
+                if (e.shiftKey) {
+                    tableWrap.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+        if (floatScroll) {
+            floatScroll.addEventListener('scroll', () => syncScroll(floatScroll, [tableWrap, topScroll]));
+        }
+
+        window.addEventListener('scroll', syncScrollWidths, { passive: true });
+        window.addEventListener('resize', syncScrollWidths, { passive: true });
+        setTimeout(syncScrollWidths, 300);
+    })();
+
+    // =========================================================================
+    // INSTANT HOVER PREVIEW TOOLTIP FOR COMPRESSED TABLE COLUMNS
+    // =========================================================================
+    (function initCompressedCellHoverTooltip() {
+        let tooltip = document.getElementById('erpGlobalHoverTooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'erpGlobalHoverTooltip';
+            tooltip.innerHTML = '<div class="tooltip-title"></div><div class="tooltip-body"></div>';
+            document.body.appendChild(tooltip);
+        }
+
+        const titleEl = tooltip.querySelector('.tooltip-title');
+        const bodyEl = tooltip.querySelector('.tooltip-body');
+
+        document.addEventListener('mouseover', function(e) {
+            const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+            if (!target) return;
+
+            const text = (target.getAttribute('data-hover-text') || target.innerText || '').trim();
+            if (!text || text === '-' || text === 'None' || text === 'No Customer') return;
+
+            const title = target.getAttribute('data-hover-title') || 'Information';
+            titleEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
+            bodyEl.textContent = text;
+
+            tooltip.classList.add('visible');
+
+            const rect = target.getBoundingClientRect();
+            let top = rect.bottom + 8;
+            let left = rect.left;
+
+            const tipRect = tooltip.getBoundingClientRect();
+            if (left + tipRect.width > window.innerWidth - 16) {
+                left = window.innerWidth - tipRect.width - 16;
+            }
+            if (left < 16) left = 16;
+
+            if (top + tipRect.height > window.innerHeight - 16) {
+                top = Math.max(16, rect.top - tipRect.height - 8);
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+            if (target) {
+                tooltip.classList.remove('visible');
+            }
+        });
+    })();
 </script>
 @endpush
 @endsection
