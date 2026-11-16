@@ -29,6 +29,18 @@ class BillingController extends Controller
         $user = Auth::user();
         $query = Payment::with(['customer', 'application.service', 'receiver', 'branch']);
 
+        // Tenant scope
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+
+        // Strict branch isolation for sub-branch admin / employee
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         if ($request->filled('payment_mode')) {
             $query->where('payment_mode', $request->payment_mode);
         }
@@ -58,10 +70,30 @@ class BillingController extends Controller
         }
 
         $payments = $query->latest('payment_date')->latest('id')->paginate(15)->withQueryString();
-        $totalCollected = (float) Payment::where('payment_status', 'SUCCESS')->sum('amount');
-        $todayCollected = (float) Payment::where('payment_status', 'SUCCESS')->whereDate('payment_date', now()->toDateString())->sum('amount');
 
-        return view('billing.payments', compact('payments', 'totalCollected', 'todayCollected'));
+        // Financial KPIs strictly scoped to user's branch
+        $paymentsBase = Payment::where('payment_status', 'SUCCESS');
+        $appsBase = Application::query();
+
+        if ($user->tenant_id) {
+            $paymentsBase->where('tenant_id', $user->tenant_id);
+            $appsBase->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $paymentsBase->where('branch_id', $user->branch_id);
+            $appsBase->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $paymentsBase->where('branch_id', $request->branch_id);
+            $appsBase->where('branch_id', $request->branch_id);
+        }
+
+        $totalCollected = (float) (clone $paymentsBase)->sum('amount');
+        $todayCollected = (float) (clone $paymentsBase)->whereDate('payment_date', now()->toDateString())->sum('amount');
+        $totalBilled = (float) (clone $appsBase)->sum('total_amount');
+        $totalReceivablePending = (float) (clone $appsBase)->sum('remaining_amount');
+
+        return view('billing.payments', compact('payments', 'totalCollected', 'todayCollected', 'totalBilled', 'totalReceivablePending'));
     }
 
     /**
@@ -94,7 +126,18 @@ class BillingController extends Controller
      */
     public function invoices(Request $request): View
     {
+        $user = Auth::user();
         $query = Invoice::with(['customer', 'application', 'branch', 'items']);
+
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);

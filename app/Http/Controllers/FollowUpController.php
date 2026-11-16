@@ -36,6 +36,16 @@ class FollowUpController extends Controller
         $query = Application::with(['customer', 'service.category', 'assignedEmployee.user', 'payments'])
             ->whereNotNull('follow_up_date');
 
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         if ($user->isEmployee()) {
             if ($user->hasServiceRestrictions()) {
                 $query->whereIn('service_id', $user->getAllowedServiceIds());
@@ -71,6 +81,25 @@ class FollowUpController extends Controller
             ->whereDate('follow_up_date', '<', $today)
             ->whereNotIn('work_status', ['COMPLETED', 'DELIVERED', 'READY']);
         $allCountQuery = Application::whereNotNull('follow_up_date');
+
+        if ($user->tenant_id) {
+            $todayCountQuery->where('tenant_id', $user->tenant_id);
+            $tomorrowCountQuery->where('tenant_id', $user->tenant_id);
+            $overdueCountQuery->where('tenant_id', $user->tenant_id);
+            $allCountQuery->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $todayCountQuery->where('branch_id', $user->branch_id);
+            $tomorrowCountQuery->where('branch_id', $user->branch_id);
+            $overdueCountQuery->where('branch_id', $user->branch_id);
+            $allCountQuery->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $todayCountQuery->where('branch_id', $request->branch_id);
+            $tomorrowCountQuery->where('branch_id', $request->branch_id);
+            $overdueCountQuery->where('branch_id', $request->branch_id);
+            $allCountQuery->where('branch_id', $request->branch_id);
+        }
 
         if ($user->isEmployee()) {
             if ($user->hasServiceRestrictions()) {

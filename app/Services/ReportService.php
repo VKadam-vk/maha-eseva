@@ -88,6 +88,9 @@ class ReportService
         $todayCustomers = Customer::where('tenant_id', $tenantId)->where('branch_id', $branchId)->whereDate('created_at', $today)->count();
         $todayApplications = Application::where('tenant_id', $tenantId)->where('branch_id', $branchId)->whereDate('created_at', $today)->count();
         $todayCollection = (float) Payment::where('tenant_id', $tenantId)->where('branch_id', $branchId)->where('payment_status', 'SUCCESS')->whereDate('payment_date', $today)->sum('amount');
+        $totalCollection = (float) Payment::where('tenant_id', $tenantId)->where('branch_id', $branchId)->where('payment_status', 'SUCCESS')->sum('amount');
+        $totalBilled = (float) Application::where('tenant_id', $tenantId)->where('branch_id', $branchId)->sum('total_amount');
+        $pendingAmount = (float) Application::where('tenant_id', $tenantId)->where('branch_id', $branchId)->sum('remaining_amount');
         $totalCustomers = Customer::where('tenant_id', $tenantId)->where('branch_id', $branchId)->count();
         $totalApplications = Application::where('tenant_id', $tenantId)->where('branch_id', $branchId)->count();
 
@@ -112,7 +115,8 @@ class ReportService
             ->get();
 
         return compact(
-            'todayCustomers', 'todayApplications', 'todayCollection',
+            'todayCustomers', 'todayApplications', 'todayCollection', 'totalCollection',
+            'totalBilled', 'pendingAmount',
             'totalCustomers', 'totalApplications', 'pendingWork',
             'completedWork', 'dueFollowUps', 'recentApplications'
         );

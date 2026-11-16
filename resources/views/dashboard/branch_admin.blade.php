@@ -22,16 +22,16 @@
             <div class="metric-value">₹{{ number_format($todayCollection, 2) }}</div>
             <div class="metric-subtext"><span>Cash & UPI receipts today</span></div>
         </div>
-        <div class="metric-icon-box saffron"><i class="fa-solid fa-indian-rupee-sign fa-lg"></i></div>
+        <div class="metric-icon-box saffron"><i class="fa-solid fa-calendar-day fa-lg"></i></div>
     </div>
 
-    <div class="metric-card indigo">
+    <div class="metric-card amber" style="border-left: 4px solid #f59e0b;">
         <div>
-            <div class="metric-label">Today's Applications</div>
-            <div class="metric-value">{{ $todayApplications }}</div>
-            <div class="metric-subtext"><span>Registered at counter</span></div>
+            <div class="metric-label" style="color: #92400e; font-weight: 700;">Receivable / Pending Bal</div>
+            <div class="metric-value" style="color: #b45309;">₹{{ number_format($pendingAmount, 2) }}</div>
+            <div class="metric-subtext"><span>Uncollected balance from applications</span></div>
         </div>
-        <div class="metric-icon-box indigo"><i class="fa-solid fa-file-signature fa-lg"></i></div>
+        <div class="metric-icon-box amber" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-hand-holding-dollar fa-lg"></i></div>
     </div>
 
     <div class="metric-card amber">
@@ -50,6 +50,21 @@
             <div class="metric-subtext"><span>Delivered / Ready for pickup</span></div>
         </div>
         <div class="metric-icon-box emerald"><i class="fa-solid fa-circle-check fa-lg"></i></div>
+    </div>
+</div>
+
+<div style="background: #ffffff; border: 1px solid var(--surface-border); border-radius: 10px; padding: 12px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 13.5px;">
+        <div><span style="color: var(--text-muted); font-weight: 500;">All-Time Branch Collections:</span> <strong style="color: #166534; font-weight: 700;">₹{{ number_format($totalCollection, 2) }}</strong></div>
+        <div style="color: #cbd5e1;">|</div>
+        <div><span style="color: var(--text-muted); font-weight: 500;">Total Work Billed:</span> <strong style="color: #4338ca; font-weight: 700;">₹{{ number_format($totalBilled, 2) }}</strong></div>
+        <div style="color: #cbd5e1;">|</div>
+        <div><span style="color: var(--text-muted); font-weight: 500;">Today's Counter Entries:</span> <strong style="color: #0f172a; font-weight: 700;">{{ $todayApplications }} Applications</strong></div>
+    </div>
+    <div>
+        <a href="{{ route('payments.index') }}" class="btn btn-secondary btn-sm" style="font-size: 12px;">
+            <i class="fa-solid fa-receipt"></i> Collections Ledger
+        </a>
     </div>
 </div>
 

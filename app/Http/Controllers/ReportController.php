@@ -43,6 +43,16 @@ class ReportController extends Controller
         $query = Customer::with(['branch', 'category'])
             ->withCount(['applications', 'payments']);
 
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         if ($request->filled('from_date')) {
             $query->whereDate('created_at', '>=', $request->from_date);
         }
@@ -57,10 +67,6 @@ class ReportController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
-        }
-
         if ($request->filled('search')) {
             $term = trim($request->search);
             $query->where(function ($q) use ($term) {
@@ -72,7 +78,17 @@ class ReportController extends Controller
         }
 
         $customers = $query->latest()->paginate(20)->withQueryString();
-        $totalCustomers = Customer::count();
+        
+        $countQuery = Customer::query();
+        if ($user->tenant_id) {
+            $countQuery->where('tenant_id', $user->tenant_id);
+        }
+        if ($user->branch_id) {
+            $countQuery->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $countQuery->where('branch_id', $request->branch_id);
+        }
+        $totalCustomers = $countQuery->count();
 
         return view('reports.customers', compact('customers', 'totalCustomers'));
     }
@@ -89,6 +105,16 @@ class ReportController extends Controller
         }
 
         $query = Application::with(['customer', 'service', 'assignedEmployee.user', 'branch']);
+
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($request->filled('status')) {
             $query->where('work_status', $request->status);
@@ -113,11 +139,21 @@ class ReportController extends Controller
         $applications = $query->latest('application_date')->paginate(20)->withQueryString();
         $services = Service::where('is_active', true)->get();
 
+        $summaryBase = Application::query();
+        if ($user->tenant_id) {
+            $summaryBase->where('tenant_id', $user->tenant_id);
+        }
+        if ($user->branch_id) {
+            $summaryBase->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $summaryBase->where('branch_id', $request->branch_id);
+        }
+
         $summary = [
-            'total' => Application::count(),
-            'total_amount' => (float) Application::sum('total_amount'),
-            'total_received' => (float) Application::sum('received_amount'),
-            'total_remaining' => (float) Application::sum('remaining_amount'),
+            'total' => (clone $summaryBase)->count(),
+            'total_amount' => (float) (clone $summaryBase)->sum('total_amount'),
+            'total_received' => (float) (clone $summaryBase)->sum('received_amount'),
+            'total_remaining' => (float) (clone $summaryBase)->sum('remaining_amount'),
         ];
 
         return view('reports.applications', compact('applications', 'services', 'summary'));
@@ -128,31 +164,58 @@ class ReportController extends Controller
      */
     public function collections(Request $request): View
     {
+        $user = Auth::user();
         $query = Payment::with(['customer', 'application.service', 'receiver', 'branch'])
             ->where('payment_status', 'SUCCESS');
 
+        $breakdownQuery = Payment::where('payment_status', 'SUCCESS');
+        $appsBase = Application::query();
+
+        if ($user->tenant_id) {
+            $query->where('tenant_id', $user->tenant_id);
+            $breakdownQuery->where('tenant_id', $user->tenant_id);
+            $appsBase->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+            $breakdownQuery->where('branch_id', $user->branch_id);
+            $appsBase->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $query->where('branch_id', $request->branch_id);
+            $breakdownQuery->where('branch_id', $request->branch_id);
+            $appsBase->where('branch_id', $request->branch_id);
+        }
+
         if ($request->filled('payment_mode')) {
             $query->where('payment_mode', $request->payment_mode);
+            $breakdownQuery->where('payment_mode', $request->payment_mode);
         }
 
         if ($request->filled('from_date')) {
             $query->whereDate('payment_date', '>=', $request->from_date);
+            $breakdownQuery->whereDate('payment_date', '>=', $request->from_date);
+            $appsBase->whereDate('application_date', '>=', $request->from_date);
         }
 
         if ($request->filled('to_date')) {
             $query->whereDate('payment_date', '<=', $request->to_date);
+            $breakdownQuery->whereDate('payment_date', '<=', $request->to_date);
+            $appsBase->whereDate('application_date', '<=', $request->to_date);
         }
 
         $payments = $query->latest('payment_date')->paginate(20)->withQueryString();
 
-        $modeBreakdown = Payment::where('payment_status', 'SUCCESS')
+        $modeBreakdown = (clone $breakdownQuery)
             ->select('payment_mode', DB::raw('sum(amount) as total'), DB::raw('count(*) as count'))
             ->groupBy('payment_mode')
             ->get();
 
-        $totalRevenue = (float) Payment::where('payment_status', 'SUCCESS')->sum('amount');
+        $totalRevenue = (float) (clone $breakdownQuery)->sum('amount');
+        $totalBilled = (float) (clone $appsBase)->sum('total_amount');
+        $totalPendingReceivable = (float) (clone $appsBase)->sum('remaining_amount');
 
-        return view('reports.collections', compact('payments', 'modeBreakdown', 'totalRevenue'));
+        return view('reports.collections', compact('payments', 'modeBreakdown', 'totalRevenue', 'totalBilled', 'totalPendingReceivable'));
     }
 
     /**
@@ -160,7 +223,20 @@ class ReportController extends Controller
      */
     public function employees(Request $request): View
     {
-        $employees = Employee::with(['user', 'branch'])
+        $user = Auth::user();
+        $employeesQuery = Employee::with(['user', 'branch']);
+
+        if ($user->tenant_id) {
+            $employeesQuery->where('tenant_id', $user->tenant_id);
+        }
+
+        if ($user->branch_id) {
+            $employeesQuery->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $employeesQuery->where('branch_id', $request->branch_id);
+        }
+
+        $employees = $employeesQuery
             ->withCount([
                 'applications',
                 'applications as completed_count' => function ($q) {
