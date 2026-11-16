@@ -756,7 +756,6 @@ class DatabaseSeeder extends Seeder
             $srv = Service::firstOrCreate(
                 ['service_code' => $spec['code'], 'tenant_id' => $tenant->id],
                 [
-                    'uuid' => (string) Str::uuid(),
                     'category_id' => $generalCat->id,
                     'main_service_name' => $spec['name'],
                     'sub_service_name' => $spec['sub'],
@@ -776,8 +775,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $defaultCat = CustomerCategory::firstOrCreate(
-            ['slug' => 'regular-citizen', 'tenant_id' => $tenant->id],
-            ['name' => 'Regular Citizen']
+            ['name' => 'Regular Citizen', 'tenant_id' => $tenant->id],
+            ['code' => 'REG', 'discount_percentage' => 0.00]
         );
 
         // 4. Primary 16 Follow-up Customers from screenshot
@@ -1141,7 +1140,9 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $custSeq = count($primaryCustomers) + 1;
+        $custSeq = 100;
+        $appSeq = 100;
+        $recSeq = 100;
         $statuses = [
             'READY', 'DELIVERED', 'READY', 'DELIVERED', // completed (~58)
             'IN_PROGRESS', 'IN_PROCESS', 'SUBMITTED', 'NEW', 'DOCUMENT_PENDING', // pending (~84)

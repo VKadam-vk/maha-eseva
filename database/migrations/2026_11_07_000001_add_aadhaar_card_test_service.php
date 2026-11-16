@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!\App\Models\Tenant::where('id', 1)->exists()) {
+            // Tenant not created yet, safe to skip (will be seeded in DatabaseSeeder)
+            return;
+        }
+
         $category = ServiceCategory::first();
         $categoryId = $category?->id;
 
