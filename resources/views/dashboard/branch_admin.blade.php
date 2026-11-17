@@ -72,9 +72,9 @@
     <div class="erp-card" style="border-left: 4px solid #f59e0b;">
         <div class="erp-card-header" style="background-color: #fffbeb;">
             <h3 class="erp-card-title" style="color: #92400e;">
-                <i class="fa-solid fa-bell"></i> Pending Follow-ups Due Today ({{ $dueFollowUps->count() }})
+                <i class="fa-solid fa-bell"></i> Pending Reminders Due Today ({{ $dueFollowUps->count() }})
             </h3>
-            <a href="{{ route('followups.index') }}" class="btn btn-secondary btn-sm">All Follow-ups</a>
+            <a href="{{ route('followups.index') }}" class="btn btn-secondary btn-sm">All Reminders</a>
         </div>
         <div class="table-responsive">
             <table class="erp-table">

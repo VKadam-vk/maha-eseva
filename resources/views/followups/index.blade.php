@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Follow-up Services Desk')
+@section('title', 'Reminders Desk')
 
 @section('content')
 <style>
@@ -736,25 +736,25 @@
     <div class="followup-nav-bar">
         <div class="followup-title-block">
             <h1>
-                <i class="fa-solid fa-calendar-check" style="color: #0284c7;"></i>
-                Follow-up Services Desk
+                <i class="fa-solid fa-bell" style="color: #0284c7;"></i>
+                Reminders Desk
             </h1>
             <p>
                 @if($mode === 'overdue')
                     <span style="color: #dc2626; font-weight: 700;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Overdue Follow-ups (Pending from past dates)
+                        <i class="fa-solid fa-triangle-exclamation"></i> Overdue Reminders (Pending from past dates)
                     </span>
                 @elseif($mode === 'all')
                     <span style="color: #0284c7; font-weight: 700;">
-                        <i class="fa-solid fa-list-check"></i> All Scheduled Follow-ups
+                        <i class="fa-solid fa-list-check"></i> All Scheduled Reminders
                     </span>
                 @elseif($selectedDate === $today)
                     <span style="color: #16a34a; font-weight: 700;">
-                        <i class="fa-solid fa-circle-check"></i> Today's Follow-up Services ({{ \Carbon\Carbon::parse($today)->format('d M Y') }})
+                        <i class="fa-solid fa-circle-check"></i> Today's Reminders ({{ \Carbon\Carbon::parse($today)->format('d M Y') }})
                     </span>
                 @elseif($selectedDate === $tomorrow)
                     <span style="color: #0284c7; font-weight: 700;">
-                        <i class="fa-regular fa-clock"></i> Tomorrow's Follow-up Services ({{ \Carbon\Carbon::parse($tomorrow)->format('d M Y') }})
+                        <i class="fa-regular fa-clock"></i> Tomorrow's Reminders ({{ \Carbon\Carbon::parse($tomorrow)->format('d M Y') }})
                     </span>
                 @else
                     <span style="color: #475569; font-weight: 700;">
@@ -770,7 +770,7 @@
                 <!-- Today Pill -->
                 <a href="{{ route('followups.index', ['date' => $today]) }}"
                    class="date-pill-btn {{ (!$mode && $selectedDate === $today) ? 'active' : '' }}"
-                   title="Today's Follow-ups">
+                   title="Today's Reminders">
                     <i class="fa-solid fa-bolt"></i> Today
                     <span class="date-pill-badge">{{ $todayCount }}</span>
                 </a>
@@ -778,7 +778,7 @@
                 <!-- Tomorrow Pill -->
                 <a href="{{ route('followups.index', ['date' => $tomorrow]) }}"
                    class="date-pill-btn {{ (!$mode && $selectedDate === $tomorrow) ? 'active' : '' }}"
-                   title="Tomorrow's Follow-ups">
+                   title="Tomorrow's Reminders">
                     <i class="fa-regular fa-calendar-plus"></i> Tomorrow
                     <span class="date-pill-badge">{{ $tomorrowCount }}</span>
                 </a>
@@ -786,7 +786,7 @@
                 <!-- Overdue Pill -->
                 <a href="{{ route('followups.index', ['mode' => 'overdue']) }}"
                    class="date-pill-btn {{ $mode === 'overdue' ? 'active' : '' }}"
-                   title="Overdue (Pending from past dates)">
+                   title="Overdue Reminders (Pending from past dates)">
                     <i class="fa-solid fa-triangle-exclamation" style="color: {{ $mode === 'overdue' ? '#fff' : '#e11d48' }};"></i> Overdue
                     <span class="date-pill-badge" style="background: {{ $mode === 'overdue' ? 'rgba(255,255,255,0.3)' : '#fee2e2' }}; color: {{ $mode === 'overdue' ? '#fff' : '#b91c1c' }};">{{ $overdueCount }}</span>
                 </a>
@@ -794,14 +794,14 @@
                 <!-- All Pill -->
                 <a href="{{ route('followups.index', ['mode' => 'all']) }}"
                    class="date-pill-btn {{ $mode === 'all' ? 'active' : '' }}"
-                   title="All Scheduled Follow-ups">
+                   title="All Scheduled Reminders">
                     <i class="fa-solid fa-list-ul"></i> All
                     <span class="date-pill-badge">{{ $allCount }}</span>
                 </a>
             </div>
 
             <!-- Custom Date Picker -->
-            <div class="date-picker-wrapper" title="Pick a specific date to view follow-ups">
+            <div class="date-picker-wrapper" title="Pick a specific date to view reminders">
                 <i class="fa-regular fa-calendar" style="color: #64748b; font-size: 13px;"></i>
                 <input type="date" value="{{ $selectedDate ?? $today }}"
                        onchange="window.location.href = '{{ route('followups.index') }}?date=' + this.value;">
@@ -861,15 +861,15 @@
                 <i class="fa-solid fa-table-list" style="color: #0284c7; font-size: 15px;"></i>
                 <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
                     @if($selectedDate === $today && !$mode)
-                        Today's Follow-up Services
+                        Today's Reminders
                     @elseif($selectedDate === $tomorrow && !$mode)
-                        Tomorrow's Follow-up Services
+                        Tomorrow's Reminders
                     @elseif($mode === 'overdue')
-                        Overdue Follow-up Services
+                        Overdue Reminders
                     @elseif($mode === 'all')
-                        All Scheduled Services
+                        All Scheduled Reminders
                     @else
-                        Scheduled Services for {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
+                        Scheduled Reminders for {{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}
                     @endif
                 </span>
                 <span id="followup-count-badge" class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
@@ -1343,21 +1343,21 @@
                                         <i class="fa-regular fa-calendar-xmark"></i>
                                     </div>
                                     <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">
-                                        No Follow-up Scheduled For This Date
+                                        No Reminders Scheduled For This Date
                                     </h4>
                                     <p style="margin: 6px 0 16px 0; font-size: 12.5px; color: #64748b;">
                                         @if($selectedDate === $today && !$mode)
-                                            No pending follow-ups found for today ({{ \Carbon\Carbon::parse($today)->format('d M Y') }}).
+                                            No pending reminders found for today ({{ \Carbon\Carbon::parse($today)->format('d M Y') }}).
                                         @else
-                                            No follow-up services scheduled for the selected date ({{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}).
+                                            No reminders scheduled for the selected date ({{ \Carbon\Carbon::parse($selectedDate)->format('d M Y') }}).
                                         @endif
                                     </p>
                                     <div style="display: flex; justify-content: center; gap: 8px;">
                                         <a href="{{ route('followups.index', ['date' => $today]) }}" class="btn btn-sm btn-primary">
-                                            <i class="fa-solid fa-bolt"></i> View Today's Follow-ups
+                                            <i class="fa-solid fa-bolt"></i> View Today's Reminders
                                         </a>
                                         <a href="{{ route('followups.index', ['date' => $tomorrow]) }}" class="btn btn-sm btn-secondary">
-                                            <i class="fa-regular fa-calendar-plus"></i> View Tomorrow's Follow-ups
+                                            <i class="fa-regular fa-calendar-plus"></i> View Tomorrow's Reminders
                                         </a>
                                     </div>
                                 </div>

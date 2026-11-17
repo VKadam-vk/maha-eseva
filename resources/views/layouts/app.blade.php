@@ -55,8 +55,8 @@
                 @endif
 
                 <a href="{{ route('followups.index') }}" class="erp-nav-link {{ request()->routeIs('followups.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <span>Follow-ups</span>
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Reminders</span>
                 </a>
 
                 <a href="{{ route('leads.index') }}" class="erp-nav-link {{ request()->routeIs('leads.*') ? 'active' : '' }}">
