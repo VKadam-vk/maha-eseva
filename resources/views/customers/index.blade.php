@@ -3,6 +3,95 @@
 @section('title', 'Customers CRM')
 
 @section('content')
+<style>
+    /* Horizontal Scrollbars - High Visibility & Modern Styling */
+    .table-responsive,
+    #customerTopScrollbar,
+    #customerFloatingScrollbar {
+        scrollbar-width: auto;
+        scrollbar-color: #0284c7 #e2e8f0;
+    }
+
+    .table-responsive::-webkit-scrollbar,
+    #customerTopScrollbar::-webkit-scrollbar,
+    #customerFloatingScrollbar::-webkit-scrollbar {
+        height: 12px !important;
+    }
+
+    .table-responsive::-webkit-scrollbar-track,
+    #customerTopScrollbar::-webkit-scrollbar-track,
+    #customerFloatingScrollbar::-webkit-scrollbar-track {
+        background: #e2e8f0 !important;
+        border-radius: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb,
+    #customerTopScrollbar::-webkit-scrollbar-thumb,
+    #customerFloatingScrollbar::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 6px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover,
+    #customerTopScrollbar::-webkit-scrollbar-thumb:hover,
+    #customerFloatingScrollbar::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+
+    /* Compressed Table Cells & Instant Hover Preview */
+    .cell-hover-preview {
+        cursor: pointer;
+        position: relative;
+        transition: background-color 0.15s ease;
+    }
+    .cell-hover-preview:hover {
+        background-color: #e0f2fe !important;
+        border-radius: 4px;
+    }
+
+    #erpGlobalHoverTooltip {
+        position: fixed;
+        z-index: 9999999;
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 8px;
+        padding: 9px 13px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        max-width: 420px;
+        min-width: 180px;
+        word-break: break-word;
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+        border: 1px solid #334155;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.12s ease, transform 0.12s ease;
+        transform: translateY(4px);
+    }
+    #erpGlobalHoverTooltip.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    #erpGlobalHoverTooltip .tooltip-title {
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #38bdf8;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    #erpGlobalHoverTooltip .tooltip-body {
+        color: #f8fafc;
+        font-weight: 500;
+        white-space: pre-wrap;
+    }
+</style>
 <div class="page-header">
     <div>
         <h1 class="page-title">Customers CRM & Directory</h1>
@@ -70,22 +159,48 @@
 
 <!-- Customer Table -->
 <div class="erp-card">
+    <div style="padding: 12px 18px; border-bottom: 1.5px solid #cbd5e1; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #ffffff;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-users" style="color: #0284c7; font-size: 15px;"></i>
+            <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
+                Customer Directory (एकूण ग्राहक)
+            </span>
+            <span class="badge" style="background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px;">
+                {{ $customers->total() }} Customers
+            </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: #0284c7;"><i class="fa-solid fa-arrows-left-right"></i> Scroll:</span>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="scrollCustomersTable(-260)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Left">
+                <i class="fa-solid fa-chevron-left"></i> Left
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="scrollCustomersTable(260)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Right">
+                Right <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Synced Horizontal Scrollbar -->
+    <div id="customerTopScrollbar" style="overflow-x: auto; overflow-y: hidden; height: 13px; background: #e2e8f0; border-bottom: 1.5px solid #cbd5e1; display: none;">
+        <div id="customerTopScrollbarInner" style="height: 1px;"></div>
+    </div>
+
     <div class="table-responsive">
-        <table class="erp-table">
+        <table id="customer-table" class="erp-table">
             <thead>
                 <tr>
-                    <th>Customer (Name, Mobile, Code)</th>
-                    <th>Gender</th>
-                    <th>Occupation</th>
-                    <th>Applications</th>
-                    <th>Total Spent</th>
-                    <th>Action</th>
+                    <th style="min-width: 260px;">Customer (Name, Mobile, Code)</th>
+                    <th style="min-width: 90px;">Gender</th>
+                    <th style="min-width: 140px;">Occupation</th>
+                    <th style="min-width: 120px;">Applications</th>
+                    <th style="min-width: 120px;">Total Spent</th>
+                    <th style="min-width: 120px;">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($customers as $c)
                     <tr>
-                        <td style="padding: 10px 14px;">
+                        <td style="padding: 10px 14px;" class="cell-hover-preview" data-hover-title="Customer & Contact Details" data-hover-text="{{ $c->name }} | Mobile: {{ $c->mobile }}{{ $c->alternate_mobile ? ' (Alt: ' . $c->alternate_mobile . ')' : '' }} | Code: {{ $c->customer_code }}{{ $c->email ? ' | Email: ' . $c->email : '' }}{{ $c->address ? ' | Address: ' . $c->address : '' }}{{ $c->creator ? ' | Registered By: ' . $c->creator->name : '' }}">
                             <!-- 1. Customer Name + Badges -->
                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <a href="{{ route('customers.show', $c->id) }}" style="font-weight: 800; color: var(--text-main); text-transform: uppercase; text-decoration: none; font-size: 13.5px; line-height: 1.25;">
@@ -128,8 +243,8 @@
                                 @endif
                             </div>
                         </td>
-                        <td><span class="badge badge-hold" style="font-size: 10px;">{{ $c->gender }}</span></td>
-                        <td>
+                        <td class="cell-hover-preview" data-hover-title="Gender" data-hover-text="{{ $c->gender }}"><span class="badge badge-hold" style="font-size: 10px;">{{ $c->gender }}</span></td>
+                        <td class="cell-hover-preview" data-hover-title="Customer Occupation" data-hover-text="{{ $c->occupation ?: 'Not Specified' }}">
                             @if(!empty($c->occupation))
                                 <span class="badge" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; font-size: 11px;">
                                     <i class="fa-solid fa-briefcase" style="font-size: 10px; margin-right: 3px;"></i> {{ strtoupper($c->occupation) }}
@@ -138,8 +253,8 @@
                                 <span style="color: #94a3b8; font-size: 11.5px; font-style: italic;">-</span>
                             @endif
                         </td>
-                        <td><span class="badge badge-process">{{ $c->applications_count }} Apps</span></td>
-                        <td><strong>₹{{ number_format($c->total_paid, 2) }}</strong></td>
+                        <td class="cell-hover-preview" data-hover-title="Total Applications" data-hover-text="{{ $c->applications_count }} Applications Processed"><span class="badge badge-process">{{ $c->applications_count }} Apps</span></td>
+                        <td class="cell-hover-preview" data-hover-title="Total Payments" data-hover-text="Total counter receipts: ₹{{ number_format($c->total_paid, 2) }}"><strong>₹{{ number_format($c->total_paid, 2) }}</strong></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <a href="{{ route('customers.show', $c->id) }}" class="btn btn-secondary btn-sm" title="View 360 Profile">
@@ -168,6 +283,11 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+
+    <!-- Sticky Floating Bottom Horizontal Scrollbar -->
+    <div id="customerFloatingScrollbar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #0284c7; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); z-index: 998; overflow-x: auto; overflow-y: hidden; height: 15px; display: none;">
+        <div id="customerFloatingScrollbarInner" style="height: 1px;"></div>
     </div>
     @if($customers->hasPages())
         <div style="padding: 16px 20px; border-top: 1px solid var(--surface-border);">
@@ -419,5 +539,150 @@ function exportFilteredCustomers(e) {
     params.set('export', '1');
     window.location.href = "{{ route('reports.customers') }}?" + params.toString();
 }
+
+// Scroll table left / right via buttons
+function scrollCustomersTable(px) {
+    const wrap = document.querySelector('.table-responsive');
+    if (wrap) {
+        wrap.scrollBy({ left: px, behavior: 'smooth' });
+    }
+}
+
+// =========================================================================
+// SYNCHRONIZED TOP & FLOATING HORIZONTAL SCROLLBARS FOR CUSTOMERS CRM
+// =========================================================================
+(function initCustomerHorizontalScrollbars() {
+    const tableWrap = document.querySelector('.table-responsive');
+    const table = document.getElementById('customer-table');
+    const topScroll = document.getElementById('customerTopScrollbar');
+    const topInner = document.getElementById('customerTopScrollbarInner');
+    const floatScroll = document.getElementById('customerFloatingScrollbar');
+    const floatInner = document.getElementById('customerFloatingScrollbarInner');
+
+    if (!tableWrap || !table) return;
+
+    function syncScrollWidths() {
+        const scrollW = table.scrollWidth;
+        const clientW = tableWrap.clientWidth;
+        const needsScroll = scrollW > clientW + 5;
+
+        if (topScroll && topInner) {
+            topInner.style.width = scrollW + 'px';
+            topScroll.style.display = needsScroll ? 'block' : 'none';
+        }
+        if (floatScroll && floatInner) {
+            floatInner.style.width = scrollW + 'px';
+        }
+        checkFloatVisibility();
+    }
+
+    function checkFloatVisibility() {
+        if (!floatScroll || !tableWrap) return;
+        const scrollW = table.scrollWidth;
+        const clientW = tableWrap.clientWidth;
+        const needsScroll = scrollW > clientW + 5;
+
+        if (!needsScroll) {
+            floatScroll.style.display = 'none';
+            return;
+        }
+
+        const rect = tableWrap.getBoundingClientRect();
+        const isBottomVisible = (rect.bottom <= window.innerHeight);
+        const isTopAboveScreen = (rect.top < window.innerHeight);
+
+        if (isTopAboveScreen && !isBottomVisible) {
+            floatScroll.style.display = 'block';
+            const sidebar = document.querySelector('.erp-sidebar');
+            const sidebarW = sidebar ? sidebar.offsetWidth : 240;
+            floatScroll.style.left = sidebarW + 'px';
+        } else {
+            floatScroll.style.display = 'none';
+        }
+    }
+
+    let isSyncing = false;
+    function syncScroll(source, targets) {
+        if (isSyncing) return;
+        isSyncing = true;
+        targets.forEach(t => {
+            if (t && t !== source) t.scrollLeft = source.scrollLeft;
+        });
+        setTimeout(() => { isSyncing = false; }, 10);
+    }
+
+    tableWrap.addEventListener('scroll', () => {
+        syncScroll(tableWrap, [topScroll, floatScroll]);
+    });
+    if (topScroll) {
+        topScroll.addEventListener('scroll', () => {
+            syncScroll(topScroll, [tableWrap, floatScroll]);
+        });
+    }
+    if (floatScroll) {
+        floatScroll.addEventListener('scroll', () => {
+            syncScroll(floatScroll, [tableWrap, topScroll]);
+        });
+    }
+
+    window.addEventListener('scroll', checkFloatVisibility);
+    window.addEventListener('resize', syncScrollWidths);
+    setTimeout(syncScrollWidths, 200);
+    setTimeout(syncScrollWidths, 800);
+})();
+
+// =========================================================================
+// INSTANT HOVER PREVIEW TOOLTIP FOR COMPRESSED TABLE COLUMNS
+// =========================================================================
+(function initErpHoverTooltip() {
+    let tooltip = document.getElementById('erpGlobalHoverTooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'erpGlobalHoverTooltip';
+        tooltip.innerHTML = '<div class="tooltip-title"></div><div class="tooltip-body"></div>';
+        document.body.appendChild(tooltip);
+    }
+
+    const titleEl = tooltip.querySelector('.tooltip-title');
+    const bodyEl = tooltip.querySelector('.tooltip-body');
+
+    document.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+        if (!target) return;
+
+        const text = (target.getAttribute('data-hover-text') || target.innerText || '').trim();
+        if (!text || text === '-' || text === 'None' || text === 'No Customer') return;
+
+        const title = target.getAttribute('data-hover-title') || 'Information';
+        titleEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
+        bodyEl.textContent = text;
+
+        tooltip.classList.add('visible');
+
+        const rect = target.getBoundingClientRect();
+        let top = rect.bottom + 8;
+        let left = rect.left;
+
+        const tipRect = tooltip.getBoundingClientRect();
+        if (left + tipRect.width > window.innerWidth - 16) {
+            left = window.innerWidth - tipRect.width - 16;
+        }
+        if (left < 16) left = 16;
+
+        if (top + tipRect.height > window.innerHeight - 16) {
+            top = Math.max(16, rect.top - tipRect.height - 8);
+        }
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+    });
+
+    document.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+        if (target) {
+            tooltip.classList.remove('visible');
+        }
+    });
+})();
 </script>
 @endpush

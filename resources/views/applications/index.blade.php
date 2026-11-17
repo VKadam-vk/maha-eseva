@@ -348,6 +348,94 @@
     tr.recent-row-unlocked .row-notes-view { display: none !important; }
     tr.recent-row-unlocked .row-notes-edit { display: block !important; }
 
+    /* Horizontal Scrollbars - High Visibility & Modern Styling */
+    .sheet-table-wrap,
+    #applicationsTopScrollbar,
+    #applicationsFloatingScrollbar {
+        scrollbar-width: auto;
+        scrollbar-color: #0284c7 #e2e8f0;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar,
+    #applicationsTopScrollbar::-webkit-scrollbar,
+    #applicationsFloatingScrollbar::-webkit-scrollbar {
+        height: 12px !important;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-track,
+    #applicationsTopScrollbar::-webkit-scrollbar-track,
+    #applicationsFloatingScrollbar::-webkit-scrollbar-track {
+        background: #e2e8f0 !important;
+        border-radius: 6px;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-thumb,
+    #applicationsTopScrollbar::-webkit-scrollbar-thumb,
+    #applicationsFloatingScrollbar::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 6px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .sheet-table-wrap::-webkit-scrollbar-thumb:hover,
+    #applicationsTopScrollbar::-webkit-scrollbar-thumb:hover,
+    #applicationsFloatingScrollbar::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+
+    /* Compressed Table Cells & Instant Hover Preview */
+    .cell-hover-preview {
+        cursor: pointer;
+        position: relative;
+        transition: background-color 0.15s ease;
+    }
+    .cell-hover-preview:hover {
+        background-color: #e0f2fe !important;
+        border-radius: 4px;
+    }
+
+    #erpGlobalHoverTooltip {
+        position: fixed;
+        z-index: 9999999;
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 8px;
+        padding: 9px 13px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        max-width: 420px;
+        min-width: 180px;
+        word-break: break-word;
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+        border: 1px solid #334155;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.12s ease, transform 0.12s ease;
+        transform: translateY(4px);
+    }
+    #erpGlobalHoverTooltip.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    #erpGlobalHoverTooltip .tooltip-title {
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #38bdf8;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    #erpGlobalHoverTooltip .tooltip-body {
+        color: #f8fafc;
+        font-weight: 500;
+        white-space: pre-wrap;
+    }
+
     /* Fast Entry Input Styles */
     .excel-input, .excel-select {
         width: 100%;
@@ -729,7 +817,7 @@
     <!-- Fast Entry Spreadsheet Table for Recent Services -->
     <div class="sheet-card">
         <div class="sheet-card-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <i class="fa-solid fa-table-list" style="color: #0284c7; font-size: 15px;"></i>
                 <span style="font-size: 13.5px; font-weight: 800; color: #1e293b;">
                     All Entries (Newest at Top)
@@ -740,9 +828,25 @@
                 <div id="applications-filter-toolbar" style="display: inline-flex;"></div>
             </div>
 
-            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
-                <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
+                    <span style="font-size: 11px; font-weight: 700; color: #0284c7;"><i class="fa-solid fa-arrows-left-right"></i> Scroll:</span>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="scrollApplicationsTable(-260)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Left">
+                        <i class="fa-solid fa-chevron-left"></i> Left
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="scrollApplicationsTable(260)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Right">
+                        Right <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">
+                    <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Changes auto-save immediately
+                </div>
             </div>
+        </div>
+
+        <!-- Top Synced Horizontal Scrollbar -->
+        <div id="applicationsTopScrollbar" style="overflow-x: auto; overflow-y: hidden; height: 13px; background: #e2e8f0; border-bottom: 1.5px solid #cbd5e1; display: none;">
+            <div id="applicationsTopScrollbarInner" style="height: 1px;"></div>
         </div>
 
         <div class="sheet-table-wrap">
@@ -823,7 +927,7 @@
                             data-operator="{{ strtoupper(trim($opName)) }}"
                             data-followup_date="{{ $followDate }}">
                             <!-- 1. Customer Name & Contact (With Date & Time) -->
-                            <td style="padding: 6px 8px;">
+                            <td style="padding: 6px 8px;" class="cell-hover-preview" data-hover-title="Customer & Contact Details" data-hover-text="{{ $cust ? ($cust->name . ' | Mobile: ' . $cust->mobile . ($cust->alternate_mobile ? ' (Alt: ' . $cust->alternate_mobile . ')' : '') . ' | Code: ' . $cust->customer_code . ($cust->address ? ' | Address: ' . $cust->address : '')) : 'No Customer' }}">
                                 @if($cust)
                                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                                         <a href="{{ route('customers.show', $cust->id) }}"
@@ -872,7 +976,7 @@
                             </td>
 
                             <!-- 2. Service & Sub Service -->
-                            <td style="padding: 4px 6px; min-width: 185px;">
+                            <td style="padding: 4px 6px; min-width: 185px;" class="cell-hover-preview" data-hover-title="Service & Sub Service" data-hover-text="{{ ($serv?->main_service_name ?? 'Service') . ($app->sub_service ? ' ➔ ' . $app->sub_service : '') }}">
                                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px;">
                                     <div style="flex: 1; min-width: 0;">
                                         <div style="font-weight: 700; color: #0f172a; font-size: 13.5px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis;">
@@ -986,7 +1090,7 @@
                             </td>
 
                             <!-- 8. Work Details (Minimized Normal by default) -->
-                            <td style="padding: 4px 6px;">
+                            <td style="padding: 4px 6px;" class="cell-hover-preview" data-hover-title="Work Details / Notes" data-hover-text="{{ $app->work_details ?: '-' }}">
                                 <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
@@ -1001,7 +1105,7 @@
                             </td>
 
                             <!-- Pending Remark (Minimized Normal by default) -->
-                            <td style="padding: 4px 6px;">
+                            <td style="padding: 4px 6px;" class="cell-hover-preview" data-hover-title="Pending Remark / Payment Notes" data-hover-text="{{ $app->payment_remarks ?: '-' }}">
                                 <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
@@ -1016,7 +1120,7 @@
                             </td>
 
                             <!-- 9. Operator (Filtered by service permission) -->
-                            <td>
+                            <td class="cell-hover-preview" data-hover-title="Assigned Operator" data-hover-text="{{ $opName ?: 'Unassigned' }}">
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     @php
                                         $allowedEmps = $employees->filter(function($emp) use ($app) {
@@ -1050,7 +1154,7 @@
                             </td>
 
                             <!-- 10. Follow-Up Date -->
-                            <td>
+                            <td class="cell-hover-preview" data-hover-title="Follow-Up Schedule" data-hover-text="{{ $followDate ? 'Follow-up on ' . $followDate : 'No follow-up set' }}">
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <input type="date" class="excel-input" id="followup_{{ $app->id }}"
                                            value="{{ $followDate }}"
@@ -1202,6 +1306,11 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Sticky Floating Bottom Horizontal Scrollbar -->
+        <div id="applicationsFloatingScrollbar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #0284c7; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); z-index: 998; overflow-x: auto; overflow-y: hidden; height: 15px; display: none;">
+            <div id="applicationsFloatingScrollbarInner" style="height: 1px;"></div>
         </div>
 
         @if($applications->hasPages())
@@ -2001,6 +2110,151 @@
         }
         window.location.href = url;
     }
+
+    // Scroll table left / right via buttons
+    function scrollApplicationsTable(px) {
+        const wrap = document.querySelector('.sheet-table-wrap');
+        if (wrap) {
+            wrap.scrollBy({ left: px, behavior: 'smooth' });
+        }
+    }
+
+    // =========================================================================
+    // SYNCHRONIZED TOP & FLOATING HORIZONTAL SCROLLBARS FOR APPLICATIONS DESK
+    // =========================================================================
+    (function initApplicationsHorizontalScrollbars() {
+        const tableWrap = document.querySelector('.sheet-table-wrap');
+        const table = document.getElementById('recent-services-table');
+        const topScroll = document.getElementById('applicationsTopScrollbar');
+        const topInner = document.getElementById('applicationsTopScrollbarInner');
+        const floatScroll = document.getElementById('applicationsFloatingScrollbar');
+        const floatInner = document.getElementById('applicationsFloatingScrollbarInner');
+
+        if (!tableWrap || !table) return;
+
+        function syncScrollWidths() {
+            const scrollW = table.scrollWidth;
+            const clientW = tableWrap.clientWidth;
+            const needsScroll = scrollW > clientW + 5;
+
+            if (topScroll && topInner) {
+                topInner.style.width = scrollW + 'px';
+                topScroll.style.display = needsScroll ? 'block' : 'none';
+            }
+            if (floatScroll && floatInner) {
+                floatInner.style.width = scrollW + 'px';
+            }
+            checkFloatVisibility();
+        }
+
+        function checkFloatVisibility() {
+            if (!floatScroll || !tableWrap) return;
+            const scrollW = table.scrollWidth;
+            const clientW = tableWrap.clientWidth;
+            const needsScroll = scrollW > clientW + 5;
+
+            if (!needsScroll) {
+                floatScroll.style.display = 'none';
+                return;
+            }
+
+            const rect = tableWrap.getBoundingClientRect();
+            const isBottomVisible = (rect.bottom <= window.innerHeight);
+            const isTopAboveScreen = (rect.top < window.innerHeight);
+
+            if (isTopAboveScreen && !isBottomVisible) {
+                floatScroll.style.display = 'block';
+                const sidebar = document.querySelector('.erp-sidebar');
+                const sidebarW = sidebar ? sidebar.offsetWidth : 240;
+                floatScroll.style.left = sidebarW + 'px';
+            } else {
+                floatScroll.style.display = 'none';
+            }
+        }
+
+        let isSyncing = false;
+        function syncScroll(source, targets) {
+            if (isSyncing) return;
+            isSyncing = true;
+            targets.forEach(t => {
+                if (t && t !== source) t.scrollLeft = source.scrollLeft;
+            });
+            setTimeout(() => { isSyncing = false; }, 10);
+        }
+
+        tableWrap.addEventListener('scroll', () => {
+            syncScroll(tableWrap, [topScroll, floatScroll]);
+        });
+        if (topScroll) {
+            topScroll.addEventListener('scroll', () => {
+                syncScroll(topScroll, [tableWrap, floatScroll]);
+            });
+        }
+        if (floatScroll) {
+            floatScroll.addEventListener('scroll', () => {
+                syncScroll(floatScroll, [tableWrap, topScroll]);
+            });
+        }
+
+        window.addEventListener('scroll', checkFloatVisibility);
+        window.addEventListener('resize', syncScrollWidths);
+        setTimeout(syncScrollWidths, 200);
+        setTimeout(syncScrollWidths, 800);
+    })();
+
+    // =========================================================================
+    // INSTANT HOVER PREVIEW TOOLTIP FOR COMPRESSED TABLE COLUMNS
+    // =========================================================================
+    (function initErpHoverTooltip() {
+        let tooltip = document.getElementById('erpGlobalHoverTooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'erpGlobalHoverTooltip';
+            tooltip.innerHTML = '<div class="tooltip-title"></div><div class="tooltip-body"></div>';
+            document.body.appendChild(tooltip);
+        }
+
+        const titleEl = tooltip.querySelector('.tooltip-title');
+        const bodyEl = tooltip.querySelector('.tooltip-body');
+
+        document.addEventListener('mouseover', function(e) {
+            const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+            if (!target) return;
+
+            const text = (target.getAttribute('data-hover-text') || target.innerText || '').trim();
+            if (!text || text === '-' || text === 'None' || text === 'No Customer') return;
+
+            const title = target.getAttribute('data-hover-title') || 'Information';
+            titleEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
+            bodyEl.textContent = text;
+
+            tooltip.classList.add('visible');
+
+            const rect = target.getBoundingClientRect();
+            let top = rect.bottom + 8;
+            let left = rect.left;
+
+            const tipRect = tooltip.getBoundingClientRect();
+            if (left + tipRect.width > window.innerWidth - 16) {
+                left = window.innerWidth - tipRect.width - 16;
+            }
+            if (left < 16) left = 16;
+
+            if (top + tipRect.height > window.innerHeight - 16) {
+                top = Math.max(16, rect.top - tipRect.height - 8);
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
+            if (target) {
+                tooltip.classList.remove('visible');
+            }
+        });
+    })();
 </script>
 @endpush
 @endsection
