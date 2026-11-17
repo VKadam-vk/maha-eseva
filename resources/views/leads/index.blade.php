@@ -177,8 +177,8 @@
                             </form>
                         </td>
                         <td>
-                            @if($lead->status === 'CONVERTED' && $lead->converted_customer_id)
-                                <div style="display: flex; gap: 5px; align-items: center; white-space: nowrap;">
+                            <div style="display: flex; gap: 5px; align-items: center; white-space: nowrap;">
+                                @if($lead->status === 'CONVERTED' && $lead->converted_customer_id)
                                     <a href="{{ route('fast_entry.index', ['mobile' => $lead->convertedCustomer?->mobile ?? $lead->mobile, 'customer_name' => $lead->convertedCustomer?->name ?? $lead->name, 'service_id' => $lead->service_id]) }}" 
                                        class="btn btn-primary btn-sm" 
                                        style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;"
@@ -191,15 +191,27 @@
                                        title="View Full Profile">
                                         <i class="fa-solid fa-user"></i> Profile
                                     </a>
-                                </div>
-                            @else
-                                <form action="{{ route('leads.convert', $lead->id) }}" method="POST" style="display: inline;">
+                                @else
+                                    <form action="{{ route('leads.convert', $lead->id) }}" method="POST" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-sm" title="Convert to Customer & Load in Fast Daily Entry" style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+                                            <i class="fa-solid fa-user-check"></i> Convert
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <!-- Delete Enquiry / Lead Button -->
+                                <form action="{{ route('leads.destroy', $lead->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('खात्री आहे का? ही चौकशी/लीड डिलीट करायची आहे का? (Are you sure you want to delete this enquiry #{{ $lead->id }}?)');">
                                     @csrf
-                                    <button type="submit" class="btn btn-primary btn-sm" title="Convert to Customer & Load in Fast Daily Entry" style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
-                                        <i class="fa-solid fa-user-check"></i> Convert
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="btn btn-sm" 
+                                            style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; font-size: 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s ease;"
+                                            title="Delete Enquiry / Lead">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
-                            @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

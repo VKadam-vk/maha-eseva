@@ -257,4 +257,26 @@ class LeadController extends Controller
             'service_id' => $lead->service_id,
         ])->with('success', "Lead #{$lead->id} converted successfully! Loaded citizen {$result['customer']->name} in Fast Daily Entry.");
     }
+
+    /**
+     * Delete an enquiry / lead.
+     */
+    public function destroy(Request $request, Lead $lead): RedirectResponse|JsonResponse
+    {
+        $leadName = $lead->name;
+        $leadId = $lead->id;
+
+        AuditService::log('LEAD_DELETED', $lead, $lead->toArray());
+
+        $lead->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Enquiry #{$leadId} ({$leadName}) deleted successfully.",
+            ]);
+        }
+
+        return back()->with('success', "Enquiry #{$leadId} ({$leadName}) deleted successfully.");
+    }
 }

@@ -178,6 +178,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('/{lead}/status', [LeadController::class, 'updateStatus'])->name('status');
         Route::post('/{lead}/followup', [LeadController::class, 'updateFollowUp'])->name('followup');
         Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
+        Route::delete('/{lead}', [LeadController::class, 'destroy'])->name('destroy');
     });
 
     // Comprehensive Reports Suite
