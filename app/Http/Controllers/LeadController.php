@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Employee;
@@ -174,38 +175,66 @@ class LeadController extends Controller
     }
 
     /**
-     * 1-Click Convert Lead to Customer and Application.
+     * 1-Click Convert Lead to Customer and Application, then load into Fast Daily Entry.
      */
     public function convert(Request $request, Lead $lead): RedirectResponse
     {
         $user = Auth::user();
+        $targetBranchId = $user->branch_id ?? $lead->branch_id ?? Tenant::first()?->branches()->first()?->id;
 
-        $result = DB::transaction(function () use ($lead, $user) {
-            // 1. Create or fetch existing Customer
-            $customer = $this->customerService->createCustomer([
-                'branch_id' => $lead->branch_id,
-                'name' => $lead->name,
-                'mobile' => $lead->mobile,
-                'email' => $lead->email,
-                'gender' => 'MALE',
-                'notes' => 'Converted from Lead #' . $lead->id . ' (Source: ' . $lead->source . ')',
-            ], $user);
+        $result = DB::transaction(function () use ($lead, $user, $targetBranchId) {
+            $cleanedMobile = preg_replace('/[^0-9]/', '', $lead->mobile);
+
+            // 1. Check if customer already exists for this mobile across the tenant
+            $customer = Customer::withoutGlobalScopes()
+                ->where('tenant_id', $user->tenant_id ?? Tenant::first()?->id)
+                ->where(function ($q) use ($lead, $cleanedMobile) {
+                    $q->where('mobile', $lead->mobile)
+                      ->orWhere('mobile', $cleanedMobile);
+                })
+                ->first();
+
+            if ($customer) {
+                // Ensure customer belongs to active branch so the branch admin/operator can see and manage it
+                if ($targetBranchId && (int)$customer->branch_id !== (int)$targetBranchId) {
+                    $customer->update(['branch_id' => $targetBranchId]);
+                }
+            } else {
+                $customer = $this->customerService->createCustomer([
+                    'branch_id' => $targetBranchId,
+                    'name' => $lead->name,
+                    'mobile' => $lead->mobile,
+                    'email' => $lead->email,
+                    'gender' => 'MALE',
+                    'notes' => 'Converted from Lead #' . $lead->id . ' (Source: ' . $lead->source . ')',
+                ], $user);
+            }
 
             // 2. If lead had requested service, create Application
             $application = null;
             if ($lead->service_id) {
-                $application = $this->applicationService->createApplication([
-                    'branch_id' => $lead->branch_id,
-                    'customer_id' => $customer->id,
-                    'service_id' => $lead->service_id,
-                    'assigned_employee_id' => $lead->assigned_employee_id,
-                    'work_status' => 'NEW',
-                    'work_details' => $lead->message,
-                ], $user);
+                if ($lead->converted_application_id) {
+                    $application = Application::withoutGlobalScopes()->find($lead->converted_application_id);
+                    if ($application && $targetBranchId && (int)$application->branch_id !== (int)$targetBranchId) {
+                        $application->update(['branch_id' => $targetBranchId]);
+                    }
+                }
+
+                if (!$application) {
+                    $application = $this->applicationService->createApplication([
+                        'branch_id' => $targetBranchId,
+                        'customer_id' => $customer->id,
+                        'service_id' => $lead->service_id,
+                        'assigned_employee_id' => $lead->assigned_employee_id ?? $user->employee?->id,
+                        'work_status' => 'NEW',
+                        'work_details' => $lead->message,
+                    ], $user);
+                }
             }
 
             // 3. Mark Lead as Converted
             $lead->update([
+                'branch_id' => $targetBranchId,
                 'status' => Lead::STATUS_CONVERTED,
                 'converted_customer_id' => $customer->id,
                 'converted_application_id' => $application?->id,
@@ -216,10 +245,16 @@ class LeadController extends Controller
                 'application_id' => $application?->id,
             ]);
 
-            return $customer;
+            return [
+                'customer' => $customer,
+                'application' => $application,
+            ];
         });
 
-        return redirect()->route('customers.show', $result->id)
-            ->with('success', 'Lead successfully converted into Customer profile.');
+        return redirect()->route('fast_entry.index', [
+            'mobile' => $result['customer']->mobile,
+            'customer_name' => $result['customer']->name,
+            'service_id' => $lead->service_id,
+        ])->with('success', "Lead #{$lead->id} converted successfully! Loaded citizen {$result['customer']->name} in Fast Daily Entry.");
     }
 }

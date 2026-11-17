@@ -177,14 +177,25 @@
                             </form>
                         </td>
                         <td>
-                            @if($lead->status === 'CONVERTED' && $lead->convertedCustomer)
-                                <a href="{{ route('customers.show', $lead->converted_customer_id) }}" class="btn btn-secondary btn-sm">
-                                    <i class="fa-solid fa-check"></i> Profile
-                                </a>
+                            @if($lead->status === 'CONVERTED' && $lead->converted_customer_id)
+                                <div style="display: flex; gap: 5px; align-items: center; white-space: nowrap;">
+                                    <a href="{{ route('fast_entry.index', ['mobile' => $lead->convertedCustomer?->mobile ?? $lead->mobile, 'customer_name' => $lead->convertedCustomer?->name ?? $lead->name, 'service_id' => $lead->service_id]) }}" 
+                                       class="btn btn-primary btn-sm" 
+                                       style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;"
+                                       title="Open in Fast Daily Entry">
+                                        <i class="fa-solid fa-bolt"></i> Fast Entry
+                                    </a>
+                                    <a href="{{ route('customers.show', $lead->converted_customer_id) }}" 
+                                       class="btn btn-secondary btn-sm" 
+                                       style="font-size: 11px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;"
+                                       title="View Full Profile">
+                                        <i class="fa-solid fa-user"></i> Profile
+                                    </a>
+                                </div>
                             @else
                                 <form action="{{ route('leads.convert', $lead->id) }}" method="POST" style="display: inline;">
                                     @csrf
-                                    <button type="submit" class="btn btn-primary btn-sm" title="1-Click Convert to Customer Profile">
+                                    <button type="submit" class="btn btn-primary btn-sm" title="Convert to Customer & Load in Fast Daily Entry" style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
                                         <i class="fa-solid fa-user-check"></i> Convert
                                     </button>
                                 </form>

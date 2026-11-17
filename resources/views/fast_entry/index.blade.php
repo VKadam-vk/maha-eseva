@@ -5310,6 +5310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const urlMobile = urlParams.get('mobile');
     const urlName = urlParams.get('customer_name');
+    const urlServiceId = urlParams.get('service_id');
     if (urlMobile && urlMobile.replace(/[^0-9]/g, '').length === 10) {
         const cleanMob = urlMobile.replace(/[^0-9]/g, '');
         const mobInput = document.getElementById('fe_mobile');
@@ -5318,7 +5319,28 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('fe_name').value = urlName;
         }
         window.history.replaceState({}, document.title, window.location.pathname);
-        setTimeout(() => { executeQuickGo(null); }, 150);
+        setTimeout(() => { 
+            executeQuickGo(null); 
+            if (urlServiceId) {
+                setTimeout(() => {
+                    const srv = (typeof allServices !== 'undefined' ? allServices : []).find(s => String(s.id) === String(urlServiceId));
+                    if (srv) {
+                        const mainSel = document.getElementById('se_main_service');
+                        if (mainSel) {
+                            mainSel.value = srv.main_service_name;
+                            onMainServiceChange(srv.main_service_name);
+                            setTimeout(() => {
+                                const subSel = document.getElementById('se_sub_service_select');
+                                if (subSel) {
+                                    subSel.value = srv.id;
+                                    onSubServiceChange(srv.id);
+                                }
+                            }, 150);
+                        }
+                    }
+                }, 650);
+            }
+        }, 150);
     }
 
     if (window.ExcelTableFilter) {
