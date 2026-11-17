@@ -278,12 +278,8 @@ class ApplicationController extends Controller
         // Trigger status notification
         $this->notificationService->notifyStatusChanged($application->fresh(), $validated['work_status']);
 
-        // Auto WhatsApp notification if enabled
-        $tenant = $application->tenant;
-        $settings = $tenant?->settings_json ?? [];
-        if (!empty($settings['whatsapp_enabled']) && !empty($settings['whatsapp_auto_status_notify']) && WhatsAppService::isConfigured($tenant)) {
-            app(WhatsAppService::class)->sendApplicationStatusNotification($application->fresh(), $validated['work_status']);
-        }
+        // Note: Automatic WhatsApp notification disabled as per requirements.
+        // WhatsApp update is triggered manually via the dedicated WhatsApp button by the Software Owner.
 
         return back()->with('success', "Application status updated to {$validated['work_status']}.");
     }
@@ -414,12 +410,21 @@ class ApplicationController extends Controller
 
     /**
      * Send instant 1-click status update via WhatsApp Cloud API (Silent, no browser popup).
+     * Strictly restricted to Software Owner only.
      */
     public function sendWhatsAppStatus(Request $request, Application $application, WhatsAppService $whatsAppService): JsonResponse
     {
         $user = Auth::user();
         if (!$user) {
             return response()->json(['success' => false, 'error' => 'Unauthenticated.'], 401);
+        }
+
+        // WhatsApp Cloud API is strictly restricted to the Software Owner
+        if (!$user->isSoftwareOwner()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'फक्त सॉफ्टवेअर ओनरलाच WhatsApp Cloud API द्वारे मेसेज पाठवण्याची परवानगी आहे. (Access denied. WhatsApp Cloud API is reserved for Software Owner only.)'
+            ], 403);
         }
 
         $tenant = $application->tenant;

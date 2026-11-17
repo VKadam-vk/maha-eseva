@@ -98,7 +98,7 @@
         <p class="page-subtitle">Search, manage and create customer profiles with duplicate protection</p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        @if(auth()->user()?->isSuperAdmin() || auth()->user()?->isBusinessOwner())
+        @if(auth()->user()?->isSoftwareOwner())
             <button type="button" class="btn" onclick="openBroadcastModal()" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35); display: inline-flex; align-items: center; gap: 7px;">
                 <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Broadcast Message
             </button>
@@ -296,7 +296,8 @@
     @endif
 </div>
 
-<!-- Broadcast WhatsApp Modal (Owner Only) -->
+@if(auth()->user()?->isSoftwareOwner())
+<!-- Broadcast WhatsApp Modal (Software Owner Only) -->
 <div id="broadcastModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; backdrop-filter: blur(3px); align-items: center; justify-content: center; padding: 20px;">
     <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 620px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: popIn 0.2s ease;">
         <!-- Header -->
@@ -377,6 +378,7 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
 @push('scripts')

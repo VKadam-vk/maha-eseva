@@ -379,13 +379,13 @@ class CustomerController extends Controller
     }
 
     /**
-     * Broadcast WhatsApp message to customers (Owner only).
+     * Broadcast WhatsApp message to customers (Software Owner only).
      */
     public function broadcastWhatsApp(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
-            return response()->json(['success' => false, 'error' => 'Unauthorized: Only business owner can broadcast messages.'], 403);
+        if (!$user || !$user->isSoftwareOwner()) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized: Only Software Owner can broadcast WhatsApp messages.'], 403);
         }
 
         $request->validate([

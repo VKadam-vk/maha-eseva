@@ -68,26 +68,27 @@
                 </div>
             </div>
 
-            <!-- WhatsApp Cloud API Configuration (Meta Developer & Production) -->
+            <!-- WhatsApp Cloud API Configuration (Software Owner Only) -->
+            @if(Auth::user()->isSoftwareOwner())
             <div style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: var(--radius-md); padding: 20px; margin: 24px 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h4 style="font-size: 15px; font-weight: 800; margin: 0; color: #166534; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-brands fa-whatsapp" style="font-size: 18px; color: #22c55e;"></i> WhatsApp Cloud API (Meta Official / Test Number)
+                            <span class="badge" style="background: #166534; color: #ffffff; font-size: 10px; padding: 2px 6px;">Software Owner Only</span>
                         </h4>
                         <p style="font-size: 12px; color: #15803d; margin: 4px 0 0 0;">
                             Configure direct 1-click background WhatsApp messaging using Meta Developer test number or live business account.
                         </p>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 18px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; font-weight: 700; color: #166534;">
                             <input type="checkbox" name="whatsapp_enabled" value="1" {{ !empty($tenant->settings_json['whatsapp_enabled']) ? 'checked' : '' }} style="width: 17px; height: 17px; accent-color: #16a34a;">
-                            Enable WhatsApp
+                            Enable WhatsApp Cloud API
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; font-weight: 700; color: #166534;">
-                            <input type="checkbox" name="whatsapp_auto_status_notify" value="1" {{ !empty($tenant->settings_json['whatsapp_auto_status_notify']) ? 'checked' : '' }} style="width: 17px; height: 17px; accent-color: #16a34a;">
-                            Auto-Send on Status Change
-                        </label>
+                        <span style="font-size: 11.5px; color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #86efac; font-weight: 700;">
+                            <i class="fa-solid fa-hand-pointer"></i> Manual Button Trigger Only (Auto-sending Disabled)
+                        </span>
                     </div>
                 </div>
 
@@ -141,6 +142,7 @@
                     <div id="waTestResultBox" style="display: none; margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-size: 12px;"></div>
                 </div>
             </div>
+            @endif
 
             <div style="background-color: #f8fafc; border: 1px solid var(--surface-border); border-radius: var(--radius-md); padding: 18px; margin: 20px 0;">
                 <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #1e293b;">

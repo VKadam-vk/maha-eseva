@@ -95,8 +95,8 @@ class SettingController extends Controller
     public function testWhatsApp(Request $request, WhatsAppService $whatsAppService): JsonResponse
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isBusinessOwner()) {
-            return response()->json(['success' => false, 'error' => 'Unauthorized'], 403);
+        if (!$user || !$user->isSoftwareOwner()) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized: Only Software Owner can test WhatsApp Cloud API.'], 403);
         }
 
         $validated = $request->validate([

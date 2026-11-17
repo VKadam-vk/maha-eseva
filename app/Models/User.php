@@ -87,6 +87,27 @@ class User extends Authenticatable
         return $this->hasRole('PLATFORM_SUPER_ADMIN');
     }
 
+    /**
+     * Check if user is the Software Platform Owner / Super Admin.
+     * Only Software Owner has access to Meta WhatsApp Cloud API integrations.
+     */
+    public function isSoftwareOwner(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Primary platform owner accounts
+        $ownerEmails = [
+            'superadmin@mahaeseva.gov.in',
+            'admin@mahaeseva.com',
+            'vinod@mahaeseva.com',
+            'branchadmin@mahaeseva.com',
+        ];
+
+        return in_array(strtolower($this->email ?? ''), $ownerEmails);
+    }
+
     public function isBusinessOwner(): bool
     {
         return $this->hasRole('BUSINESS_OWNER');

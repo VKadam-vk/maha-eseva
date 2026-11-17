@@ -935,7 +935,7 @@
                                            title="Open customer profile">
                                             {{ $cust->name }}
                                         </a>
-                                        @if($cust->mobile)
+                                        @if(Auth::user()->isSoftwareOwner() && $cust->mobile)
                                             <button type="button" onclick="sendDirectWhatsApp({{ $app->id }}, event)"
                                                style="background: none; border: none; color: #16a34a; font-size: 14px; cursor: pointer; padding: 0; line-height: 1;" title="Send 1-Click WhatsApp Status (Silent API, No popup)">
                                                 <i class="fa-brands fa-whatsapp"></i>
@@ -1200,6 +1200,14 @@
                                         @endforeach
                                         <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                                     </select>
+                                    @if(Auth::user()->isSoftwareOwner() && $cust?->mobile)
+                                        <button type="button" class="btn-cell-wa"
+                                                onclick="sendDirectWhatsApp({{ $app->id }}, event)"
+                                                style="background: #dcfce7; border: 1.5px solid #86efac; color: #16a34a; width: 25px; height: 25px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; transition: all 0.15s ease;"
+                                                title="Send WhatsApp Status Update to Citizen">
+                                            <i class="fa-brands fa-whatsapp" style="font-size: 13.5px;"></i>
+                                        </button>
+                                    @endif
                                     <button type="button" class="btn-cell-history"
                                             onclick="openFieldHistory({{ $app->id }}, 'work_status', event)"
                                             title="Status Change History">
@@ -2050,10 +2058,10 @@
         }
     }
 
-    // 1-Click Silent WhatsApp status dispatch
+    // 1-Click Silent WhatsApp status dispatch (Software Owner Only)
     function sendDirectWhatsApp(appId, e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
-        if (!confirm('Send direct WhatsApp status update to customer?')) return;
+        if (!confirm('ग्राहकाला थेट WhatsApp वर सद्यस्थितीचा मेसेज पाठवायचा आहे का? (Send direct WhatsApp status notification to customer?)')) return;
 
         fetch(`/applications/${appId}/send-whatsapp`, {
             method: 'POST',

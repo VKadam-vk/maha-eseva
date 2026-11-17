@@ -2219,6 +2219,7 @@ const allServices = @json($services);
 const allEmployees = @json($employees);
 const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
 const CAN_DELETE_SERVICES = {{ auth()->user()?->canDeleteServices() ? 'true' : 'false' }};
+const IS_SOFTWARE_OWNER = {{ auth()->user()?->isSoftwareOwner() ? 'true' : 'false' }};
 window.activeFamilyFilter = 'ALL';
 window.activeBeneficiaryMemberId = null;
 let currentCustomerAllApplications = [];
@@ -4266,6 +4267,11 @@ function getCommittedRowInnerHtml(app) {
     const currentStatus = (app.status || '').toUpperCase();
     const serviceName = (app.main_service_name || app.service_name || 'DEFAULT').trim().toUpperCase();
     const datalistId = ensureServiceStatusDatalist(serviceName);
+    const waBtnHtml = IS_SOFTWARE_OWNER ? `
+        <button type="button" class="btn-cell-wa" onclick="sendDirectWhatsApp(${app.id}, event)" style="background: #dcfce7; border: 1.5px solid #86efac; color: #16a34a; width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;" title="Send WhatsApp Status Update to Citizen">
+            <i class="fa-brands fa-whatsapp" style="font-size: 13px;"></i>
+        </button>
+    ` : '';
 
     return `
         <td class="font-mono" style="width: 180px; min-width: 180px; max-width: 180px; white-space: nowrap; user-select: text; cursor: default; padding: 6px 10px; box-sizing: border-box;">
@@ -4442,6 +4448,7 @@ function getCommittedRowInnerHtml(app) {
         <td class="sticky-col-status" style="padding: 4px 6px; width: 155px; min-width: 155px; max-width: 155px;">
             <div class="crow-view-mode" style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
                 <span id="crow_view_status_${app.id}" class="crow-view-badge" style="flex: 1; text-align: center;">${escapeHtml(currentStatus || 'PENDING')}</span>
+                ${waBtnHtml}
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </button>
@@ -4452,6 +4459,7 @@ function getCommittedRowInnerHtml(app) {
                         onchange="onCommittedStatusSelectChange(this, ${app.id}, '${escapeHtml(serviceName)}')">
                     ${renderStatusOptionsHtml(currentStatus, serviceName)}
                 </select>
+                ${waBtnHtml}
                 <button type="button" class="btn-cell-history" onclick="openFieldHistory(${app.id}, 'work_status', event)" title="Status Change History">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </button>
@@ -5524,6 +5532,31 @@ function resetCatalogSelection() {
     currentCatalogSelectedService = null;
     
     renderCatalogParticularView(null);
+}
+
+function sendDirectWhatsApp(appId, e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!confirm('ग्राहकाला थेट WhatsApp वर सद्यस्थितीचा मेसेज पाठवायचा आहे का? (Send direct WhatsApp status notification to customer?)')) return;
+
+    fetch(`/applications/${appId}/send-whatsapp`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            showAlert('WhatsApp Sent', res.message || 'WhatsApp message sent successfully!');
+        } else {
+            showAlert('WhatsApp Error', res.error || 'Failed to dispatch WhatsApp. Please check Settings.', 'error');
+        }
+    })
+    .catch(err => {
+        showAlert('Error', 'Server error while sending WhatsApp message.', 'error');
+    });
 }
 
 initCustomStatuses();

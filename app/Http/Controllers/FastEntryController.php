@@ -417,11 +417,8 @@ class FastEntryController extends Controller
         ApplicationFieldHistory::recordIfChanged($application, 'follow_up_date', 'Follow-Up Date', $oldFollowup, $newFollowup, null, null, $user->id);
 
         if ($oldStatus !== $newStatus) {
-            $tenant = $application->tenant;
-            $settings = $tenant?->settings_json ?? [];
-            if (!empty($settings['whatsapp_enabled']) && !empty($settings['whatsapp_auto_status_notify']) && \App\Services\WhatsAppService::isConfigured($tenant)) {
-                app(\App\Services\WhatsAppService::class)->sendApplicationStatusNotification($application, $newStatus);
-            }
+            // Note: Automatic WhatsApp notification disabled as per requirements.
+            // Status updates are notified manually via WhatsApp button by the Software Owner.
         }
 
         $this->syncApplicationFollowUp(
