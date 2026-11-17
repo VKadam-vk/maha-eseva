@@ -130,6 +130,58 @@ class LeadController extends Controller
     }
 
     /**
+     * Update existing lead / enquiry details.
+     */
+    public function update(Request $request, Lead $lead): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'mobile' => ['required', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'service_id' => ['nullable', 'exists:services,id'],
+            'sub_service' => ['nullable', 'string', 'max:150'],
+            'source' => ['required', 'in:WEBSITE,WALK_IN,PHONE,WHATSAPP,REFERRAL'],
+            'status' => ['required', 'in:NEW,CONTACTED,FOLLOW_UP,QUALIFIED,CONVERTED,LOST'],
+            'message' => ['nullable', 'string'],
+            'assigned_employee_id' => ['nullable', 'exists:employees,id'],
+            'next_follow_up_date' => ['nullable', 'date'],
+            'next_follow_up_time' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $subService = $validated['sub_service'] ?? null;
+        if (!$subService && !empty($validated['service_id'])) {
+            $selectedService = Service::find($validated['service_id']);
+            $subService = $selectedService?->sub_service_name;
+        }
+
+        $lead->update([
+            'name' => $validated['name'],
+            'mobile' => $validated['mobile'],
+            'email' => $validated['email'] ?? null,
+            'service_id' => $validated['service_id'] ?? null,
+            'sub_service' => $subService,
+            'source' => $validated['source'],
+            'status' => $validated['status'],
+            'message' => $validated['message'] ?? null,
+            'assigned_employee_id' => $validated['assigned_employee_id'] ?? null,
+            'next_follow_up_date' => $validated['next_follow_up_date'] ?? null,
+            'next_follow_up_time' => $validated['next_follow_up_time'] ?? null,
+        ]);
+
+        AuditService::log('LEAD_UPDATED', $lead);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Enquiry #{$lead->id} updated successfully.",
+                'lead' => $lead->fresh(['service', 'assignedEmployee.user']),
+            ]);
+        }
+
+        return back()->with('success', "Enquiry #{$lead->id} ({$lead->name}) updated successfully.");
+    }
+
+    /**
      * Update lead follow-up date and time inline.
      */
     public function updateFollowUp(Request $request, Lead $lead): JsonResponse|RedirectResponse

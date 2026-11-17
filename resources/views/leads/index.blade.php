@@ -13,6 +13,97 @@
     </button>
 </div>
 
+<!-- ========================================================================= -->
+<!-- SERVICES MASTER CATALOG & RATES (Compact Aligned Toolbar Strip)           -->
+<!-- ========================================================================= -->
+<div class="pocket-card" style="border: 1.5px solid #cbd5e1; margin-bottom: 16px; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden;">
+    <!-- Catalog Header -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 7px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div style="font-size: 12.5px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; letter-spacing: 0.3px;">
+            <i class="fa-solid fa-layer-group" style="color: #38bdf8; font-size: 13.5px;"></i>
+            <span>SERVICES MASTER CATALOG & RATES</span>
+            <span class="badge" style="background: #334155; color: #38bdf8; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 2px 7px;">
+                {{ $services->count() }} Services
+            </span>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 600;">
+            <i class="fa-solid fa-bolt" style="color: #f59e0b; margin-right: 4px;"></i> Instant Rates, Processing Days & Documents Checklist
+        </div>
+    </div>
+
+    <!-- Integrated Single-Row Catalog Strip (MAIN SERVICES | SUB SERVICE | DOCUMENTS | RATE | DAYS | RESET) -->
+    <div style="padding: 10px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;">
+        <!-- 1. MAIN SERVICES -->
+        <div style="flex: 1.2; min-width: 210px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px;">
+                <i class="fa-solid fa-folder-open" style="color: #0284c7; margin-right: 4px;"></i> Main Services
+            </label>
+            <select id="catalog_main_service_select" onchange="onCatalogMainSelectChange(this.value)"
+                    style="width: 100%; height: 35px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #0f172a; outline: none; cursor: pointer; transition: all 0.15s ease;">
+                <option value="">-- Choose Main Service --</option>
+                @foreach($uniqueMainServices as $mainName)
+                    <option value="{{ $mainName }}">{{ strtoupper($mainName) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- 2. SUB SERVICE -->
+        <div style="flex: 1.4; min-width: 240px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px;">
+                <i class="fa-solid fa-tag" style="color: #0284c7; margin-right: 4px;"></i> Sub Service
+            </label>
+            <select id="catalog_sub_service_select" onchange="onCatalogSubSelectChange(this.value)" disabled
+                    style="width: 100%; height: 35px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #f1f5f9; color: #64748b; outline: none; cursor: not-allowed; transition: all 0.15s ease;">
+                <option value="">-- Choose Sub Service --</option>
+            </select>
+        </div>
+
+        <!-- 3. DOCUMENTS (Eye Button) -->
+        <div style="min-width: 125px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                <i class="fa-solid fa-file-lines" style="color: #0284c7; margin-right: 3px;"></i> Documents
+            </label>
+            <button type="button" id="cat-view-doc-btn" onclick="openCatalogServiceDocs()" disabled
+                    title="View Required Documents for Selected Service"
+                    style="width: 100%; height: 35px; padding: 0 12px; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 6px; color: #94a3b8; font-size: 12px; font-weight: 700; cursor: not-allowed; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+                <i class="fa-solid fa-eye" style="font-size: 13.5px;"></i>
+                <span>Documents</span>
+            </button>
+        </div>
+
+        <!-- 4. RATE -->
+        <div style="min-width: 120px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                <i class="fa-solid fa-indian-rupee-sign" style="color: #16a34a; margin-right: 2px;"></i> Rate
+            </label>
+            <div id="cat-view-rate-box" style="height: 35px; padding: 0 10px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14.5px; font-weight: 800; color: #64748b; transition: all 0.2s ease;">
+                ₹ 0.00
+            </div>
+        </div>
+
+        <!-- 5. DAYS -->
+        <div style="min-width: 105px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px; text-align: center;">
+                <i class="fa-regular fa-clock" style="color: #0284c7; margin-right: 3px;"></i> Days
+            </label>
+            <div id="cat-view-days-box" style="height: 35px; padding: 0 10px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #64748b; gap: 4px; transition: all 0.2s ease;">
+                <span id="cat-view-days-text">--</span>
+            </div>
+        </div>
+
+        <!-- 6. RESET -->
+        <div style="min-width: 90px;">
+            <label style="display: block; font-size: 11px; font-weight: 800; color: transparent; margin-bottom: 4px; user-select: none;">
+                Reset
+            </label>
+            <button type="button" onclick="resetCatalogSelection()" title="Reset Service Selection"
+                    style="width: 100%; height: 35px; padding: 0 12px; background: #ffffff; color: #dc2626; border: 1.5px solid #fca5a5; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s ease;">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Filters Bar -->
 <div class="erp-card" style="margin-bottom: 20px;">
     <div class="erp-card-body" style="padding: 16px 20px;">
@@ -200,6 +291,15 @@
                                     </form>
                                 @endif
 
+                                <!-- Edit Enquiry / Lead Button -->
+                                <button type="button" 
+                                        class="btn btn-sm" 
+                                        style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 4px 8px; font-size: 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-weight: 700; transition: all 0.15s ease;"
+                                        title="Edit Enquiry / Lead"
+                                        onclick="openEditLeadModal({{ $lead->id }})">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+
                                 <!-- Delete Enquiry / Lead Button -->
                                 <form action="{{ route('leads.destroy', $lead->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('खात्री आहे का? ही चौकशी/लीड डिलीट करायची आहे का? (Are you sure you want to delete this enquiry #{{ $lead->id }}?)');">
                                     @csrf
@@ -321,6 +421,121 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('leadModal')">Cancel</button>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Lead</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Lead Modal -->
+<div id="editLeadModal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 620px;">
+        <div class="modal-header" style="background: #0f172a; color: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <div>
+                    <h3 id="editLeadModalTitle" style="font-size: 15px; font-weight: 700; margin: 0; color: #ffffff;">Edit Enquiry / Lead</h3>
+                    <p style="font-size: 11px; color: #94a3b8; margin: 2px 0 0 0;">Update citizen inquiry requirements and pipeline status</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('editLeadModal')" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</button>
+        </div>
+        <form id="editLeadForm" action="" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-body" style="padding: 20px;">
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label required">Citizen / Prospect Name</label>
+                        <input type="text" name="name" id="editLeadName" class="form-control" required placeholder="e.g. Nilesh Joshi">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Mobile Number</label>
+                        <input type="tel" name="mobile" id="editLeadMobile" class="form-control" required placeholder="98XXXXXXXX">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" id="editLeadEmail" class="form-control" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Lead Source</label>
+                        <select name="source" id="editLeadSource" class="form-select" required>
+                            <option value="WALK_IN">Walk-in Counter</option>
+                            <option value="PHONE">Phone Inquiry</option>
+                            <option value="WHATSAPP">WhatsApp</option>
+                            <option value="WEBSITE">Website Portal</option>
+                            <option value="REFERRAL">Referral</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Service & Sub Service Separate -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Main Service (मुख्य सेवा)</label>
+                        <select id="editLeadMainService" class="form-select" onchange="onEditLeadMainServiceChange(this.value)">
+                            <option value="">-- General Inquiry / Select Service --</option>
+                            @foreach($uniqueMainServices as $mainName)
+                                <option value="{{ $mainName }}">{{ $mainName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Sub Service (उप-सेवा)</label>
+                        <select name="service_id" id="editLeadSubService" class="form-select" onchange="onEditLeadSubServiceChange(this)">
+                            <option value="">-- Select Main Service First --</option>
+                        </select>
+                        <input type="hidden" name="sub_service" id="editLeadSubServiceText">
+                    </div>
+                </div>
+
+                <!-- Next Follow-up Date and Time in Modal -->
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Next Follow-up Date</label>
+                        <input type="date" name="next_follow_up_date" id="editLeadFollowUpDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Next Follow-up Time</label>
+                        <input type="time" name="next_follow_up_time" id="editLeadFollowUpTime" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Assign Staff</label>
+                        <select name="assigned_employee_id" id="editLeadStaff" class="form-select">
+                            <option value="">-- Unassigned --</option>
+                            @foreach($employees as $emp)
+                                <option value="{{ $emp->id }}">{{ $emp->user->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Pipeline Status</label>
+                        <select name="status" id="editLeadStatus" class="form-select" required>
+                            @foreach($statuses as $st)
+                                <option value="{{ $st }}">{{ $st }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Enquiry Message / Requirements</label>
+                    <textarea name="message" id="editLeadMessage" class="form-control" rows="2" placeholder="Describe customer query..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editLeadModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Update Enquiry
+                </button>
             </div>
         </form>
     </div>
@@ -543,6 +758,260 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// =========================================================================
+// SERVICES MASTER CATALOG & RATES (LIVE TOOLBAR LOOKUP)
+// =========================================================================
+let currentCatalogSelectedService = null;
+
+function onCatalogMainSelectChange(mainName) {
+    const subSel = document.getElementById('catalog_sub_service_select');
+    if (!subSel) return;
+
+    subSel.innerHTML = '<option value="">-- Choose Sub Service --</option>';
+    currentCatalogSelectedService = null;
+
+    if (!mainName) {
+        subSel.disabled = true;
+        subSel.style.background = '#f1f5f9';
+        subSel.style.borderColor = '#cbd5e1';
+        subSel.style.color = '#64748b';
+        subSel.style.cursor = 'not-allowed';
+        renderCatalogParticularView(null);
+        return;
+    }
+
+    const matched = allServicesList.filter(s => (s.main_service_name || '').trim().toUpperCase() === mainName.trim().toUpperCase());
+    matched.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.sub_service_name || s.main_service_name;
+        subSel.appendChild(opt);
+    });
+
+    subSel.disabled = false;
+    subSel.style.background = '#ffffff';
+    subSel.style.borderColor = '#0284c7';
+    subSel.style.color = '#0f172a';
+    subSel.style.cursor = 'pointer';
+
+    if (matched.length === 1) {
+        subSel.value = matched[0].id;
+        onCatalogSubSelectChange(matched[0].id);
+    } else {
+        renderCatalogParticularView(null);
+    }
+}
+
+function onCatalogSubSelectChange(serviceId) {
+    if (!serviceId) {
+        currentCatalogSelectedService = null;
+        renderCatalogParticularView(null);
+        return;
+    }
+    const srv = allServicesList.find(s => s.id == serviceId);
+    currentCatalogSelectedService = srv || null;
+    renderCatalogParticularView(srv);
+}
+
+function renderCatalogParticularView(srv) {
+    const docBtn = document.getElementById('cat-view-doc-btn');
+    const rateBox = document.getElementById('cat-view-rate-box');
+    const daysBox = document.getElementById('cat-view-days-box');
+    const daysText = document.getElementById('cat-view-days-text');
+
+    if (!srv) {
+        if (docBtn) {
+            docBtn.disabled = true;
+            docBtn.style.background = '#f1f5f9';
+            docBtn.style.borderColor = '#cbd5e1';
+            docBtn.style.color = '#94a3b8';
+            docBtn.style.cursor = 'not-allowed';
+            docBtn.style.boxShadow = 'none';
+        }
+        if (rateBox) {
+            rateBox.textContent = '₹ 0.00';
+            rateBox.style.background = '#f8fafc';
+            rateBox.style.borderColor = '#cbd5e1';
+            rateBox.style.color = '#64748b';
+        }
+        if (daysBox) {
+            daysBox.style.background = '#f8fafc';
+            daysBox.style.borderColor = '#cbd5e1';
+            daysBox.style.color = '#64748b';
+        }
+        if (daysText) daysText.textContent = '--';
+        return;
+    }
+
+    const price = parseFloat(srv.price > 0 ? srv.price : ((parseFloat(srv.govt_fee) || 0) + (parseFloat(srv.service_charge) || 0))) || 0;
+    const days = srv.expected_processing_days || 7;
+
+    if (docBtn) {
+        docBtn.disabled = false;
+        docBtn.style.background = '#eff6ff';
+        docBtn.style.borderColor = '#3b82f6';
+        docBtn.style.color = '#1d4ed8';
+        docBtn.style.cursor = 'pointer';
+        docBtn.style.boxShadow = '0 1px 3px rgba(37, 99, 235, 0.25)';
+    }
+
+    if (rateBox) {
+        rateBox.textContent = '₹ ' + price.toFixed(2);
+        rateBox.style.background = '#f0fdf4';
+        rateBox.style.borderColor = '#86efac';
+        rateBox.style.color = '#166534';
+    }
+
+    if (daysBox) {
+        daysBox.style.background = '#e0f2fe';
+        daysBox.style.borderColor = '#7dd3fc';
+        daysBox.style.color = '#0369a1';
+    }
+    if (daysText) daysText.textContent = days + ' Days';
+}
+
+function openCatalogServiceDocs() {
+    if (!currentCatalogSelectedService) {
+        alert('Please choose a Sub Service first to view required documents.');
+        return;
+    }
+    const title = currentCatalogSelectedService.name || ((currentCatalogSelectedService.main_service_name || '') + ' - ' + (currentCatalogSelectedService.sub_service_name || ''));
+    const docs = currentCatalogSelectedService.required_documents_json || [];
+    openDocListModal(title, docs);
+}
+
+function resetCatalogSelection() {
+    const mainSel = document.getElementById('catalog_main_service_select');
+    const subSel = document.getElementById('catalog_sub_service_select');
+    if (mainSel) mainSel.value = '';
+    if (subSel) {
+        subSel.innerHTML = '<option value="">-- Choose Sub Service --</option>';
+        subSel.disabled = true;
+        subSel.style.background = '#f1f5f9';
+        subSel.style.borderColor = '#cbd5e1';
+        subSel.style.color = '#64748b';
+        subSel.style.cursor = 'not-allowed';
+    }
+    currentCatalogSelectedService = null;
+    renderCatalogParticularView(null);
+}
+
+// =========================================================================
+// EDIT LEAD / ENQUIRY MODAL LOGIC
+// =========================================================================
+const leadsList = @json($leads->items());
+const leadsMap = {};
+leadsList.forEach(l => { leadsMap[l.id] = l; });
+
+function openEditLeadModal(leadId) {
+    const lead = leadsMap[leadId];
+    if (!lead) return;
+
+    const form = document.getElementById('editLeadForm');
+    form.action = `/leads/${lead.id}`;
+
+    document.getElementById('editLeadModalTitle').textContent = `Edit Enquiry #${lead.id} - ${lead.name}`;
+    document.getElementById('editLeadName').value = lead.name || '';
+    document.getElementById('editLeadMobile').value = lead.mobile || '';
+    document.getElementById('editLeadEmail').value = lead.email || '';
+    document.getElementById('editLeadSource').value = lead.source || 'WALK_IN';
+    document.getElementById('editLeadStatus').value = lead.status || 'NEW';
+    document.getElementById('editLeadStaff').value = lead.assigned_employee_id || '';
+    document.getElementById('editLeadMessage').value = lead.message || '';
+
+    // Date & Time
+    if (lead.next_follow_up_date) {
+        document.getElementById('editLeadFollowUpDate').value = lead.next_follow_up_date.substring(0, 10);
+    } else {
+        document.getElementById('editLeadFollowUpDate').value = '';
+    }
+    if (lead.next_follow_up_time) {
+        document.getElementById('editLeadFollowUpTime').value = lead.next_follow_up_time.substring(0, 5);
+    } else {
+        document.getElementById('editLeadFollowUpTime').value = '';
+    }
+
+    // Determine Main Service & Sub Service
+    let mainName = '';
+    let serviceId = lead.service_id || '';
+    let subName = lead.sub_service || '';
+
+    if (lead.service) {
+        mainName = lead.service.main_service_name || '';
+        if (!subName) subName = lead.service.sub_service_name || '';
+    } else if (serviceId) {
+        const found = allServicesList.find(s => s.id == serviceId);
+        if (found) {
+            mainName = found.main_service_name || '';
+            if (!subName) subName = found.sub_service_name || '';
+        }
+    } else if (subName) {
+        const found = allServicesList.find(s => (s.sub_service_name || '').trim().toUpperCase() === subName.trim().toUpperCase());
+        if (found) {
+            mainName = found.main_service_name || '';
+            serviceId = found.id;
+        }
+    }
+
+    document.getElementById('editLeadMainService').value = mainName;
+    onEditLeadMainServiceChange(mainName, serviceId, subName);
+
+    document.getElementById('editLeadModal').classList.add('open');
+}
+
+function onEditLeadMainServiceChange(mainName, preSelectId, preSelectSubName) {
+    const subSelect = document.getElementById('editLeadSubService');
+    const subText = document.getElementById('editLeadSubServiceText');
+    if (!subSelect) return;
+
+    subSelect.innerHTML = '';
+
+    if (!mainName) {
+        subSelect.innerHTML = '<option value="">-- General Inquiry --</option>';
+        if (subText) subText.value = preSelectSubName || '';
+        return;
+    }
+
+    const matched = allServicesList.filter(s => (s.main_service_name || '').trim().toUpperCase() === mainName.trim().toUpperCase());
+
+    if (matched.length === 0) {
+        subSelect.innerHTML = '<option value="">-- No Sub-Services Found --</option>';
+        if (subText) subText.value = preSelectSubName || '';
+        return;
+    }
+
+    subSelect.innerHTML = '<option value="">-- Select Sub Service --</option>';
+    matched.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.sub_service_name || s.main_service_name;
+        opt.setAttribute('data-sub-name', s.sub_service_name || '');
+        if (preSelectId && s.id == preSelectId) {
+            opt.selected = true;
+        }
+        subSelect.appendChild(opt);
+    });
+
+    if (preSelectId) {
+        subSelect.value = preSelectId;
+    } else if (matched.length === 1) {
+        subSelect.selectedIndex = 1;
+    }
+    
+    onEditLeadSubServiceChange(subSelect);
+}
+
+function onEditLeadSubServiceChange(selectEl) {
+    const subText = document.getElementById('editLeadSubServiceText');
+    if (!subText) return;
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    if (selectedOption && selectedOption.hasAttribute('data-sub-name')) {
+        subText.value = selectedOption.getAttribute('data-sub-name');
+    } else {
+        subText.value = '';
+    }
 }
 </script>
 @endpush

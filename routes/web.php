@@ -175,6 +175,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('leads')->name('leads.')->group(function () {
         Route::get('/', [LeadController::class, 'index'])->name('index');
         Route::post('/', [LeadController::class, 'store'])->name('store');
+        Route::put('/{lead}', [LeadController::class, 'update'])->name('update');
         Route::post('/{lead}/status', [LeadController::class, 'updateStatus'])->name('status');
         Route::post('/{lead}/followup', [LeadController::class, 'updateFollowUp'])->name('followup');
         Route::post('/{lead}/convert', [LeadController::class, 'convert'])->name('convert');
