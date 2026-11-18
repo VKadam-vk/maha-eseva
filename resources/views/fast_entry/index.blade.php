@@ -727,7 +727,15 @@
         font-size: 12px;
         color: #334155;
         font-weight: 500;
-        cursor: help;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        user-select: text;
+    }
+    .crow-view-notes:hover {
+        background-color: #f1f5f9;
+        color: #0284c7;
     }
     .crow-view-badge {
         display: inline-flex;
@@ -4089,8 +4097,7 @@ function copyModalDocsToClipboard(btn) {
 function autoExpandWorkDetails(el) {
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(Math.max(el.scrollHeight, 34), 160) + 'px';
-    el.title = el.value;
+    el.style.height = Math.min(Math.max(el.scrollHeight, 34), 220) + 'px';
 }
 
 function minimizeWorkDetails(el) {
@@ -4144,7 +4151,7 @@ function applyStatusBadgeStyle(el, statusVal) {
     }
 }
 
-function toggleEditCommittedRow(appId) {
+function toggleEditCommittedRow(appId, focusField = null) {
     const tr = document.getElementById('committed-row-' + appId);
     if (!tr) return;
 
@@ -4158,10 +4165,26 @@ function toggleEditCommittedRow(appId) {
             btn.innerHTML = '<i class="fa-solid fa-check"></i>';
             btn.title = 'Save and Lock this service row';
         }
-        const rateInput = document.getElementById(`crow_rate_${appId}`);
-        if (rateInput) {
-            rateInput.focus();
-            rateInput.select();
+        if (focusField === 'work_details') {
+            const wd = document.getElementById(`crow_work_details_${appId}`);
+            if (wd) {
+                autoExpandWorkDetails(wd);
+                wd.focus();
+                setTimeout(() => { wd.select(); }, 50);
+            }
+        } else if (focusField === 'payment_remarks') {
+            const pr = document.getElementById(`crow_payment_remarks_${appId}`);
+            if (pr) {
+                autoExpandWorkDetails(pr);
+                pr.focus();
+                setTimeout(() => { pr.select(); }, 50);
+            }
+        } else {
+            const rateInput = document.getElementById(`crow_rate_${appId}`);
+            if (rateInput) {
+                rateInput.focus();
+                rateInput.select();
+            }
         }
     } else {
         saveAndLockCommittedRow(appId);
@@ -4210,13 +4233,13 @@ function updateCommittedRowViewTexts(appId) {
     const wdEl = document.getElementById(`crow_view_wd_${appId}`);
     if (wdEl) {
         wdEl.textContent = app.work_details || '-';
-        wdEl.title = app.work_details || '';
+        wdEl.title = 'Double-click to view, copy or edit details';
     }
 
     const prEl = document.getElementById(`crow_view_pr_${appId}`);
     if (prEl) {
         prEl.textContent = app.payment_remarks || '-';
-        prEl.title = app.payment_remarks || '';
+        prEl.title = 'Double-click to view, copy or edit details';
     }
 
     const opEl = document.getElementById(`crow_view_op_${appId}`);
@@ -4378,13 +4401,12 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td style="padding: 4px 6px;">
             <div class="crow-view-mode">
-                <div id="crow_view_wd_${app.id}" class="crow-view-notes" title="${escapeHtml(app.work_details || '')}">${escapeHtml(app.work_details || '-')}</div>
+                <div id="crow_view_wd_${app.id}" class="crow-view-notes" title="Double-click to view, copy or edit details">${escapeHtml(app.work_details || '-')}</div>
             </div>
             <div class="crow-edit-mode">
                 <textarea id="crow_work_details_${app.id}" class="excel-work-details"
                           placeholder="Work details / citizen notes..."
                           rows="1"
-                          title="${escapeHtml(app.work_details || '')}"
                           oninput="autoExpandWorkDetails(this)"
                           onfocus="autoExpandWorkDetails(this)"
                           onblur="minimizeWorkDetails(this)"
@@ -4394,13 +4416,12 @@ function getCommittedRowInnerHtml(app) {
         </td>
         <td style="padding: 4px 6px;">
             <div class="crow-view-mode">
-                <div id="crow_view_pr_${app.id}" class="crow-view-notes" title="${escapeHtml(app.payment_remarks || '')}">${escapeHtml(app.payment_remarks || '-')}</div>
+                <div id="crow_view_pr_${app.id}" class="crow-view-notes" title="Double-click to view, copy or edit details">${escapeHtml(app.payment_remarks || '-')}</div>
             </div>
             <div class="crow-edit-mode">
                 <textarea id="crow_payment_remarks_${app.id}" class="excel-work-details"
                           placeholder="Pending remark / notes..."
                           rows="1"
-                          title="${escapeHtml(app.payment_remarks || '')}"
                           oninput="autoExpandWorkDetails(this)"
                           onfocus="autoExpandWorkDetails(this)"
                           onblur="minimizeWorkDetails(this)"
@@ -4579,8 +4600,18 @@ function deleteCommittedRow(appId) {
 
 function handleCommittedKey(e, appId) {
     if (e.key === 'Enter') {
+        if (e.target.tagName === 'TEXTAREA') {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                saveAndLockCommittedRow(appId);
+            }
+            // Allow normal Enter / Shift+Enter for newlines inside textarea
+            return;
+        }
         e.preventDefault();
         e.target.blur(); // Triggers onchange to auto-save immediately
+    } else if (e.key === 'Escape') {
+        saveAndLockCommittedRow(appId);
     }
 }
 
@@ -5298,13 +5329,65 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Close modal on Escape key
+// Double-click on committed row to instantly unlock and focus/select that cell (Option 2)
+document.addEventListener('dblclick', function(e) {
+    const row = e.target.closest('tr.committed-row');
+    if (!row) return;
+
+    // Ignore double clicks on buttons, links, or select dropdowns
+    if (e.target.closest('button, a, select')) return;
+
+    const appId = row.dataset.appId || row.id.replace('committed-row-', '');
+    if (!appId) return;
+
+    let focusField = null;
+    const td = e.target.closest('td');
+    if (e.target.closest('#crow_view_wd_' + appId) || (td && td.querySelector(`#crow_work_details_${appId}`))) {
+        focusField = 'work_details';
+    } else if (e.target.closest('#crow_view_pr_' + appId) || (td && td.querySelector(`#crow_payment_remarks_${appId}`))) {
+        focusField = 'payment_remarks';
+    } else if (td && td.querySelector(`#crow_rate_${appId}`)) {
+        focusField = 'rate';
+    } else if (td && td.querySelector(`#crow_rec_${appId}`)) {
+        focusField = 'received';
+    }
+
+    if (row.classList.contains('locked-row')) {
+        toggleEditCommittedRow(appId, focusField);
+    } else {
+        if (focusField === 'work_details') {
+            const wd = document.getElementById(`crow_work_details_${appId}`);
+            if (wd) {
+                autoExpandWorkDetails(wd);
+                wd.focus();
+                wd.select();
+            }
+        } else if (focusField === 'payment_remarks') {
+            const pr = document.getElementById(`crow_payment_remarks_${appId}`);
+            if (pr) {
+                autoExpandWorkDetails(pr);
+                pr.focus();
+                pr.select();
+            }
+        }
+    }
+});
+
+// Close modal or lock editing row on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const overlay = document.getElementById('docs-modal-overlay');
-        if (overlay) {
+        if (overlay && overlay.classList.contains('open')) {
             overlay.classList.remove('open');
             overlay.style.setProperty('display', 'none', 'important');
+            return;
+        }
+        const activeEditingRow = document.querySelector('tr.committed-row.unlocked-row');
+        if (activeEditingRow) {
+            const appId = activeEditingRow.dataset.appId || activeEditingRow.id.replace('committed-row-', '');
+            if (appId && typeof saveAndLockCommittedRow === 'function') {
+                saveAndLockCommittedRow(appId);
+            }
         }
     }
 });

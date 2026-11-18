@@ -337,11 +337,17 @@
         text-overflow: ellipsis;
         font-size: 13px;
         color: #334155;
-        line-height: 30px;
-        height: 30px;
-        padding: 0 4px;
-        cursor: default;
+        line-height: 28px;
+        height: 28px;
+        padding: 0 6px;
+        cursor: pointer;
         user-select: text;
+        border-radius: 4px;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .row-notes-view:hover {
+        background-color: #f1f5f9;
+        color: #0284c7;
     }
     tr.recent-row-locked .row-notes-view { display: block !important; }
     tr.recent-row-locked .row-notes-edit { display: none !important; }
@@ -1090,13 +1096,12 @@
                             </td>
 
                             <!-- 8. Work Details (Minimized Normal by default) -->
-                            <td style="padding: 4px 6px;" class="cell-hover-preview" data-hover-title="Work Details / Notes" data-hover-text="{{ $app->work_details ?: '-' }}">
-                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="{{ $app->work_details }}">{{ $app->work_details ?: '-' }}</div>
+                            <td style="padding: 4px 6px;">
+                                <div class="row-notes-view" id="view_wd_{{ $app->id }}" title="Double-click to view, copy or edit details">{{ $app->work_details ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="work_details_{{ $app->id }}"
                                               placeholder="Notes / instructions..."
                                               rows="1" tabindex="-1"
-                                              title="{{ $app->work_details }}"
                                               oninput="autoExpandWorkDetails(this)"
                                               onfocus="autoExpandWorkDetails(this)"
                                               onblur="minimizeWorkDetails(this)"
@@ -1105,13 +1110,12 @@
                             </td>
 
                             <!-- Pending Remark (Minimized Normal by default) -->
-                            <td style="padding: 4px 6px;" class="cell-hover-preview" data-hover-title="Pending Remark / Payment Notes" data-hover-text="{{ $app->payment_remarks ?: '-' }}">
-                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="{{ $app->payment_remarks }}">{{ $app->payment_remarks ?: '-' }}</div>
+                            <td style="padding: 4px 6px;">
+                                <div class="row-notes-view" id="view_pr_{{ $app->id }}" title="Double-click to view, copy or edit details">{{ $app->payment_remarks ?: '-' }}</div>
                                 <div class="row-notes-edit">
                                     <textarea class="excel-work-details" id="payment_remarks_{{ $app->id }}"
                                               placeholder="Pending remark / notes..."
                                               rows="1" tabindex="-1"
-                                              title="{{ $app->payment_remarks }}"
                                               oninput="autoExpandWorkDetails(this)"
                                               onfocus="autoExpandWorkDetails(this)"
                                               onblur="minimizeWorkDetails(this)"
@@ -1478,12 +1482,11 @@
         }
     });
 
-    // Auto-expand textarea on focus / typing (up to 160px max)
+    // Auto-expand textarea on focus / typing (up to 200px max)
     function autoExpandWorkDetails(el) {
         if (!el) return;
         el.style.height = 'auto';
-        el.style.height = Math.min(Math.max(28, el.scrollHeight), 160) + 'px';
-        el.title = el.value;
+        el.style.height = Math.min(Math.max(28, el.scrollHeight), 200) + 'px';
     }
 
     // Minimize textarea on blur / lock (compact normal single-line height)
@@ -1791,7 +1794,7 @@
     }
 
     // Toggle Edit / Save Mode for a Recent Services row
-    function toggleEditRecentRow(appId) {
+    function toggleEditRecentRow(appId, focusField = null) {
         const row = document.getElementById(`row-app-${appId}`);
         const btn = document.getElementById(`btn-edit-recent-${appId}`);
         if (!row || !btn) return;
@@ -1810,10 +1813,26 @@
                 el.removeAttribute('tabindex');
             });
 
-            const rateInput = document.getElementById(`rate_${appId}`);
-            if (rateInput) {
-                rateInput.focus();
-                rateInput.select();
+            if (focusField === 'work_details') {
+                const wd = document.getElementById(`work_details_${appId}`);
+                if (wd) {
+                    autoExpandWorkDetails(wd);
+                    wd.focus();
+                    setTimeout(() => { wd.select(); }, 50);
+                }
+            } else if (focusField === 'payment_remarks') {
+                const pr = document.getElementById(`payment_remarks_${appId}`);
+                if (pr) {
+                    autoExpandWorkDetails(pr);
+                    pr.focus();
+                    setTimeout(() => { pr.select(); }, 50);
+                }
+            } else {
+                const rateInput = document.getElementById(`rate_${appId}`);
+                if (rateInput) {
+                    rateInput.focus();
+                    rateInput.select();
+                }
             }
         } else {
             // Save and lock row
@@ -1838,14 +1857,14 @@
             minimizeWorkDetails(wdInput);
             if (viewWd) {
                 viewWd.textContent = wdInput.value.trim() || '-';
-                viewWd.title = wdInput.value;
+                viewWd.title = 'Double-click to view, copy or edit details';
             }
         }
         if (prInput) {
             minimizeWorkDetails(prInput);
             if (viewPr) {
                 viewPr.textContent = prInput.value.trim() || '-';
-                viewPr.title = prInput.value;
+                viewPr.title = 'Double-click to view, copy or edit details';
             }
         }
 
@@ -2260,6 +2279,63 @@
             const target = e.target.closest('.cell-hover-preview, [data-hover-text]');
             if (target) {
                 tooltip.classList.remove('visible');
+            }
+        });
+
+        // Double-click on Recent Services row to instantly unlock and focus/select that cell
+        document.addEventListener('dblclick', function(e) {
+            const row = e.target.closest('tr.recent-row');
+            if (!row) return;
+
+            // Ignore double clicks on buttons, links, or select dropdowns
+            if (e.target.closest('button, a, select')) return;
+
+            const appId = row.id.replace('row-app-', '');
+            if (!appId) return;
+
+            let focusField = null;
+            const td = e.target.closest('td');
+            if (e.target.closest('#view_wd_' + appId) || (td && td.querySelector(`#work_details_${appId}`))) {
+                focusField = 'work_details';
+            } else if (e.target.closest('#view_pr_' + appId) || (td && td.querySelector(`#payment_remarks_${appId}`))) {
+                focusField = 'payment_remarks';
+            } else if (td && td.querySelector(`#rate_${appId}`)) {
+                focusField = 'rate';
+            } else if (td && td.querySelector(`#received_${appId}`)) {
+                focusField = 'received';
+            }
+
+            if (row.classList.contains('recent-row-locked')) {
+                toggleEditRecentRow(appId, focusField);
+            } else {
+                if (focusField === 'work_details') {
+                    const wd = document.getElementById(`work_details_${appId}`);
+                    if (wd) {
+                        autoExpandWorkDetails(wd);
+                        wd.focus();
+                        wd.select();
+                    }
+                } else if (focusField === 'payment_remarks') {
+                    const pr = document.getElementById(`payment_remarks_${appId}`);
+                    if (pr) {
+                        autoExpandWorkDetails(pr);
+                        pr.focus();
+                        pr.select();
+                    }
+                }
+            }
+        });
+
+        // Escape key to lock editing row
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const activeEditingRow = document.querySelector('tr.recent-row.recent-row-unlocked');
+                if (activeEditingRow) {
+                    const appId = activeEditingRow.id.replace('row-app-', '');
+                    if (appId && typeof saveRecentRowAndLock === 'function') {
+                        saveRecentRowAndLock(appId);
+                    }
+                }
             }
         });
     })();
