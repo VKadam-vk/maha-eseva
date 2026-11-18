@@ -815,6 +815,8 @@
     /* Modal Overlay & Card for Required Docs & New Customer Confirmation */
     #docs-modal-overlay,
     .modal-overlay#docs-modal-overlay,
+    #quick-notes-modal-overlay,
+    .modal-overlay#quick-notes-modal-overlay,
     #new-customer-confirm-modal,
     .modal-overlay#new-customer-confirm-modal {
         position: fixed !important;
@@ -840,6 +842,8 @@
 
     #docs-modal-overlay.open,
     .modal-overlay#docs-modal-overlay.open,
+    #quick-notes-modal-overlay.open,
+    .modal-overlay#quick-notes-modal-overlay.open,
     #new-customer-confirm-modal.open,
     .modal-overlay#new-customer-confirm-modal.open {
         display: flex !important;
@@ -2002,6 +2006,51 @@
             <button type="button" onclick="closeDocsModal()" class="btn btn-sm btn-secondary"
                     style="font-size: 12.5px; font-weight: 600; padding: 7px 16px; border-radius: 6px;">
                 Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- WORK DETAILS & NOTES QUICK VIEW & COPY MODAL (Option 2 - Double-Click Viewer) -->
+<div id="quick-notes-modal-overlay" class="modal-overlay" style="display: none;" onclick="closeQuickNotesModal(event)">
+    <div class="docs-modal-card" style="max-width: 600px; width: 92%; border-radius: 12px; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5); overflow: hidden; background: #ffffff;" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="docs-modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-file-lines" id="quick-notes-icon"></i>
+                </div>
+                <div>
+                    <h3 id="quick-notes-modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #ffffff;">Work Details</h3>
+                    <p id="quick-notes-modal-subtitle" style="margin: 2px 0 0 0; font-size: 11.5px; color: #94a3b8; font-weight: 500;">Double-click view & quick copy</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeQuickNotesModal()" title="Close (Esc)" style="background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; line-height: 1; padding: 2px 6px;">
+                &times;
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="docs-modal-body" style="padding: 18px 20px;">
+            <div style="margin-bottom: 8px; font-size: 12px; color: #64748b; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                <span>Full Content / संपूर्ण मजकूर (Select or Copy):</span>
+                <span id="quick-notes-char-count" style="font-size: 11px; color: #0284c7; font-weight: 700;"></span>
+            </div>
+            <div id="quick-notes-content-box"
+                 style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px 16px; font-size: 13.5px; line-height: 1.7; color: #0f172a; max-height: 380px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; user-select: text; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="docs-modal-footer" style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" id="btn-copy-quick-notes" onclick="copyQuickNotesToClipboard(this)" class="btn btn-sm"
+                    style="background: #16a34a; color: #ffffff; font-size: 13px; font-weight: 700; border: none; border-radius: 6px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;"
+                    title="Copy full text to clipboard">
+                <i class="fa-solid fa-copy"></i> <span>Copy All (सर्व कॉपी करा)</span>
+            </button>
+            <button type="button" onclick="closeQuickNotesModal()" class="btn btn-sm btn-secondary"
+                    style="font-size: 12.5px; font-weight: 600; padding: 7px 16px; border-radius: 6px; background: #e2e8f0; border: none; color: #334155; cursor: pointer;">
+                Close (Esc)
             </button>
         </div>
     </div>
@@ -4151,7 +4200,7 @@ function applyStatusBadgeStyle(el, statusVal) {
     }
 }
 
-function toggleEditCommittedRow(appId, focusField = null) {
+function toggleEditCommittedRow(appId) {
     const tr = document.getElementById('committed-row-' + appId);
     if (!tr) return;
 
@@ -4165,26 +4214,10 @@ function toggleEditCommittedRow(appId, focusField = null) {
             btn.innerHTML = '<i class="fa-solid fa-check"></i>';
             btn.title = 'Save and Lock this service row';
         }
-        if (focusField === 'work_details') {
-            const wd = document.getElementById(`crow_work_details_${appId}`);
-            if (wd) {
-                autoExpandWorkDetails(wd);
-                wd.focus();
-                setTimeout(() => { wd.select(); }, 50);
-            }
-        } else if (focusField === 'payment_remarks') {
-            const pr = document.getElementById(`crow_payment_remarks_${appId}`);
-            if (pr) {
-                autoExpandWorkDetails(pr);
-                pr.focus();
-                setTimeout(() => { pr.select(); }, 50);
-            }
-        } else {
-            const rateInput = document.getElementById(`crow_rate_${appId}`);
-            if (rateInput) {
-                rateInput.focus();
-                rateInput.select();
-            }
+        const rateInput = document.getElementById(`crow_rate_${appId}`);
+        if (rateInput) {
+            rateInput.focus();
+            rateInput.select();
         }
     } else {
         saveAndLockCommittedRow(appId);
@@ -5329,7 +5362,86 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Double-click on committed row to instantly unlock and focus/select that cell (Option 2)
+// Quick Notes & Work Details Viewer Modal Functions
+function openQuickNotesModal(title, subtitle, content, isWorkDetails = true) {
+    const overlay = document.getElementById('quick-notes-modal-overlay');
+    if (!overlay) return;
+
+    document.getElementById('quick-notes-modal-title').textContent = title || 'Work Details';
+    document.getElementById('quick-notes-modal-subtitle').textContent = subtitle || 'Double-click view & quick copy';
+
+    const icon = document.getElementById('quick-notes-icon');
+    if (icon) {
+        icon.className = isWorkDetails ? 'fa-solid fa-file-lines' : 'fa-solid fa-comment-dollar';
+    }
+
+    const box = document.getElementById('quick-notes-content-box');
+    const text = (content || '').trim();
+    box.textContent = text || '(कोणताही तपशील भरलेला नाही / No details entered)';
+
+    const charCount = document.getElementById('quick-notes-char-count');
+    if (charCount) {
+        charCount.textContent = text ? `${text.length} अक्षरे (characters)` : '';
+    }
+
+    const copyBtn = document.getElementById('btn-copy-quick-notes');
+    if (copyBtn) {
+        copyBtn.style.background = '#16a34a';
+        copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>Copy All (सर्व कॉपी करा)</span>';
+        copyBtn.dataset.textToCopy = text;
+        copyBtn.style.display = text ? 'inline-flex' : 'none';
+    }
+
+    overlay.style.setProperty('display', 'flex', 'important');
+    overlay.classList.add('open');
+
+    // Automatically highlight the content so the user can immediately press Ctrl+C or right click copy!
+    setTimeout(() => {
+        if (window.getSelection && text) {
+            const range = document.createRange();
+            range.selectNodeContents(box);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }, 120);
+}
+
+function closeQuickNotesModal(e) {
+    if (e && e.target && e.target !== e.currentTarget && !e.target.classList.contains('modal-close-btn')) {
+        return;
+    }
+    const overlay = document.getElementById('quick-notes-modal-overlay');
+    if (overlay) {
+        overlay.classList.remove('open');
+        overlay.style.setProperty('display', 'none', 'important');
+    }
+}
+
+function copyQuickNotesToClipboard(btn) {
+    const text = btn.dataset.textToCopy || document.getElementById('quick-notes-content-box').textContent;
+    if (!text || text.includes('कोणताही तपशील भरलेला नाही')) return;
+
+    navigator.clipboard.writeText(text).then(() => {
+        btn.style.background = '#059669';
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copied! (कॉपी झाले)</span>';
+        setTimeout(() => {
+            btn.style.background = '#16a34a';
+            btn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>Copy All (सर्व कॉपी करा)</span>';
+        }, 2200);
+    }).catch(() => {
+        const box = document.getElementById('quick-notes-content-box');
+        const range = document.createRange();
+        range.selectNodeContents(box);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('copy');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copied! (कॉपी झाले)</span>';
+    });
+}
+
+// Double-click on Work Details or Pending Remarks to view & copy full content cleanly
 document.addEventListener('dblclick', function(e) {
     const row = e.target.closest('tr.committed-row');
     if (!row) return;
@@ -5339,47 +5451,31 @@ document.addEventListener('dblclick', function(e) {
 
     const appId = row.dataset.appId || row.id.replace('committed-row-', '');
     if (!appId) return;
+    const app = (window.loadedApplications && window.loadedApplications[appId]) || (window.committedApplications && window.committedApplications.find(a => a.id == appId));
 
-    let focusField = null;
+    const srvName = (app ? (app.main_service_name || app.service_name || '') + (app.sub_service ? ' ➔ ' + app.sub_service : '') : 'Service Details');
+
     const td = e.target.closest('td');
     if (e.target.closest('#crow_view_wd_' + appId) || (td && td.querySelector(`#crow_work_details_${appId}`))) {
-        focusField = 'work_details';
+        const text = app?.work_details || document.getElementById(`crow_work_details_${appId}`)?.value || '';
+        openQuickNotesModal('Work Details (कामाचा तपशील)', srvName, text, true);
     } else if (e.target.closest('#crow_view_pr_' + appId) || (td && td.querySelector(`#crow_payment_remarks_${appId}`))) {
-        focusField = 'payment_remarks';
-    } else if (td && td.querySelector(`#crow_rate_${appId}`)) {
-        focusField = 'rate';
-    } else if (td && td.querySelector(`#crow_rec_${appId}`)) {
-        focusField = 'received';
-    }
-
-    if (row.classList.contains('locked-row')) {
-        toggleEditCommittedRow(appId, focusField);
-    } else {
-        if (focusField === 'work_details') {
-            const wd = document.getElementById(`crow_work_details_${appId}`);
-            if (wd) {
-                autoExpandWorkDetails(wd);
-                wd.focus();
-                wd.select();
-            }
-        } else if (focusField === 'payment_remarks') {
-            const pr = document.getElementById(`crow_payment_remarks_${appId}`);
-            if (pr) {
-                autoExpandWorkDetails(pr);
-                pr.focus();
-                pr.select();
-            }
-        }
+        const text = app?.payment_remarks || document.getElementById(`crow_payment_remarks_${appId}`)?.value || '';
+        openQuickNotesModal('Pending Remark / Notes', srvName, text, false);
     }
 });
 
 // Close modal or lock editing row on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const overlay = document.getElementById('docs-modal-overlay');
-        if (overlay && overlay.classList.contains('open')) {
-            overlay.classList.remove('open');
-            overlay.style.setProperty('display', 'none', 'important');
+        const notesOverlay = document.getElementById('quick-notes-modal-overlay');
+        if (notesOverlay && notesOverlay.classList.contains('open')) {
+            closeQuickNotesModal();
+            return;
+        }
+        const docsOverlay = document.getElementById('docs-modal-overlay');
+        if (docsOverlay && docsOverlay.classList.contains('open')) {
+            closeDocsModal();
             return;
         }
         const activeEditingRow = document.querySelector('tr.committed-row.unlocked-row');
