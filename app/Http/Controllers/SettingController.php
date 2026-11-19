@@ -178,8 +178,8 @@ class SettingController extends Controller
                 }
             }
 
-            // Construct exact matching parameters
-            $sampleValues = ['राहुल (चाचणी)', 'पॅन कार्ड सेवा', 'COMPLETED', 'SR-2026-TEST', 'महा ई-सेवा'];
+            // Construct exact matching parameters matching approved Meta sample
+            $sampleValues = ['राहुल', 'पॅन कार्ड', 'COMPLETED', 'SR-2026-001'];
             $bodyParams = [];
             for ($i = 0; $i < $paramCount; $i++) {
                 $bodyParams[] = [
