@@ -340,6 +340,18 @@ function runWhatsAppTest() {
             resultBox.style.background = '#dcfce7';
             resultBox.style.border = '1.5px solid #86efac';
             resultBox.style.color = '#15803d';
+            let templateDetailHtml = '';
+            if (res.meta_template_info) {
+                const tmpl = res.meta_template_info;
+                const bodyComp = tmpl.components ? tmpl.components.find(c => c.type === 'BODY') : null;
+                templateDetailHtml = `
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(22, 163, 74, 0.08); border-radius: 6px; font-size: 11.5px; color: #14532d;">
+                        <div><strong>Meta Template Name:</strong> ${tmpl.name || 'application_status'} &bull; <strong>Lang:</strong> <code>${res.used_language_code || tmpl.language || 'mr'}</code> &bull; <strong>Status:</strong> ${tmpl.status || 'ACTIVE'}</div>
+                        ${bodyComp && bodyComp.text ? `<div style="margin-top: 4px; font-family: monospace; white-space: pre-wrap; background: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #bbf7d0;">${bodyComp.text}</div>` : ''}
+                    </div>
+                `;
+            }
+
             resultBox.innerHTML = `
                 <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; font-size: 13px;">
                     <i class="fa-solid fa-circle-check"></i> Test WhatsApp Message Delivered!
@@ -347,6 +359,7 @@ function runWhatsAppTest() {
                 <div style="margin-top: 4px;">
                     Meta Cloud API responded successfully. <strong>Message ID:</strong> <code>${res.message_id || 'OK'}</code>
                 </div>
+                ${templateDetailHtml}
                 <div style="font-size: 11px; margin-top: 3px; color: #166534;">
                     Check recipient WhatsApp: <strong>${recipient}</strong>. You should receive the message instantly!
                 </div>

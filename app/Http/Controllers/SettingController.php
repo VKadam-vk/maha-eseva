@@ -128,19 +128,62 @@ class SettingController extends Controller
         } elseif ($type === 'hello_world') {
             $res = $whatsAppService->sendTemplate($validated['recipient'], 'hello_world', 'en_US', [], $tenant);
         } else {
-            // Default: Send the newly approved official Marathi Utility template 'application_status' (mr)
+            // Fetch live template definition from Meta using token
+            $token = $tenant->settings_json['whatsapp_access_token'] ?? null;
+            $metaTemplateInfo = null;
+            if ($token) {
+                try {
+                    $templateResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/1823076909252352");
+                    $metaTemplateInfo = $templateResp->json();
+                    Log::info('[Meta Template 1823076909252352 Inspection]', ['data' => $metaTemplateInfo]);
+                } catch (\Exception $e) {
+                    $metaTemplateInfo = ['error' => $e->getMessage()];
+                }
+            }
+
+            // Determine language registered on Meta
+            $langCode = $metaTemplateInfo['language'] ?? 'mr';
+
+            // Extract body parameters count or components from Meta definition if available
             $components = [
                 [
                     'type' => 'body',
                     'parameters' => [
-                        ['type' => 'text', 'text' => 'राहुल (चाचणी)'],
-                        ['type' => 'text', 'text' => 'पॅन कार्ड सेवा'],
+                        ['type' => 'text', 'text' => 'राहुल'],
+                        ['type' => 'text', 'text' => 'पॅन कार्ड'],
                         ['type' => 'text', 'text' => 'COMPLETED'],
                         ['type' => 'text', 'text' => 'SR-2026-TEST'],
                     ],
                 ],
             ];
-            $res = $whatsAppService->sendTemplate($validated['recipient'], 'application_status', 'mr', $components, $tenant);
+
+            // If Meta definition shows fewer or different parameters, adjust dynamically
+            if (!empty($metaTemplateInfo['components'])) {
+                foreach ($metaTemplateInfo['components'] as $comp) {
+                    if (($comp['type'] ?? '') === 'BODY' && !empty($comp['text'])) {
+                        // Count placeholders like {{1}}, {{2}} in body text
+                        preg_match_all('/\{\{(\d+)\}\}/', $comp['text'], $matches);
+                        $paramCount = count($matches[0] ?? []);
+                        if ($paramCount > 0 && $paramCount !== 4) {
+                            $sampleTexts = ['राहुल', 'पॅन कार्ड', 'COMPLETED', 'SR-2026-TEST', 'महा ई-सेवा'];
+                            $newParams = [];
+                            for ($i = 0; $i < $paramCount; $i++) {
+                                $newParams[] = ['type' => 'text', 'text' => $sampleTexts[$i] ?? 'माहिती'];
+                            }
+                            $components = [
+                                [
+                                    'type' => 'body',
+                                    'parameters' => $newParams,
+                                ],
+                            ];
+                        }
+                    }
+                }
+            }
+
+            $res = $whatsAppService->sendTemplate($validated['recipient'], 'application_status', $langCode, $components, $tenant);
+            $res['meta_template_info'] = $metaTemplateInfo;
+            $res['used_language_code'] = $langCode;
         }
 
         return response()->json($res);
