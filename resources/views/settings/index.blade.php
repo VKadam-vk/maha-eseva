@@ -361,7 +361,10 @@ function runWhatsAppTest() {
                 </div>
                 ${templateDetailHtml}
                 <div style="font-size: 11px; margin-top: 3px; color: #166534;">
-                    Check recipient WhatsApp: <strong>${recipient}</strong>. You should receive the message instantly!
+                    Check recipient WhatsApp: <strong>${recipient}</strong>.
+                </div>
+                <div style="font-size: 11px; margin-top: 6px; padding: 6px 8px; background: rgba(22, 101, 52, 0.08); border-radius: 4px; color: #14532d; line-height: 1.4;">
+                    💡 <strong>महत्त्वाची टीप (Delivery Note):</strong> जर वर <code>wamid</code> हिरवा दाखवूनही प्रत्यक्ष मोबाईलवर मेसेज आला नसेल, तर Meta Business Suite / WhatsApp Manager मध्ये <strong>Billing & Payment Methods</strong> (क्रेडिट/डेबिट कार्ड) जोडलेले आहे का ते खात्री करा. Meta Utility Template मेसेजसाठी बिलिंग मेथड असणे आवश्यक असते.
                 </div>
             `;
         } else {

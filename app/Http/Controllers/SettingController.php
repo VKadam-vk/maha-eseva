@@ -110,12 +110,14 @@ class SettingController extends Controller
 
         $tenant = $user->tenant;
 
-        // If credentials are submitted on the fly from the test form, apply them
+        // If credentials are submitted on the fly from the test form, apply and persist them
         if (!empty($validated['phone_number_id']) && !empty($validated['access_token'])) {
             $settings = $tenant->settings_json ?? [];
+            $settings['whatsapp_enabled'] = true;
             $settings['whatsapp_phone_number_id'] = trim($validated['phone_number_id']);
             $settings['whatsapp_access_token'] = trim($validated['access_token']);
             $tenant->settings_json = $settings;
+            $tenant->save();
         }
 
         $type = $validated['type'] ?? 'app_status';
