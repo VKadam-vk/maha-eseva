@@ -336,21 +336,21 @@ function runWhatsAppTest() {
         btnText.innerHTML = 'Send Test WhatsApp';
         resultBox.style.display = 'block';
 
+                let templateDetailHtml = '';
+        if (res.meta_template || res.body_text) {
+            const tmpl = res.meta_template || {};
+            templateDetailHtml = `
+                <div style="margin-top: 8px; padding: 8px 10px; background: rgba(0, 0, 0, 0.05); border-radius: 6px; font-size: 11.5px;">
+                    <div><strong>Meta WABA ID:</strong> <code>${res.waba_id || 'N/A'}</code> &bull; <strong>Template:</strong> <code>${tmpl.name || 'application_status'}</code> &bull; <strong>Lang:</strong> <code>${res.used_language_code || 'mr'}</code> &bull; <strong>Params:</strong> ${res.param_count || 4}</div>
+                    ${res.body_text ? `<div style="margin-top: 4px; font-family: monospace; white-space: pre-wrap; background: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; color: #1e293b;">${res.body_text}</div>` : ''}
+                </div>
+            `;
+        }
+
         if (res.success) {
             resultBox.style.background = '#dcfce7';
             resultBox.style.border = '1.5px solid #86efac';
             resultBox.style.color = '#15803d';
-            let templateDetailHtml = '';
-            if (res.meta_template_info) {
-                const tmpl = res.meta_template_info;
-                const bodyComp = tmpl.components ? tmpl.components.find(c => c.type === 'BODY') : null;
-                templateDetailHtml = `
-                    <div style="margin-top: 8px; padding: 8px; background: rgba(22, 163, 74, 0.08); border-radius: 6px; font-size: 11.5px; color: #14532d;">
-                        <div><strong>Meta Template Name:</strong> ${tmpl.name || 'application_status'} &bull; <strong>Lang:</strong> <code>${res.used_language_code || tmpl.language || 'mr'}</code> &bull; <strong>Status:</strong> ${tmpl.status || 'ACTIVE'}</div>
-                        ${bodyComp && bodyComp.text ? `<div style="margin-top: 4px; font-family: monospace; white-space: pre-wrap; background: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #bbf7d0;">${bodyComp.text}</div>` : ''}
-                    </div>
-                `;
-            }
 
             resultBox.innerHTML = `
                 <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; font-size: 13px;">
@@ -368,15 +368,27 @@ function runWhatsAppTest() {
             resultBox.style.background = '#fee2e2';
             resultBox.style.border = '1.5px solid #fca5a5';
             resultBox.style.color = '#991b1b';
+
+            let errMsg = res.error || res.message || '';
+            if (res.details && res.details.message) {
+                errMsg = res.details.message;
+            } else if (!errMsg) {
+                errMsg = typeof res === 'string' ? res : JSON.stringify(res);
+            }
+            if (res.details && res.details.error_data && res.details.error_data.details) {
+                errMsg += ` (${res.details.error_data.details})`;
+            }
+
             resultBox.innerHTML = `
                 <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; font-size: 13px;">
                     <i class="fa-solid fa-triangle-exclamation"></i> Meta Cloud API Error:
                 </div>
-                <div style="margin-top: 4px; font-family: var(--font-mono); font-size: 11.5px;">
-                    ${res.error || 'Failed to dispatch WhatsApp message.'}
+                <div style="margin-top: 4px; font-family: var(--font-mono); font-size: 12px; font-weight: 600; white-space: pre-wrap; word-break: break-all;">
+                    ${errMsg}
                 </div>
+                ${templateDetailHtml}
                 <div style="font-size: 11px; margin-top: 4px; color: #7f1d1d;">
-                    💡 <strong>Tip for Test Number:</strong> Meta requires recipient phone numbers to be explicitly added in your Meta Developer portal under <em>"To (Add and verify phone number)"</em> before messages can be delivered.
+                    💡 <strong>Diagnostics:</strong> ${JSON.stringify(res.details || res)}
                 </div>
             `;
         }

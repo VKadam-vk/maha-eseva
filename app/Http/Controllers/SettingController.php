@@ -128,62 +128,77 @@ class SettingController extends Controller
         } elseif ($type === 'hello_world') {
             $res = $whatsAppService->sendTemplate($validated['recipient'], 'hello_world', 'en_US', [], $tenant);
         } else {
-            // Fetch live template definition from Meta using token
-            $token = $tenant->settings_json['whatsapp_access_token'] ?? null;
-            $metaTemplateInfo = null;
-            if ($token) {
+            $phoneId = trim($validated['phone_number_id'] ?: ($tenant->settings_json['whatsapp_phone_number_id'] ?? ''));
+            $token = trim($validated['access_token'] ?: ($tenant->settings_json['whatsapp_access_token'] ?? ''));
+
+            $templateObj = null;
+            $wabaId = null;
+            $langCode = 'mr';
+
+            // Query WABA ID and live template definition directly from Meta Graph API
+            if ($phoneId && $token) {
                 try {
-                    $templateResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/1823076909252352");
-                    $metaTemplateInfo = $templateResp->json();
-                    Log::info('[Meta Template 1823076909252352 Inspection]', ['data' => $metaTemplateInfo]);
+                    $phoneResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$phoneId}?fields=whatsapp_business_account");
+                    $wabaId = $phoneResp->json('whatsapp_business_account.id');
+
+                    if ($wabaId) {
+                        $tmplResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$wabaId}/message_templates?name=application_status");
+                        $templates = $tmplResp->json('data') ?? [];
+                        // Find active/approved Marathi template
+                        foreach ($templates as $t) {
+                            if (($t['name'] ?? '') === 'application_status') {
+                                $templateObj = $t;
+                                break;
+                            }
+                        }
+                    }
                 } catch (\Exception $e) {
-                    $metaTemplateInfo = ['error' => $e->getMessage()];
+                    Log::warning('[Meta Template Query Exception]: ' . $e->getMessage());
                 }
             }
 
-            // Determine language registered on Meta
-            $langCode = $metaTemplateInfo['language'] ?? 'mr';
+            if (!empty($templateObj['language'])) {
+                $langCode = $templateObj['language'];
+            }
 
-            // Extract body parameters count or components from Meta definition if available
-            $components = [
-                [
-                    'type' => 'body',
-                    'parameters' => [
-                        ['type' => 'text', 'text' => 'राहुल'],
-                        ['type' => 'text', 'text' => 'पॅन कार्ड'],
-                        ['type' => 'text', 'text' => 'COMPLETED'],
-                        ['type' => 'text', 'text' => 'SR-2026-TEST'],
-                    ],
-                ],
-            ];
-
-            // If Meta definition shows fewer or different parameters, adjust dynamically
-            if (!empty($metaTemplateInfo['components'])) {
-                foreach ($metaTemplateInfo['components'] as $comp) {
-                    if (($comp['type'] ?? '') === 'BODY' && !empty($comp['text'])) {
-                        // Count placeholders like {{1}}, {{2}} in body text
-                        preg_match_all('/\{\{(\d+)\}\}/', $comp['text'], $matches);
-                        $paramCount = count($matches[0] ?? []);
-                        if ($paramCount > 0 && $paramCount !== 4) {
-                            $sampleTexts = ['राहुल', 'पॅन कार्ड', 'COMPLETED', 'SR-2026-TEST', 'महा ई-सेवा'];
-                            $newParams = [];
-                            for ($i = 0; $i < $paramCount; $i++) {
-                                $newParams[] = ['type' => 'text', 'text' => $sampleTexts[$i] ?? 'माहिती'];
-                            }
-                            $components = [
-                                [
-                                    'type' => 'body',
-                                    'parameters' => $newParams,
-                                ],
-                            ];
+            // Inspect template placeholders count from Meta body
+            $paramCount = 4;
+            $bodyText = '';
+            if (!empty($templateObj['components'])) {
+                foreach ($templateObj['components'] as $c) {
+                    if (($c['type'] ?? '') === 'BODY' && !empty($c['text'])) {
+                        $bodyText = $c['text'];
+                        preg_match_all('/\{\{(\d+)\}\}/', $c['text'], $m);
+                        if (!empty($m[0])) {
+                            $paramCount = count($m[0]);
                         }
                     }
                 }
             }
 
+            // Construct exact matching parameters
+            $sampleValues = ['राहुल (चाचणी)', 'पॅन कार्ड सेवा', 'COMPLETED', 'SR-2026-TEST', 'महा ई-सेवा'];
+            $bodyParams = [];
+            for ($i = 0; $i < $paramCount; $i++) {
+                $bodyParams[] = [
+                    'type' => 'text',
+                    'text' => $sampleValues[$i] ?? 'माहिती',
+                ];
+            }
+
+            $components = [
+                [
+                    'type' => 'body',
+                    'parameters' => $bodyParams,
+                ],
+            ];
+
             $res = $whatsAppService->sendTemplate($validated['recipient'], 'application_status', $langCode, $components, $tenant);
-            $res['meta_template_info'] = $metaTemplateInfo;
+            $res['waba_id'] = $wabaId;
+            $res['meta_template'] = $templateObj;
             $res['used_language_code'] = $langCode;
+            $res['param_count'] = $paramCount;
+            $res['body_text'] = $bodyText;
         }
 
         return response()->json($res);
