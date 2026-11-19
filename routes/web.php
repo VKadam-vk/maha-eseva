@@ -27,6 +27,9 @@ Route::get('/health', function () {
     return response('OK', 200);
 });
 
+// Public Privacy Policy Page (Required for Meta App Review & Live Mode Verification)
+Route::view('/privacy-policy', 'privacy')->name('privacy-policy');
+
 // Redirect root to dashboard if logged in, or to login (supports 200 OK for platform healthcheck probes)
 Route::match(['GET', 'HEAD'], '/', function (\Illuminate\Http\Request $request) {
     if ($request->isMethod('HEAD') || 
