@@ -101,7 +101,7 @@ class SettingController extends Controller
 
         $validated = $request->validate([
             'recipient' => ['required', 'string'],
-            'type' => ['nullable', 'in:template,text'],
+            'type' => ['nullable', 'in:template,text,hello_world,app_status'],
             'phone_number_id' => ['nullable', 'string'],
             'access_token' => ['nullable', 'string'],
         ]);
@@ -116,7 +116,7 @@ class SettingController extends Controller
             $tenant->settings_json = $settings;
         }
 
-        $type = $validated['type'] ?? 'template';
+        $type = $validated['type'] ?? 'app_status';
 
         if ($type === 'text') {
             $centerName = $tenant->name ?? 'Maha E-Seva Kendra';
@@ -125,9 +125,22 @@ class SettingController extends Controller
                  . "वेळ: " . now()->format('d M Y, h:i A') . "\n"
                  . "स्टेटस: चालू (Active)";
             $res = $whatsAppService->sendMessage($validated['recipient'], $msg, $tenant);
+        } elseif ($type === 'hello_world') {
+            $res = $whatsAppService->sendTemplate($validated['recipient'], 'hello_world', 'en_US', [], $tenant);
         } else {
-            // Default pre-approved Meta template guaranteed to work with test numbers
-            $res = $whatsAppService->sendTemplate($validated['recipient'], 'hello_world', 'en_US', $tenant);
+            // Default: Send the newly approved official Marathi Utility template 'application_status' (mr)
+            $components = [
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'text' => 'राहुल (चाचणी)'],
+                        ['type' => 'text', 'text' => 'पॅन कार्ड सेवा'],
+                        ['type' => 'text', 'text' => 'COMPLETED'],
+                        ['type' => 'text', 'text' => 'SR-2026-TEST'],
+                    ],
+                ],
+            ];
+            $res = $whatsAppService->sendTemplate($validated['recipient'], 'application_status', 'mr', $components, $tenant);
         }
 
         return response()->json($res);

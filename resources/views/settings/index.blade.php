@@ -127,8 +127,9 @@
                         <div style="width: 220px;">
                             <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Message Type:</label>
                             <select id="wa_test_type" class="form-select" style="font-size: 12.5px;">
-                                <option value="template">Official Template ('hello_world')</option>
+                                <option value="app_status" selected>Approved Marathi Template ('application_status')</option>
                                 <option value="text">Custom Text Message (Maha E-Seva Alert)</option>
+                                <option value="hello_world">Meta Test Template ('hello_world')</option>
                             </select>
                         </div>
                         <div>

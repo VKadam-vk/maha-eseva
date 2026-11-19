@@ -109,8 +109,19 @@ class WhatsAppService
     /**
      * Send official pre-approved Meta Template (e.g. 'hello_world' which works guaranteed on test numbers!).
      */
-    public function sendTemplate(string $recipientPhone, string $templateName = 'hello_world', string $langCode = 'en_US', ?Tenant $tenant = null): array
-    {
+    public function sendTemplate(
+        string $recipientPhone,
+        string $templateName = 'application_status',
+        string $langCode = 'mr',
+        mixed $components = [],
+        ?Tenant $tenant = null
+    ): array {
+        // Support backward-compatible 4-argument call (recipient, template, lang, tenant)
+        if ($components instanceof Tenant) {
+            $tenant = $components;
+            $components = [];
+        }
+
         $tenant = $tenant ?? Tenant::first();
         if (!$tenant) {
             return ['success' => false, 'error' => 'Tenant not found'];
@@ -128,16 +139,22 @@ class WhatsAppService
         $url = "https://graph.facebook.com/v21.0/{$phoneNumberId}/messages";
 
         try {
+            $templatePayload = [
+                'name' => $templateName,
+                'language' => [
+                    'code' => $langCode,
+                ],
+            ];
+
+            if (!empty($components) && is_array($components)) {
+                $templatePayload['components'] = $components;
+            }
+
             $payload = [
                 'messaging_product' => 'whatsapp',
                 'to' => $formattedTo,
                 'type' => 'template',
-                'template' => [
-                    'name' => $templateName,
-                    'language' => [
-                        'code' => $langCode,
-                    ],
-                ],
+                'template' => $templatePayload,
             ];
 
             $response = Http::withToken($accessToken)
@@ -148,7 +165,7 @@ class WhatsAppService
 
             if ($response->successful() && !empty($data['messages'][0]['id'])) {
                 $msgId = $data['messages'][0]['id'];
-                Log::info("[WhatsApp Meta Template] Sent {$templateName} to {$formattedTo}, ID: {$msgId}");
+                Log::info("[WhatsApp Meta Template] Sent {$templateName} ({$langCode}) to {$formattedTo}, ID: {$msgId}");
 
                 return [
                     'success' => true,
@@ -176,6 +193,8 @@ class WhatsAppService
 
     /**
      * Send Application Status Update via WhatsApp.
+     * Uses the officially approved Meta Utility Template 'application_status' (mr)
+     * so it delivers guaranteed to any citizen even outside the Meta 24-hour window!
      */
     public function sendApplicationStatusNotification(Application $application, ?string $customStatus = null): array
     {
@@ -185,30 +204,52 @@ class WhatsAppService
         }
 
         $status = $customStatus ?? $application->work_status;
-        $serviceName = $application->service?->sub_service_name ?: $application->service?->main_service_name ?: 'Service';
-        $centerName = $application->tenant?->name ?? 'Maha E-Seva Kendra';
+        $serviceName = $application->service?->sub_service_name ?: $application->service?->main_service_name ?: 'सेवा';
+        $customerName = !empty($customer->name) ? $customer->name : 'नागरिक';
+        $appNumber = !empty($application->application_number) ? $application->application_number : ('SR-' . $application->id);
 
-        $statusEmoji = match ($status) {
-            'APPROVED', 'READY' => '✅',
-            'REJECTED', 'CANCELLED' => '❌',
-            'IN_PROGRESS' => '⏳',
-            default => '📋',
-        };
+        // 1. Dispatch via approved Meta Utility template 'application_status' (mr)
+        // Meta template parameters: {{1}}=Name, {{2}}=Service, {{3}}=Status, {{4}}=Application No
+        $components = [
+            [
+                'type' => 'body',
+                'parameters' => [
+                    ['type' => 'text', 'text' => mb_substr($customerName, 0, 60)],
+                    ['type' => 'text', 'text' => mb_substr($serviceName, 0, 60)],
+                    ['type' => 'text', 'text' => mb_substr($status, 0, 40)],
+                    ['type' => 'text', 'text' => mb_substr($appNumber, 0, 40)],
+                ],
+            ],
+        ];
 
-        $msg = "{$statusEmoji} *{$centerName} - अर्ज स्थिती अपडेट*\n\n"
-             . "नमस्कार *{$customer->name}*,\n"
-             . "तुमच्या *{$serviceName}* अर्जाची स्थिती (Status) आता *{$status}* झाली आहे.\n"
-             . "• अर्ज क्र. (SR): *{$application->application_number}*\n";
+        $res = $this->sendTemplate($customer->mobile, 'application_status', 'mr', $components, $application->tenant);
 
-        if (in_array($status, ['APPROVED', 'READY'])) {
-            $msg .= "\n🎉 *तुमचा दाखला/कागदपत्र तयार आहे.* कृपया केंद्रात येऊन मूळ प्रत घेऊन जावी.\n";
-        } elseif ($status === 'REJECTED' && !empty($application->pending_remarks)) {
-            $msg .= "\n⚠️ त्रुटी रिमार्क: {$application->pending_remarks}\n";
+        // Fallback: If template dispatch fails (e.g. template issue), fall back to custom text message
+        if (!$res['success']) {
+            Log::warning("[WhatsApp Status Notification] Template dispatch failed: " . ($res['error'] ?? '') . ". Retrying via custom message.");
+            $centerName = $application->tenant?->name ?? 'Maha E-Seva Kendra';
+            $statusEmoji = match ($status) {
+                'APPROVED', 'READY', 'COMPLETED' => '✅',
+                'REJECTED', 'CANCELLED' => '❌',
+                'IN_PROGRESS' => '⏳',
+                default => '📋',
+            };
+
+            $msg = "{$statusEmoji} *{$centerName} - अर्ज स्थिती अपडेट*\n\n"
+                 . "नमस्कार *{$customerName}*,\n"
+                 . "तुमच्या *{$serviceName}* अर्जाची स्थिती (Status) आता *{$status}* झाली आहे.\n"
+                 . "• अर्ज क्र. (SR): *{$appNumber}*\n";
+
+            if (in_array($status, ['APPROVED', 'READY', 'COMPLETED'])) {
+                $msg .= "\n🎉 *तुमचा दाखला/कागदपत्र तयार आहे.* कृपया केंद्रात येऊन मूळ प्रत घेऊन जावी.\n";
+            } elseif ($status === 'REJECTED' && !empty($application->pending_remarks)) {
+                $msg .= "\n⚠️ त्रुटी रिमार्क: {$application->pending_remarks}\n";
+            }
+
+            $msg .= "\nधन्यवाद!\n_{$centerName}_";
+
+            $res = $this->sendMessage($customer->mobile, $msg, $application->tenant);
         }
-
-        $msg .= "\nधन्यवाद!\n_{$centerName}_";
-
-        $res = $this->sendMessage($customer->mobile, $msg, $application->tenant);
 
         // Record in notification logs
         NotificationLog::create([
@@ -218,7 +259,7 @@ class WhatsAppService
             'channel' => 'WHATSAPP',
             'recipient' => $customer->mobile,
             'title' => "WhatsApp: Status {$status}",
-            'message' => $msg,
+            'message' => "Template: application_status (mr) | Status: {$status}",
             'status' => $res['success'] ? 'SENT' : 'FAILED',
             'provider_response' => json_encode($res),
             'sent_at' => now(),
