@@ -108,10 +108,10 @@ class SettingController extends Controller
             'access_token' => ['nullable', 'string'],
         ]);
 
-        $tenant = $user->tenant;
+        $tenant = $user->tenant ?? Tenant::first();
 
         // If credentials are submitted on the fly from the test form, apply and persist them
-        if (!empty($validated['phone_number_id']) && !empty($validated['access_token'])) {
+        if ($tenant && !empty($validated['phone_number_id']) && !empty($validated['access_token'])) {
             $settings = $tenant->settings_json ?? [];
             $settings['whatsapp_enabled'] = true;
             $settings['whatsapp_phone_number_id'] = trim($validated['phone_number_id']);
