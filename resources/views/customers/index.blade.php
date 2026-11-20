@@ -298,82 +298,258 @@
 
 @if(auth()->user()?->isSoftwareOwner())
 <!-- Broadcast WhatsApp Modal (Software Owner Only) -->
-<div id="broadcastModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; backdrop-filter: blur(3px); align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 620px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: popIn 0.2s ease;">
+<div id="broadcastModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 9999; backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; border-radius: 14px; width: 100%; max-width: 860px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; animation: popIn 0.2s ease; display: flex; flex-direction: column; max-height: 92vh;">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fa-brands fa-whatsapp" style="font-size: 22px;"></i>
+        <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: rgba(255, 255, 255, 0.2); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 24px;"></i>
+                </div>
                 <div>
-                    <h3 style="margin: 0; font-size: 16px; font-weight: 800;">WhatsApp Broadcast Campaign</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 11.5px; opacity: 0.9;">Send bulk festival greetings, offers, or government scheme alerts</p>
+                    <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        WhatsApp Smart Customer Broadcast <span style="font-size: 11px; background: rgba(255, 255, 255, 0.25); padding: 2px 8px; border-radius: 20px; font-weight: 600;">CRM Exclusive</span>
+                    </h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11.5px; opacity: 0.95;">
+                        केवळ Customer CRM मधील पडताळणी केलेल्या ग्राहकांनाच थेट अधिकृत WhatsApp पाठवा
+                    </p>
                 </div>
             </div>
-            <button type="button" onclick="closeBroadcastModal()" style="background: none; border: none; color: #ffffff; font-size: 20px; cursor: pointer; line-height: 1;">&times;</button>
+            <button type="button" onclick="closeBroadcastModal()" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0 4px; opacity: 0.8;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">&times;</button>
         </div>
 
         <!-- Body -->
-        <div style="padding: 20px; max-height: calc(85vh - 130px); overflow-y: auto;">
-            <!-- Audience Selection -->
-            <div style="margin-bottom: 16px;">
-                <label style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Select Target Audience:</label>
-                <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer;">
-                        <input type="radio" name="broadcast_audience" value="all" checked onchange="toggleAudienceOptions()" style="accent-color: #16a34a;">
-                        <strong>All Customers</strong> ({{ $customers->total() }} in Directory)
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer;">
-                        <input type="radio" name="broadcast_audience" value="filtered" onchange="toggleAudienceOptions()" style="accent-color: #16a34a;">
-                        Filter by Occupation
-                    </label>
-                </div>
-                <div id="categoryFilterDiv" style="display: none; margin-top: 8px;">
-                    <select id="broadcast_occupation" class="form-select" style="font-size: 12px;">
-                        <option value="">-- All Occupations --</option>
-                        @foreach($occupations as $occ)
-                            <option value="{{ $occ }}">{{ $occ }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+        <div style="padding: 18px 22px; overflow-y: auto; flex: 1;">
 
-            <!-- Quick Template Presets -->
-            <div style="margin-bottom: 14px;">
-                <label style="font-size: 11.5px; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Quick Message Presets:</label>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-sm" onclick="setPresetMessage('diwali')" style="font-size: 11px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
-                        🪔 सण/उत्सव शुभेच्छा
-                    </button>
-                    <button type="button" class="btn btn-sm" onclick="setPresetMessage('scheme')" style="font-size: 11px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
-                        🏛️ सरकारी योजना / लाडकी बहीण
-                    </button>
-                    <button type="button" class="btn btn-sm" onclick="setPresetMessage('notice')" style="font-size: 11px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;">
-                        📢 महत्त्वाची केंद्र सूचना
-                    </button>
+            <!-- STEP 1: SMART CRM FILTERS -->
+            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 12.5px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-filter" style="color: #16a34a;"></i> १. अचूक ग्राहक फिल्टर (Specific CRM Filters)
+                    </span>
+                    <span style="font-size: 11px; color: #64748b; font-style: italic;">
+                        फिल्टर बदलताच खालील यादी आपोआप अपडेट होते
+                    </span>
                 </div>
-            </div>
 
-            <!-- Message Textarea -->
-            <div style="margin-bottom: 14px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <label style="font-size: 12px; font-weight: 700; color: #334155;">Message Content (Marathi / English):</label>
-                    <div style="display: flex; gap: 4px;">
-                        <span style="font-size: 10.5px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569; cursor: pointer;" onclick="insertTag('{name}')" title="Insert customer name">+ {name}</span>
-                        <span style="font-size: 10.5px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569; cursor: pointer;" onclick="insertTag('{center_name}')" title="Insert center name">+ {center_name}</span>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;">
+                    <!-- Category Filter -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">ग्राहक वर्ग (Category):</label>
+                        <select id="bc_filter_category" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
+                            <option value="">-- All Categories (सर्व वर्ग) --</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Gender Filter (Crucial for Ladki Bahin Scheme!) -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">लिंग (Gender):</label>
+                        <select id="bc_filter_gender" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
+                            <option value="">-- All Genders (सर्व) --</option>
+                            <option value="FEMALE">👩 फक्त महिला (लाडकी बहीण)</option>
+                            <option value="MALE">👨 फक्त पुरुष</option>
+                        </select>
+                    </div>
+
+                    <!-- Occupation Filter -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">व्यवसाय (Occupation):</label>
+                        <select id="bc_filter_occupation" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
+                            <option value="">-- All Occupations (सर्व व्यवसाय) --</option>
+                            @foreach($occupations as $occ)
+                                <option value="{{ $occ }}">{{ $occ }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Star Rating Filter -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">लॉयल्टी रेटिंग (Star):</label>
+                        <select id="bc_filter_star" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
+                            <option value="">-- All Ratings (सर्व) --</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5-Star VIP Only</option>
+                            <option value="4">⭐⭐⭐⭐ 4+ Star Frequent</option>
+                            <option value="3">⭐⭐⭐ 3+ Star Regular</option>
+                        </select>
+                    </div>
+
+                    <!-- Village / City Filter -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">गाव / शहर (City / Village):</label>
+                        <select id="bc_filter_city" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
+                            <option value="">-- All Cities (सर्व गावे) --</option>
+                            @if(isset($cities))
+                                @foreach($cities as $ct)
+                                    <option value="{{ $ct }}">{{ $ct }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
+                    <!-- Quick Search by Name / Mobile -->
+                    <div>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">थेट नाव/नंबर शोधा:</label>
+                        <input type="text" id="bc_filter_search" class="form-control form-control-sm" placeholder="उदा. राहुल किंवा 9822..." oninput="debounceBroadcastPreview()" style="font-size: 12px;">
                     </div>
                 </div>
-                <textarea id="broadcastMessageText" rows="6" class="form-control" style="font-size: 13px; line-height: 1.5; font-family: inherit;" placeholder="Type your WhatsApp message here... You can use {name} for personalized greeting."></textarea>
+            </div>
+
+            <!-- STEP 2: RECIPIENT DIRECTORY & CHERRY-PICK CHECKLIST -->
+            <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12.5px; font-weight: 800; color: #0f172a;">
+                            २. पात्र ग्राहकांची यादी (Recipient Checklist):
+                        </span>
+                        <span style="font-size: 11.5px; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-weight: 800; border: 1px solid #86efac;">
+                            🎯 <span id="bcSelectedCount">0</span> ग्राहक निवडले (एकूण <span id="bcTotalCount">0</span> पैकी)
+                        </span>
+                        <span style="font-size: 11px; color: #64748b;">
+                            खर्च: <strong>₹ <span id="bcEstimatedCost">0.00</span></strong>
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-xs btn-outline-success" onclick="toggleSelectAllBc(true)" style="font-size: 11px; padding: 2px 8px;">
+                            <i class="fa-solid fa-check-double"></i> सर्व निवडा (All)
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary" onclick="toggleSelectAllBc(false)" style="font-size: 11px; padding: 2px 8px;">
+                            <i class="fa-solid fa-xmark"></i> सर्व काढा (Clear)
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-primary" onclick="fetchBroadcastPreview()" style="font-size: 11px; padding: 2px 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scrollable Checklist Table -->
+                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <table class="table table-sm table-hover" style="margin-bottom: 0; font-size: 12px;">
+                        <thead style="background: #f1f5f9; position: sticky; top: 0; z-index: 10;">
+                            <tr>
+                                <th style="width: 36px; text-align: center;">
+                                    <input type="checkbox" id="bcSelectAllCheckbox" onchange="toggleSelectAllBc(this.checked)" checked style="accent-color: #16a34a; cursor: pointer;">
+                                </th>
+                                <th>ग्राहकाचे नाव (Name)</th>
+                                <th>WhatsApp मोबाईल</th>
+                                <th>गाव / शहर</th>
+                                <th>व्यवसाय / वर्ग</th>
+                                <th style="text-align: center;">रेटिंग</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bcCustomerTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 18px; color: #64748b;">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i> CRM मधील ग्राहक लोड होत आहेत...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- STEP 3: MESSAGE MODE & CONTENT -->
+            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;">
+                <span style="font-size: 12.5px; font-weight: 800; color: #1e293b; display: block; margin-bottom: 8px;">
+                    ३. संदेश प्रकार व मजकूर (Message Mode & Content):
+                </span>
+
+                <!-- Mode Selector -->
+                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <label style="flex: 1; min-width: 260px; display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid #16a34a; border-radius: 8px; background: #f0fdf4; cursor: pointer;">
+                        <input type="radio" name="bc_mode" value="template" checked onchange="toggleBcMode('template')" style="margin-top: 3px; accent-color: #16a34a;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 12.5px; color: #166534;">
+                                ✅ Approved Meta Template (१००% हमखास डिलिव्हरी)
+                            </div>
+                            <div style="font-size: 11px; color: #15803d; margin-top: 2px;">
+                                २४ तासांची कसलीही अट नाही! कोणत्याही CRM ग्राहकाला थेट मेसेज पोहोचतो.
+                            </div>
+                        </div>
+                    </label>
+
+                    <label style="flex: 1; min-width: 260px; display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #ffffff; cursor: pointer;">
+                        <input type="radio" name="bc_mode" value="custom" onchange="toggleBcMode('custom')" style="margin-top: 3px; accent-color: #16a34a;">
+                        <div>
+                            <div style="font-weight: 800; font-size: 12.5px; color: #334155;">
+                                ✍️ Custom Text Message (सानुकूल मेसेज)
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                सण शुभेच्छा किंवा थेट मेसेज (फक्त २४ तासांत चॅट केलेल्या ग्राहकांसाठी).
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Template Controls Panel -->
+                <div id="bcTemplateControls">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 3px; display: block;">टेम्पलेट निवडा (Approved Template):</label>
+                            <select id="bc_template_select" class="form-select form-select-sm" onchange="updateBcTemplatePreview()" style="font-size: 12px; font-weight: 700;">
+                                <option value="application_status" selected>मराठी टेम्पलेट ('application_status')</option>
+                                <option value="application_update">इंग्रजी टेम्पलेट ('application_update')</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 3px; display: block;">१. सेवा / योजना / विषय नाव:</label>
+                            <input type="text" id="bc_param_service" class="form-control form-control-sm" value="लाडकी बहीण योजना व सर्व सेवा" oninput="updateBcTemplatePreview()" placeholder="उदा. लाडकी बहीण योजना / पॅन कार्ड..." style="font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 3px; display: block;">२. स्थिती / मुख्य अलर्ट:</label>
+                            <input type="text" id="bc_param_status" class="form-control form-control-sm" value="अर्ज सुरू आहेत" oninput="updateBcTemplatePreview()" placeholder="उदा. अर्ज सुरू आहेत / अंतिम मुदत..." style="font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 3px; display: block;">३. सूचना संदर्भ / क्रमांक:</label>
+                            <input type="text" id="bc_param_app_no" class="form-control form-control-sm" value="MAHA-ALERT" oninput="updateBcTemplatePreview()" placeholder="उदा. MAHA-ALERT किंवा केंद्रात या..." style="font-size: 12px;">
+                        </div>
+                    </div>
+
+                    <!-- Live Template Preview Box -->
+                    <div style="background: #ffffff; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-family: inherit;">
+                        <span style="font-size: 11px; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+                            <i class="fa-solid fa-mobile-screen"></i> ग्राहकाच्या WhatsApp वर मेसेज असा दिसेल (Live Preview):
+                        </span>
+                        <div id="bcTemplateLivePreview" style="font-family: inherit; font-size: 12.5px; line-height: 1.5; color: #0f172a; white-space: pre-wrap; background: #f0fdf4; padding: 8px 12px; border-radius: 6px; border: 1px dashed #86efac;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Text Controls Panel -->
+                <div id="bcCustomControls" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn btn-xs" onclick="setPresetBcMessage('scheme')" style="font-size: 11px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                🏛️ शासकीय योजना अलर्ट
+                            </button>
+                            <button type="button" class="btn btn-xs" onclick="setPresetBcMessage('diwali')" style="font-size: 11px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+                                🪔 सण/उत्सव शुभेच्छा
+                            </button>
+                            <button type="button" class="btn btn-xs" onclick="setPresetBcMessage('notice')" style="font-size: 11px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;">
+                                📢 नवीन सेवा सूचना
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <span style="font-size: 10.5px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #334155; cursor: pointer; font-weight: 600;" onclick="insertBcTag('{name}')" title="Insert customer name">+ {name}</span>
+                            <span style="font-size: 10.5px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #334155; cursor: pointer; font-weight: 600;" onclick="insertBcTag('{center_name}')" title="Insert center name">+ {center_name}</span>
+                        </div>
+                    </div>
+                    <textarea id="bcCustomMessageText" rows="4" class="form-control" style="font-size: 12.5px; line-height: 1.5;" placeholder="तुमचा सानुकूल मेसेज येथे टाईप करा... उदा. नमस्कार {name}, आपल्या केंद्रात नवीन योजना सुरू झाली आहे..."></textarea>
+                </div>
             </div>
 
             <!-- Progress / Status Box -->
-            <div id="broadcastStatusBox" style="display: none; padding: 12px; border-radius: 6px; font-size: 12px; margin-top: 10px;"></div>
+            <div id="broadcastStatusBox" style="display: none; padding: 12px 14px; border-radius: 8px; font-size: 12.5px; margin-top: 10px;"></div>
         </div>
 
         <!-- Footer -->
-        <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-            <button type="button" class="btn btn-secondary" onclick="closeBroadcastModal()">Cancel</button>
-            <button type="button" id="btnExecuteBroadcast" onclick="startBroadcast()" class="btn btn-primary" style="background: #16a34a; border-color: #16a34a; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-paper-plane"></i> <span id="broadcastBtnText">Send Broadcast Now</span>
+        <div style="padding: 14px 22px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeBroadcastModal()">रद्द करा (Cancel)</button>
+            <button type="button" id="btnExecuteBroadcast" onclick="startBroadcast()" class="btn btn-success" style="background: #16a34a; border-color: #16a34a; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; font-size: 13px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);">
+                <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i>
+                <span id="broadcastBtnText">Send Broadcast Now</span>
             </button>
         </div>
     </div>
@@ -406,11 +582,18 @@ function autoFilterCustomers(query) {
 }
 
 // ==========================================
-// BROADCAST WHATSAPP MODAL
+// BROADCAST WHATSAPP SUITE (CRM EXCLUSIVE)
 // ==========================================
+let bcLoadedCustomers = [];
+let bcSearchTimeout = null;
+
 function openBroadcastModal() {
     const m = document.getElementById('broadcastModal');
-    if (m) m.style.display = 'flex';
+    if (m) {
+        m.style.display = 'flex';
+        updateBcTemplatePreview();
+        fetchBroadcastPreview();
+    }
 }
 
 function closeBroadcastModal() {
@@ -418,14 +601,182 @@ function closeBroadcastModal() {
     if (m) m.style.display = 'none';
 }
 
-function toggleAudienceOptions() {
-    const isFiltered = document.querySelector('input[name="broadcast_audience"]:checked').value === 'filtered';
-    const div = document.getElementById('categoryFilterDiv');
-    if (div) div.style.display = isFiltered ? 'block' : 'none';
+function debounceBroadcastPreview() {
+    clearTimeout(bcSearchTimeout);
+    bcSearchTimeout = setTimeout(() => {
+        fetchBroadcastPreview();
+    }, 350);
 }
 
-function insertTag(tag) {
-    const ta = document.getElementById('broadcastMessageText');
+function toggleBcMode(mode) {
+    const tmplDiv = document.getElementById('bcTemplateControls');
+    const customDiv = document.getElementById('bcCustomControls');
+    if (mode === 'template') {
+        if (tmplDiv) tmplDiv.style.display = 'block';
+        if (customDiv) customDiv.style.display = 'none';
+    } else {
+        if (tmplDiv) tmplDiv.style.display = 'none';
+        if (customDiv) customDiv.style.display = 'block';
+        if (!document.getElementById('bcCustomMessageText').value.trim()) {
+            setPresetBcMessage('scheme');
+        }
+    }
+}
+
+function updateBcTemplatePreview() {
+    const tmpl = document.getElementById('bc_template_select')?.value || 'application_status';
+    const srv = document.getElementById('bc_param_service')?.value.trim() || 'शासकीय सेवा व योजना';
+    const st = document.getElementById('bc_param_status')?.value.trim() || 'अर्ज सुरू आहेत';
+    const appNo = document.getElementById('bc_param_app_no')?.value.trim() || 'MAHA-ALERT';
+    const previewEl = document.getElementById('bcTemplateLivePreview');
+
+    if (previewEl) {
+        if (tmpl === 'application_update') {
+            previewEl.textContent = `Hello [Customer Name],\nYour application for ${srv} is now ${st}.\nApplication No. : ${appNo}\nThank you!`;
+        } else {
+            previewEl.textContent = `नमस्कार [ग्राहकाचे नाव],\nतुमच्या ${srv} अर्जाची स्थिती आता ${st} झाली आहे.\nअर्ज क्र. : ${appNo}\nधन्यवाद!`;
+        }
+    }
+}
+
+function fetchBroadcastPreview() {
+    const tbody = document.getElementById('bcCustomerTableBody');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 16px; color: #64748b;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> CRM मधील ग्राहक फिल्टर होत आहेत...
+                </td>
+            </tr>
+        `;
+    }
+
+    const payload = {
+        category_id: document.getElementById('bc_filter_category')?.value || '',
+        gender: document.getElementById('bc_filter_gender')?.value || '',
+        occupation: document.getElementById('bc_filter_occupation')?.value || '',
+        min_star: document.getElementById('bc_filter_star')?.value || '',
+        city: document.getElementById('bc_filter_city')?.value || '',
+        search: document.getElementById('bc_filter_search')?.value || '',
+    };
+
+    fetch('{{ route("customers.broadcast_preview") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            bcLoadedCustomers = res.customers || [];
+            renderBcCustomerList(bcLoadedCustomers, res.total_count, res.estimated_cost);
+        } else {
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626; padding: 14px;">${res.error || 'ग्राहकांची यादी आणता आली नाही.'}</td></tr>`;
+            }
+        }
+    })
+    .catch(err => {
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626; padding: 14px;">Server Error: ${err.message}</td></tr>`;
+        }
+    });
+}
+
+function renderBcCustomerList(customers, totalCount, cost) {
+    const tbody = document.getElementById('bcCustomerTableBody');
+    const totalEl = document.getElementById('bcTotalCount');
+    const selectedEl = document.getElementById('bcSelectedCount');
+    const costEl = document.getElementById('bcEstimatedCost');
+    const btnText = document.getElementById('broadcastBtnText');
+
+    if (totalEl) totalEl.textContent = totalCount;
+    if (costEl) costEl.textContent = cost;
+
+    if (!customers || customers.length === 0) {
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 18px; color: #94a3b8; font-style: italic;">
+                        ⚠️ निवडलेल्या फिल्टरनुसार CRM मध्ये कोणताही सक्रिय ग्राहक सापडला नाही. कृपया फिल्टर बदला.
+                    </td>
+                </tr>
+            `;
+        }
+        if (selectedEl) selectedEl.textContent = 0;
+        if (btnText) btnText.textContent = 'Send Broadcast (0 Customers)';
+        return;
+    }
+
+    let rowsHtml = '';
+    customers.forEach(c => {
+        let stars = '';
+        for (let i = 0; i < (c.star_rating || 5); i++) {
+            stars += '⭐';
+        }
+        rowsHtml += `
+            <tr style="cursor: pointer;" onclick="toggleBcCustomerRow(event, ${c.id})">
+                <td style="text-align: center;" onclick="event.stopPropagation()">
+                    <input type="checkbox" value="${c.id}" class="bc-cust-checkbox" checked onchange="updateBcSelectedCount()" style="accent-color: #16a34a; cursor: pointer;">
+                </td>
+                <td style="font-weight: 700; color: #1e293b;">
+                    ${c.name}
+                </td>
+                <td style="font-family: var(--font-mono); color: #166534; font-weight: 600;">
+                    <i class="fa-brands fa-whatsapp"></i> ${c.mobile}
+                </td>
+                <td style="color: #475569;">
+                    ${c.city}
+                </td>
+                <td style="color: #475569;">
+                    <span style="font-size: 11px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">${c.category}</span>
+                    <span style="font-size: 11px; color: #64748b;">${c.occupation}</span>
+                </td>
+                <td style="text-align: center; font-size: 11px;">
+                    ${stars}
+                </td>
+            </tr>
+        `;
+    });
+
+    if (tbody) tbody.innerHTML = rowsHtml;
+    updateBcSelectedCount();
+}
+
+function toggleBcCustomerRow(e, id) {
+    const cb = document.querySelector(`.bc-cust-checkbox[value="${id}"]`);
+    if (cb && e.target !== cb) {
+        cb.checked = !cb.checked;
+        updateBcSelectedCount();
+    }
+}
+
+function toggleSelectAllBc(select) {
+    const cbs = document.querySelectorAll('.bc-cust-checkbox');
+    cbs.forEach(cb => cb.checked = select);
+    const mainCb = document.getElementById('bcSelectAllCheckbox');
+    if (mainCb) mainCb.checked = select;
+    updateBcSelectedCount();
+}
+
+function updateBcSelectedCount() {
+    const checked = document.querySelectorAll('.bc-cust-checkbox:checked');
+    const count = checked.length;
+    const selectedEl = document.getElementById('bcSelectedCount');
+    const costEl = document.getElementById('bcEstimatedCost');
+    const btnText = document.getElementById('broadcastBtnText');
+
+    if (selectedEl) selectedEl.textContent = count;
+    if (costEl) costEl.textContent = (count * 0.12).toFixed(2);
+    if (btnText) btnText.textContent = `Send Broadcast to ${count} CRM Customers`;
+}
+
+function insertBcTag(tag) {
+    const ta = document.getElementById('bcCustomMessageText');
     if (!ta) return;
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
@@ -435,53 +786,76 @@ function insertTag(tag) {
     ta.selectionStart = ta.selectionEnd = start + tag.length;
 }
 
-function setPresetMessage(type) {
-    const ta = document.getElementById('broadcastMessageText');
+function setPresetBcMessage(type) {
+    const ta = document.getElementById('bcCustomMessageText');
     if (!ta) return;
 
-    if (type === 'diwali') {
-        ta.value = "🪔 *सस्नेह नमस्कार {name},*\n\n"
-                 + "दिवाळीच्या व नवीन वर्षाच्या आपणास व आपल्या परिवारास महा ई-सेवा केंद्रामार्फत मनःपूर्वक हार्दिक शुभेच्छा!\n\n"
-                 + "आपल्या केंद्रावर सर्व शासकीय दाखले, पॅन कार्ड, आधार कामे नियमितपणे सुरू आहेत.\n\n"
-                 + "धन्यवाद!\n"
-                 + "_{center_name}_";
-    } else if (type === 'scheme') {
-        ta.value = "📢 *महत्त्वाची सूचना - {name}*\n\n"
-                 + "शासकीय योजनांचे अर्ज (मुख्यमंत्री लाडकी बहीण योजना / रेशन कार्ड ई-केवायसी / शेतकरी सन्मान निधी) भरण्याची प्रक्रिया आपल्या केंद्रात सुरू झाली आहे.\n\n"
-                 + "लागणारी कागदपत्रे घेऊन केंद्रावर त्वरित संपर्क साधावा.\n\n"
+    if (type === 'scheme') {
+        ta.value = "🏛️ *शासकीय योजना महत्त्वाची सूचना - {name}*\n\n"
+                 + "आपल्या महा ई-सेवा केंद्रात नवीन शासकीय योजनांचे अर्ज (मुख्यमंत्री लाडकी बहीण योजना / शेतकरी सन्मान निधी / नवीन रेशन कार्ड ई-केवायसी) भरण्याची प्रक्रिया चालू आहे.\n\n"
+                 + "कृपया लागणारी कागदपत्रे घेऊन आपल्या केंद्रावर संपर्क साधावा.\n\n"
                  + "केंद्राचे नाव: *{center_name}*";
+    } else if (type === 'diwali') {
+        ta.value = "🪔 *सस्नेह नमस्कार {name},*\n\n"
+                 + "दिवाळी व नवीन वर्षाच्या आपणास व आपल्या परिवारास महा ई-सेवा केंद्रामार्फत मनःपूर्वक हार्दिक शुभेच्छा!\n\n"
+                 + "आपल्या केंद्रावर सर्व शासकीय दाखले, पॅन कार्ड व आधार कामे नियमित वेळेत सुरू आहेत.\n\n"
+                 + "धन्यवाद!\n_{center_name}_";
     } else if (type === 'notice') {
-        ta.value = "📋 *महा ई-सेवा केंद्र सूचना - {name}*\n\n"
-                 + "आपल्या केंद्रावर आता नवीन सेवा (पासपोर्ट अर्ज, मतदान कार्ड दुरुस्ती, इन्कम टॅक्स रिटर्न) उपलब्ध करून देण्यात आल्या आहेत.\n\n"
-                 + "अधिक माहितीसाठी केंद्रास भेट द्या.\n"
-                 + "_{center_name}_";
+        ta.value = "📋 *महा ई-सेवा केंद्र विशेष सूचना - {name}*\n\n"
+                 + "आपल्या केंद्रावर आता नवीन सेवा (पासपोर्ट अर्ज, मतदान कार्ड दुरुस्ती व डिजिटल सातबारा) उपलब्ध आहेत.\n\n"
+                 + "अधिक माहितीसाठी केंद्रास भेट द्या.\n_{center_name}_";
     }
 }
 
 function startBroadcast() {
-    const msg = document.getElementById('broadcastMessageText').value.trim();
-    const audience = document.querySelector('input[name="broadcast_audience"]:checked').value;
-    const occupation = document.getElementById('broadcast_occupation') ? document.getElementById('broadcast_occupation').value : '';
+    const checked = document.querySelectorAll('.bc-cust-checkbox:checked');
+    const customerIds = Array.from(checked).map(cb => parseInt(cb.value)).filter(id => !isNaN(id));
+
+    if (customerIds.length === 0) {
+        alert('कृपया ब्रॉडकास्ट करण्यासाठी यादीतील किमान एक ग्राहक निवडा!');
+        return;
+    }
+
+    const mode = document.querySelector('input[name="bc_mode"]:checked')?.value || 'template';
     const statusBox = document.getElementById('broadcastStatusBox');
     const btn = document.getElementById('btnExecuteBroadcast');
     const btnText = document.getElementById('broadcastBtnText');
 
-    if (!msg) {
-        alert('Please enter a message to broadcast.');
-        return;
+    let payload = {
+        mode: mode,
+        customer_ids: customerIds,
+    };
+
+    if (mode === 'template') {
+        payload.template_name = document.getElementById('bc_template_select')?.value || 'application_status';
+        payload.param_service = document.getElementById('bc_param_service')?.value.trim() || 'शासकीय सेवा व योजना';
+        payload.param_status = document.getElementById('bc_param_status')?.value.trim() || 'अर्ज सुरू आहेत';
+        payload.param_app_no = document.getElementById('bc_param_app_no')?.value.trim() || 'MAHA-ALERT';
+    } else {
+        const customMsg = document.getElementById('bcCustomMessageText')?.value.trim();
+        if (!customMsg) {
+            alert('कृपया सानुकूल मेसेज मजकूर टाईप करा.');
+            return;
+        }
+        payload.message = customMsg;
     }
 
-    if (!confirm('Are you sure you want to broadcast this WhatsApp message to customers?')) {
+    if (!confirm(`तुम्ही निवडलेल्या ${customerIds.length} CRM ग्राहकांना थेट WhatsApp मेसेज पाठवणार आहात.\n\nखात्री आहे का? सुरु करायचे?`)) {
         return;
     }
 
     btn.disabled = true;
-    btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Broadcasting...';
+    btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ब्रॉडकास्टिंग सुरू आहे...';
     statusBox.style.display = 'block';
     statusBox.style.background = '#e0f2fe';
-    statusBox.style.border = '1px solid #bae6fd';
+    statusBox.style.border = '1.5px solid #bae6fd';
     statusBox.style.color = '#0369a1';
-    statusBox.innerHTML = '<i class="fa-solid fa-paper-plane fa-bounce"></i> Broadcasting message in background via Meta WhatsApp Cloud API... Please wait.';
+    statusBox.innerHTML = `
+        <div style="font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-paper-plane fa-bounce"></i>
+            <span>Meta WhatsApp Cloud API द्वारे ${customerIds.length} ग्राहकांना संदेश पाठवले जात आहेत... कृपया थांबा.</span>
+        </div>
+    `;
 
     fetch('{{ route("customers.broadcast_whatsapp") }}', {
         method: 'POST',
@@ -490,44 +864,47 @@ function startBroadcast() {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Accept': 'application/json'
         },
-        body: JSON.stringify({
-            message: msg,
-            audience: audience,
-            occupation: occupation
-        })
+        body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(r => r.json())
     .then(res => {
         btn.disabled = false;
-        btnText.innerHTML = 'Send Broadcast Now';
+        btnText.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Send Broadcast to ${customerIds.length} CRM Customers`;
 
         if (res.success && res.sent_count > 0) {
             statusBox.style.background = '#dcfce7';
             statusBox.style.border = '1.5px solid #86efac';
             statusBox.style.color = '#15803d';
             statusBox.innerHTML = `
-                <div style="font-weight: 800; font-size: 13px;"><i class="fa-solid fa-circle-check"></i> ${res.message}</div>
-                <div style="margin-top: 3px; font-size: 11.5px;">Total Processed: <strong>${res.total}</strong> | Successfully Delivered: <strong>${res.sent_count}</strong></div>
+                <div style="font-weight: 800; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-check"></i> ${res.message}
+                </div>
+                <div style="margin-top: 5px; font-size: 12px;">
+                    एकूण निवडलेले: <strong>${res.total}</strong> | यशस्वीरीत्या पाठवले: <strong>${res.sent_count}</strong> | अयशस्वी: <strong>${res.failed_count}</strong>
+                </div>
             `;
         } else {
             statusBox.style.background = '#fee2e2';
             statusBox.style.border = '1.5px solid #fca5a5';
             statusBox.style.color = '#991b1b';
-            let errHtml = `<div style="font-weight: 800; font-size: 13px;"><i class="fa-solid fa-triangle-exclamation"></i> ${res.message || 'Broadcast Failed'}</div>`;
+            let errHtml = `
+                <div style="font-weight: 800; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ${res.message || 'ब्रॉडकास्ट पाठवण्यात अडचण आली.'}
+                </div>
+            `;
             if (res.errors && res.errors.length) {
                 errHtml += `<ul style="margin: 6px 0 0 16px; padding: 0; font-size: 11.5px; font-family: var(--font-mono);">`;
                 res.errors.forEach(e => errHtml += `<li>${e}</li>`);
                 errHtml += `</ul>`;
             } else if (res.error) {
-                errHtml += `<div style="margin-top: 4px; font-size: 11.5px;">${res.error}</div>`;
+                errHtml += `<div style="margin-top: 4px; font-size: 12px;">${res.error}</div>`;
             }
-            errHtml += `<div style="font-size: 11px; margin-top: 6px; color: #7f1d1d;">💡 <em>टीप: Meta चा Test Number फक्त Developer पोर्टलवर OTP ने verify केलेल्या नंबरवरच मेसेज पाठवू शकतो. इतर कोणत्याही नवीन नंबरसाठी किंवा साध्या टेक्स्टसाठी Meta कडून 24-hr विंडो किंवा Template आवश्यक असते.</em></div>`;
             statusBox.innerHTML = errHtml;
         }
     })
     .catch(err => {
         btn.disabled = false;
-        btnText.innerHTML = 'Send Broadcast Now';
+        btnText.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Send Broadcast to ${customerIds.length} CRM Customers`;
         statusBox.style.background = '#fee2e2';
         statusBox.style.border = '1.5px solid #fca5a5';
         statusBox.style.color = '#991b1b';

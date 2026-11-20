@@ -205,6 +205,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // WhatsApp Background Direct Actions
     Route::post('/applications/{application}/send-whatsapp', [ApplicationController::class, 'sendWhatsAppStatus'])->name('applications.send_whatsapp');
+    Route::post('/customers/broadcast-preview', [CustomerController::class, 'previewBroadcast'])->name('customers.broadcast_preview');
     Route::post('/customers/broadcast-whatsapp', [CustomerController::class, 'broadcastWhatsApp'])->name('customers.broadcast_whatsapp');
 
     // Organization & Branch Settings

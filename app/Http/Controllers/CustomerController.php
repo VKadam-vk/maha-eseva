@@ -99,7 +99,16 @@ class CustomerController extends Controller
         }
         $branches = $branchesQuery->get() ?? collect();
 
-        return view('customers.index', compact('customers', 'categories', 'branches', 'occupations'));
+        $cities = Customer::where('tenant_id', $tenantId)
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->pluck('city')
+            ->filter()
+            ->sort()
+            ->values();
+
+        return view('customers.index', compact('customers', 'categories', 'branches', 'occupations', 'cities'));
     }
 
     /**
@@ -379,6 +388,91 @@ class CustomerController extends Controller
     }
 
     /**
+     * Preview matching customers for broadcast with dynamic filters (Software Owner only).
+     */
+    public function previewBroadcast(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isSoftwareOwner()) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized: Only Software Owner can preview broadcast.'], 403);
+        }
+
+        $tenant = $user->tenant ?? \App\Models\Tenant::first();
+        if (!$tenant) {
+            return response()->json(['success' => false, 'error' => 'Tenant not found.'], 404);
+        }
+
+        $query = Customer::where('tenant_id', $tenant->id)
+            ->where('is_blacklisted', false)
+            ->whereNotNull('mobile')
+            ->where('mobile', '!=', '');
+
+        // 1. Occupation filter
+        if ($request->filled('occupation')) {
+            $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
+        }
+
+        // 2. Category filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // 3. Gender filter
+        if ($request->filled('gender') && in_array($request->gender, ['MALE', 'FEMALE', 'OTHER'])) {
+            $query->where('gender', $request->gender);
+        }
+
+        // 4. Star Rating filter
+        if ($request->filled('min_star') && is_numeric($request->min_star) && (int) $request->min_star > 0) {
+            $query->where('star_rating', '>=', (int) $request->min_star);
+        }
+
+        // 5. City / Village filter
+        if ($request->filled('city')) {
+            $query->where('city', 'like', '%' . trim($request->city) . '%');
+        }
+
+        // 6. Branch filter
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        // 7. Search keyword
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('mobile', 'like', "%{$search}%");
+            });
+        }
+
+        $totalCount = (clone $query)->count();
+        $customers = $query->with('category:id,name')
+            ->select('id', 'name', 'mobile', 'city', 'occupation', 'star_rating', 'gender', 'category_id')
+            ->orderBy('name')
+            ->limit(250)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'total_count' => $totalCount,
+            'customers' => $customers->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'mobile' => $c->mobile,
+                    'city' => $c->city ?: '—',
+                    'occupation' => $c->occupation ?: '—',
+                    'star_rating' => $c->star_rating ?? 5,
+                    'gender' => $c->gender ?: '—',
+                    'category' => $c->category?->name ?: 'Regular',
+                ];
+            }),
+            'estimated_cost' => round($totalCount * 0.12, 2),
+        ]);
+    }
+
+    /**
      * Broadcast WhatsApp message to customers (Software Owner only).
      */
     public function broadcastWhatsApp(Request $request, WhatsAppService $whatsAppService): JsonResponse
@@ -389,14 +483,17 @@ class CustomerController extends Controller
         }
 
         $request->validate([
-            'message' => ['required', 'string', 'max:2000'],
-            'audience' => ['required', 'in:all,filtered,selected'],
-            'customer_ids' => ['nullable', 'array'],
+            'mode' => ['required', 'in:template,custom'],
+            'message' => ['nullable', 'string', 'max:2000'],
+            'template_name' => ['nullable', 'string'],
+            'param_service' => ['nullable', 'string', 'max:100'],
+            'param_status' => ['nullable', 'string', 'max:50'],
+            'param_app_no' => ['nullable', 'string', 'max:50'],
+            'customer_ids' => ['required', 'array', 'min:1'],
             'customer_ids.*' => ['integer'],
-            'category_id' => ['nullable', 'integer'],
         ]);
 
-        $tenant = $user->tenant;
+        $tenant = $user->tenant ?? \App\Models\Tenant::first();
         $settings = $tenant?->settings_json ?? [];
         if (empty($settings['whatsapp_enabled']) || !WhatsAppService::isConfigured($tenant)) {
             return response()->json([
@@ -405,24 +502,25 @@ class CustomerController extends Controller
             ], 422);
         }
 
-        $query = Customer::where('tenant_id', $tenant->id)->whereNotNull('mobile')->where('mobile', '!=', '');
+        // Strictly target ONLY valid CRM customers belonging to this tenant, not blacklisted
+        $customers = Customer::where('tenant_id', $tenant->id)
+            ->where('is_blacklisted', false)
+            ->whereIn('id', $request->customer_ids)
+            ->whereNotNull('mobile')
+            ->where('mobile', '!=', '')
+            ->get(['id', 'name', 'mobile']);
 
-        if ($request->audience === 'selected' && !empty($request->customer_ids)) {
-            $query->whereIn('id', $request->customer_ids);
-        } elseif ($request->audience === 'filtered') {
-            if ($request->filled('occupation')) {
-                $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
-            } elseif ($request->filled('category_id')) {
-                $query->where('category_id', $request->category_id);
-            }
-        }
-
-        $customers = $query->get(['id', 'name', 'mobile']);
         if ($customers->isEmpty()) {
-            return response()->json(['success' => false, 'error' => 'No customers found matching the selected criteria.'], 422);
+            return response()->json(['success' => false, 'error' => 'No valid customers found in CRM for the selected IDs.'], 422);
         }
 
-        $rawMessage = $request->input('message');
+        $mode = $request->input('mode', 'template');
+        $rawMessage = $request->input('message', '');
+        $templateName = $request->input('template_name', 'application_status');
+        $paramService = trim($request->input('param_service', 'शासकीय सेवा व योजना')) ?: 'शासकीय सेवा व योजना';
+        $paramStatus = trim($request->input('param_status', 'AVAILABLE')) ?: 'AVAILABLE';
+        $paramAppNo = trim($request->input('param_app_no', 'MAHA-ALERT')) ?: 'MAHA-ALERT';
+
         $centerName = $tenant->name ?? 'Maha E-Seva Kendra';
         $centerPhone = $tenant->contact_mobile ?? '';
 
@@ -431,13 +529,46 @@ class CustomerController extends Controller
         $errors = [];
 
         foreach ($customers as $customer) {
-            $personalized = str_replace(
-                ['{name}', '{customer_name}', '{center_name}', '{center_mobile}'],
-                [$customer->name, $customer->name, $centerName, $centerPhone],
-                $rawMessage
-            );
+            if ($mode === 'template') {
+                if ($templateName === 'application_update') {
+                    $components = [
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                ['type' => 'text', 'text' => mb_substr($customer->name, 0, 60)],
+                                ['type' => 'text', 'text' => mb_substr($paramService, 0, 60)],
+                                ['type' => 'text', 'text' => mb_substr($paramStatus, 0, 40)],
+                                ['type' => 'text', 'text' => mb_substr($paramAppNo, 0, 40)],
+                            ],
+                        ],
+                    ];
+                    $res = $whatsAppService->sendTemplate($customer->mobile, 'application_update', 'en_US', $components, $tenant);
+                } else {
+                    // Default to approved Marathi template: application_status (mr)
+                    $components = [
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                ['type' => 'text', 'text' => mb_substr($customer->name, 0, 60)],
+                                ['type' => 'text', 'text' => mb_substr($paramService, 0, 60)],
+                                ['type' => 'text', 'text' => mb_substr($paramStatus, 0, 40)],
+                                ['type' => 'text', 'text' => mb_substr($paramAppNo, 0, 40)],
+                            ],
+                        ],
+                    ];
+                    $res = $whatsAppService->sendTemplate($customer->mobile, 'application_status', 'mr', $components, $tenant);
+                }
+                $loggedMessage = "Template: {$templateName} | Service: {$paramService} | Status: {$paramStatus}";
+            } else {
+                $personalized = str_replace(
+                    ['{name}', '{customer_name}', '{center_name}', '{center_mobile}'],
+                    [$customer->name, $customer->name, $centerName, $centerPhone],
+                    $rawMessage
+                );
+                $res = $whatsAppService->sendMessage($customer->mobile, $personalized, $tenant);
+                $loggedMessage = $personalized;
+            }
 
-            $res = $whatsAppService->sendMessage($customer->mobile, $personalized, $tenant);
             if ($res['success']) {
                 $sentCount++;
                 NotificationLog::create([
@@ -446,16 +577,19 @@ class CustomerController extends Controller
                     'type' => 'BROADCAST',
                     'channel' => 'WHATSAPP',
                     'recipient' => $customer->mobile,
-                    'title' => 'Broadcast Campaign',
-                    'message' => $personalized,
+                    'title' => 'WhatsApp Broadcast',
+                    'message' => $loggedMessage,
                     'status' => 'SENT',
                     'provider_response' => json_encode($res),
                     'sent_at' => now(),
                 ]);
             } else {
                 $failedCount++;
-                $errors[] = "{$customer->name} ({$customer->mobile}): " . ($res['error'] ?? 'Unknown error');
+                $errors[] = "{$customer->name} ({$customer->mobile}): " . ($res['error'] ?? 'Delivery failed');
             }
+
+            // Small delay (50ms) to ensure smooth outbound rate
+            usleep(50000);
         }
 
         return response()->json([
@@ -464,8 +598,8 @@ class CustomerController extends Controller
             'failed_count' => $failedCount,
             'total' => $customers->count(),
             'message' => $sentCount > 0
-                ? "Broadcast completed: {$sentCount} sent successfully" . ($failedCount > 0 ? ", {$failedCount} failed." : ".")
-                : "Broadcast failed: 0 sent, {$failedCount} failed.",
+                ? "ब्रॉडकास्ट पूर्ण! एकूण {$sentCount} CRM ग्राहकांना WhatsApp मेसेज पाठवण्यात आले" . ($failedCount > 0 ? " ({$failedCount} अयशस्वी)." : ".")
+                : "ब्रॉडकास्ट अयशस्वी: ० मेसेज पाठवले, {$failedCount} अयशस्वी.",
             'errors' => array_slice($errors, 0, 5),
             'error' => !empty($errors) ? implode('; ', array_slice($errors, 0, 2)) : null,
         ]);
