@@ -98,7 +98,7 @@
         <p class="page-subtitle">Search, manage and create customer profiles with duplicate protection</p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        @if(auth()->user()?->isSoftwareOwner())
+        @if(auth()->user()?->isSoftwareOwner() && !auth()->user()?->isBranchAdmin() && empty(auth()->user()?->branch_id))
             <button type="button" class="btn" onclick="openBroadcastModal()" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35); display: inline-flex; align-items: center; gap: 7px;">
                 <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> Broadcast Message
             </button>
@@ -296,7 +296,7 @@
     @endif
 </div>
 
-@if(auth()->user()?->isSoftwareOwner())
+@if(auth()->user()?->isSoftwareOwner() && !auth()->user()?->isBranchAdmin() && empty(auth()->user()?->branch_id))
 <!-- Broadcast WhatsApp Modal (Software Owner Only) -->
 <div id="broadcastModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 9999; backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px;">
     <div style="background: #ffffff; border-radius: 14px; width: 100%; max-width: 860px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; animation: popIn 0.2s ease; display: flex; flex-direction: column; max-height: 92vh;">

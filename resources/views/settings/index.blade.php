@@ -69,7 +69,7 @@
             </div>
 
             <!-- WhatsApp Cloud API Configuration (Software Owner Only) -->
-            @if(Auth::user()->isSoftwareOwner())
+            @if(Auth::user()->isSoftwareOwner() && !Auth::user()->isBranchAdmin() && empty(Auth::user()->branch_id))
             <div style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: var(--radius-md); padding: 20px; margin: 24px 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div>

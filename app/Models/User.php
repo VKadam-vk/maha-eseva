@@ -93,29 +93,33 @@ class User extends Authenticatable
      */
     public function isSoftwareOwner(): bool
     {
-        // 1. Branch Admins, Employees, and Customers are NEVER Software Owners
-        if ($this->isBranchAdmin() || $this->isEmployee() || $this->isCustomer()) {
+        // 1. Branch Admin is NEVER a Software Owner under any circumstances
+        if ($this->isBranchAdmin() || $this->hasRole('BRANCH_ADMIN') || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'BRANCH')) {
             return false;
         }
 
-        // 2. Platform Super Admin is always Software Owner
+        // 2. Employees, Operators, and Customers are NEVER Software Owners
+        if ($this->isEmployee() || $this->isCustomer() || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'EMPLOYEE') || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'OPERATOR')) {
+            return false;
+        }
+
+        // 3. Platform Super Admin is always Software Owner
         if ($this->isSuperAdmin()) {
             return true;
         }
 
-        // 3. Primary platform / business owner accounts
+        // 4. Primary platform / business owner accounts only
         $ownerEmails = [
             'superadmin@mahaeseva.gov.in',
             'admin@mahaeseva.com',
-            'vinod@mahaeseva.com',
         ];
 
         if (in_array(strtolower($this->email ?? ''), $ownerEmails)) {
             return true;
         }
 
-        // 4. Tenant Head Business Owner
-        if ($this->isBusinessOwner()) {
+        // 5. Head Business Owner role (must NOT be assigned to any branch)
+        if ($this->isBusinessOwner() && empty($this->branch_id)) {
             return true;
         }
 

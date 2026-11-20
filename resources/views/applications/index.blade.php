@@ -945,7 +945,7 @@
                                            title="Open customer profile">
                                             {{ $cust->name }}
                                         </a>
-                                        @if(Auth::user()->isSoftwareOwner() && $cust->mobile)
+                                        @if(Auth::user()->isSoftwareOwner() && !Auth::user()->isBranchAdmin() && empty(Auth::user()->branch_id) && $cust?->mobile)
                                             <button type="button" onclick="sendDirectWhatsApp({{ $app->id }}, event)"
                                                style="background: none; border: none; color: #16a34a; font-size: 14px; cursor: pointer; padding: 0; line-height: 1;" title="Send 1-Click WhatsApp Status (Silent API, No popup)">
                                                 <i class="fa-brands fa-whatsapp"></i>
@@ -1208,7 +1208,7 @@
                                         @endforeach
                                         <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
                                     </select>
-                                    @if(Auth::user()->isSoftwareOwner() && $cust?->mobile)
+                                    @if(Auth::user()->isSoftwareOwner() && !Auth::user()->isBranchAdmin() && empty(Auth::user()->branch_id) && $cust?->mobile)
                                         <button type="button" class="btn-cell-wa"
                                                 onclick="sendDirectWhatsApp({{ $app->id }}, event)"
                                                 style="background: #dcfce7; border: 1.5px solid #86efac; color: #16a34a; width: 25px; height: 25px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; transition: all 0.15s ease;"
