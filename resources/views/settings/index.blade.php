@@ -127,10 +127,10 @@
                         <div style="width: 220px;">
                             <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Message Type:</label>
                             <select id="wa_test_type" class="form-select" style="font-size: 12.5px;">
-                                <option value="app_status" selected>Approved Marathi Template ('application_status')</option>
+                                <option value="app_status" selected>✅ Approved Marathi Template ('application_status')</option>
                                 <option value="app_update">Approved English Template ('application_update')</option>
-                                <option value="text">Custom Text Message (Maha E-Seva Alert)</option>
-                                <option value="hello_world">Meta Test Template ('hello_world')</option>
+                                <option value="text">Custom Text (Only if customer messaged in last 24h)</option>
+                                <option value="hello_world" disabled>Meta 'hello_world' (Sandbox Test Numbers Only)</option>
                             </select>
                         </div>
                         <div>
