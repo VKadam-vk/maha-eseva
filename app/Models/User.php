@@ -118,8 +118,8 @@ class User extends Authenticatable
             return true;
         }
 
-        // 5. Head Business Owner role (must NOT be assigned to any branch)
-        if ($this->isBusinessOwner() && empty($this->branch_id)) {
+        // 5. Head Business Owner role (Ajit Deshmukh / Business Owner)
+        if ($this->isBusinessOwner() || $this->hasRole('BUSINESS_OWNER') || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'OWNER')) {
             return true;
         }
 
