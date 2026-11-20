@@ -128,6 +128,7 @@
                             <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Message Type:</label>
                             <select id="wa_test_type" class="form-select" style="font-size: 12.5px;">
                                 <option value="app_status" selected>Approved Marathi Template ('application_status')</option>
+                                <option value="app_update">Approved English Template ('application_update')</option>
                                 <option value="text">Custom Text Message (Maha E-Seva Alert)</option>
                                 <option value="hello_world">Meta Test Template ('hello_world')</option>
                             </select>
@@ -337,11 +338,23 @@ function runWhatsAppTest() {
         resultBox.style.display = 'block';
 
                 let templateDetailHtml = '';
-        if (res.meta_template || res.body_text) {
+        if (res.meta_template || res.body_text || res.phone_info) {
             const tmpl = res.meta_template || {};
+            const phone = res.phone_info || {};
+            const waba = res.waba_info || {};
             templateDetailHtml = `
                 <div style="margin-top: 8px; padding: 8px 10px; background: rgba(0, 0, 0, 0.05); border-radius: 6px; font-size: 11.5px;">
-                    <div><strong>Meta WABA ID:</strong> <code>${res.waba_id || 'N/A'}</code> &bull; <strong>Template:</strong> <code>${tmpl.name || 'application_status'}</code> &bull; <strong>Lang:</strong> <code>${res.used_language_code || 'mr'}</code> &bull; <strong>Params:</strong> ${res.param_count || 4}</div>
+                    <div>
+                        <strong>Meta Sender:</strong> <code>${phone.display_phone_number || 'N/A'} (${phone.verified_name || 'N/A'})</code> &bull;
+                        <strong>Quality:</strong> <span style="color: #16a34a; font-weight: 700;">${phone.quality_rating || 'HIGH'}</span> &bull;
+                        <strong>WABA Currency:</strong> <code>${waba.currency || 'INR'}</code>
+                    </div>
+                    <div style="margin-top: 4px;">
+                        <strong>WABA ID:</strong> <code>${res.waba_id || 'N/A'}</code> &bull;
+                        <strong>Template:</strong> <code>${res.target_template || tmpl.name || 'application_status'}</code> &bull;
+                        <strong>Lang:</strong> <code>${res.used_language_code || 'mr'}</code> &bull;
+                        <strong>Params:</strong> ${res.param_count || 4}
+                    </div>
                     ${res.body_text ? `<div style="margin-top: 4px; font-family: monospace; white-space: pre-wrap; background: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; color: #1e293b;">${res.body_text}</div>` : ''}
                 </div>
             `;

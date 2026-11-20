@@ -103,7 +103,7 @@ class SettingController extends Controller
 
         $validated = $request->validate([
             'recipient' => ['required', 'string'],
-            'type' => ['nullable', 'in:template,text,hello_world,app_status'],
+            'type' => ['nullable', 'in:template,text,hello_world,app_status,app_update'],
             'phone_number_id' => ['nullable', 'string'],
             'access_token' => ['nullable', 'string'],
         ]);
@@ -135,22 +135,36 @@ class SettingController extends Controller
             $phoneId = trim($validated['phone_number_id'] ?: ($tenant->settings_json['whatsapp_phone_number_id'] ?? ''));
             $token = trim($validated['access_token'] ?: ($tenant->settings_json['whatsapp_access_token'] ?? ''));
 
+            $targetTemplateName = ($type === 'app_update') ? 'application_update' : 'application_status';
+            $defaultLang = ($type === 'app_update') ? 'en_US' : 'mr';
+
             $templateObj = null;
             $wabaId = null;
-            $langCode = 'mr';
+            $langCode = $defaultLang;
+            $phoneInfo = null;
+            $wabaInfo = null;
 
             // Query WABA ID and live template definition directly from Meta Graph API
             if ($phoneId && $token) {
                 try {
-                    $phoneResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$phoneId}?fields=whatsapp_business_account");
-                    $wabaId = $phoneResp->json('whatsapp_business_account.id');
+                    $phoneResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$phoneId}?fields=id,display_phone_number,verified_name,quality_rating,status,whatsapp_business_account");
+                    $phoneData = $phoneResp->json();
+                    $phoneInfo = [
+                        'display_phone_number' => $phoneData['display_phone_number'] ?? null,
+                        'verified_name' => $phoneData['verified_name'] ?? null,
+                        'quality_rating' => $phoneData['quality_rating'] ?? null,
+                        'status' => $phoneData['status'] ?? null,
+                    ];
+                    $wabaId = $phoneData['whatsapp_business_account']['id'] ?? null;
 
                     if ($wabaId) {
-                        $tmplResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$wabaId}/message_templates?name=application_status");
+                        $wabaResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$wabaId}?fields=id,name,currency,timezone_id,account_review_status");
+                        $wabaInfo = $wabaResp->json();
+
+                        $tmplResp = Http::withToken($token)->timeout(8)->get("https://graph.facebook.com/v21.0/{$wabaId}/message_templates?name={$targetTemplateName}");
                         $templates = $tmplResp->json('data') ?? [];
-                        // Find active/approved Marathi template
                         foreach ($templates as $t) {
-                            if (($t['name'] ?? '') === 'application_status') {
+                            if (($t['name'] ?? '') === $targetTemplateName) {
                                 $templateObj = $t;
                                 break;
                             }
@@ -181,12 +195,15 @@ class SettingController extends Controller
             }
 
             // Construct exact matching parameters matching approved Meta sample
-            $sampleValues = ['राहुल', 'पॅन कार्ड', 'COMPLETED', 'SR-2026-001'];
+            $sampleValues = ($targetTemplateName === 'application_update')
+                ? ['Rahul Patil', 'PAN Card', 'COMPLETED', 'SR-2026-001']
+                : ['राहुल', 'पॅन कार्ड', 'COMPLETED', 'SR-2026-001'];
+
             $bodyParams = [];
             for ($i = 0; $i < $paramCount; $i++) {
                 $bodyParams[] = [
                     'type' => 'text',
-                    'text' => $sampleValues[$i] ?? 'माहिती',
+                    'text' => $sampleValues[$i] ?? 'Info',
                 ];
             }
 
@@ -197,12 +214,15 @@ class SettingController extends Controller
                 ],
             ];
 
-            $res = $whatsAppService->sendTemplate($validated['recipient'], 'application_status', $langCode, $components, $tenant);
+            $res = $whatsAppService->sendTemplate($validated['recipient'], $targetTemplateName, $langCode, $components, $tenant);
             $res['waba_id'] = $wabaId;
             $res['meta_template'] = $templateObj;
+            $res['target_template'] = $targetTemplateName;
             $res['used_language_code'] = $langCode;
             $res['param_count'] = $paramCount;
             $res['body_text'] = $bodyText;
+            $res['phone_info'] = $phoneInfo;
+            $res['waba_info'] = $wabaInfo;
         }
 
         return response()->json($res);
