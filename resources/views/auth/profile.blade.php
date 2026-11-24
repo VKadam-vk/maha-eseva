@@ -28,13 +28,29 @@
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; border-top: 1px solid var(--surface-border); padding-top: 16px;">
-                <div><strong>Organization:</strong> {{ $user->tenant->name ?? 'Global Platform' }}</div>
-                <div><strong>Branch Assignment:</strong> {{ $user->branch->name ?? 'All Branches (Full Access)' }}</div>
-                <div><strong>Last Login:</strong> {{ $user->last_login_at ? $user->last_login_at->format('d M Y, h:i A') : 'First session' }}</div>
-                <div><strong>Last IP Address:</strong> {{ $user->last_login_ip ?? '127.0.0.1' }}</div>
-                <div><strong>Account Status:</strong> <span class="badge badge-paid">{{ $user->status }}</span></div>
-            </div>
+            <form action="{{ route('profile.update') }}" method="POST" style="margin-top: 18px; border-top: 1px solid var(--surface-border); padding-top: 18px;">
+                @csrf
+                @method('PUT')
+
+                <div class="form-group">
+                    <label class="form-label required">Full Name (पूर्ण नाव)</label>
+                    <input type="text" name="name" class="form-control" required value="{{ old('name', $user->name) }}" placeholder="e.g. Vinod Kadam">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Mobile Number (मोबाईल नंबर)</label>
+                    <input type="text" name="mobile" class="form-control" required value="{{ old('mobile', $user->mobile) }}" placeholder="e.g. 9823112245">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address (लॉगिन ईमेल)</label>
+                    <input type="email" class="form-control" value="{{ $user->email }}" readonly style="background-color: #f1f5f9; cursor: not-allowed;" title="Email cannot be changed directly">
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-user-check"></i> Update Profile Details
+                </button>
+            </form>
         </div>
     </div>
 

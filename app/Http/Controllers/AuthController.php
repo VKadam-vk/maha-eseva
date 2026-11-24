@@ -112,6 +112,38 @@ class AuthController extends Controller
     }
 
     /**
+     * Update profile details (Name & Mobile).
+     */
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'mobile' => ['required', 'string', 'max:20'],
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'mobile' => $validated['mobile'],
+        ]);
+
+        if ($user->isBusinessOwner() && $user->tenant) {
+            $user->tenant->update([
+                'contact_name' => $validated['name'],
+                'contact_mobile' => $validated['mobile'],
+            ]);
+            if ($user->tenant->mainBranch) {
+                $user->tenant->mainBranch->update([
+                    'contact_person' => $validated['name'],
+                    'contact_mobile' => $validated['mobile'],
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Profile details updated successfully.');
+    }
+
+    /**
      * Update password.
      */
     public function updatePassword(Request $request): RedirectResponse

@@ -63,6 +63,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Profile & Security
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
+    Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/password', [AuthController::class, 'updatePassword'])->name('profile.password');
 
     // Customer CRM

@@ -298,7 +298,7 @@ CREATE TABLE `branches` (
 
 LOCK TABLES `branches` WRITE;
 /*!40000 ALTER TABLE `branches` DISABLE KEYS */;
-INSERT INTO `branches` VALUES (1,'4955dae5-5253-4b02-bba2-cb1fea096e1a',1,'Main Head Office','HO-01',NULL,NULL,NULL,NULL,'Ajit Deshmukh','9876543210','admin@mahaeseva.com','Shop No. 1, Main Market Road','Pune','Pune','Maharashtra','411001','ACTIVE',1,NULL,'2026-11-24 00:27:26','2026-11-24 00:27:26',NULL);
+INSERT INTO `branches` VALUES (1,'4955dae5-5253-4b02-bba2-cb1fea096e1a',1,'Main Head Office','HO-01',NULL,NULL,NULL,NULL,'Vinod Kadam','9876543210','admin@mahaeseva.com','Shop No. 1, Main Market Road','Pune','Pune','Maharashtra','411001','ACTIVE',1,NULL,'2026-11-24 00:27:26','2026-11-24 01:31:31',NULL);
 /*!40000 ALTER TABLE `branches` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1452,7 +1452,7 @@ CREATE TABLE `tenants` (
 
 LOCK TABLES `tenants` WRITE;
 /*!40000 ALTER TABLE `tenants` DISABLE KEYS */;
-INSERT INTO `tenants` VALUES (1,'409b5f1a-e46a-4fb8-b21d-aa3a5cc63d79','Maha E-Seva Kendra & Digital Services','maha-e-seva','MAHA_E_SEVA','Ajit Deshmukh','admin@mahaeseva.com','9876543210','Shop No. 1, Main Market Road','Pune','Pune','Maharashtra','411001',NULL,'ACTIVE','ENTERPRISE','2031-11-24',10,50,20480,'{\"sms_sender_id\":\"MHSEVA\",\"currency\":\"INR\",\"thermal_receipt_header\":\"MAHA E-SEVA SERVICES\",\"whatsapp_default_template_lang\":\"mr\",\"whatsapp_broadcast_default_service\":\"\\u0936\\u093e\\u0938\\u0915\\u0940\\u092f \\u0938\\u0947\\u0935\\u093e \\u0935 \\u092f\\u094b\\u091c\\u0928\\u093e\",\"whatsapp_broadcast_default_status\":\"\\u0928\\u0935\\u0940\\u0928 \\u0928\\u094b\\u0902\\u0926\\u0923\\u0940 \\u0938\\u0941\\u0930\\u0942 \\u0906\\u0939\\u0947\",\"whatsapp_broadcast_default_app_no\":\"MAHA-ALERT\",\"advertising_banner_enabled\":false}','2026-11-24 00:27:26','2026-11-24 00:27:26',NULL);
+INSERT INTO `tenants` VALUES (1,'409b5f1a-e46a-4fb8-b21d-aa3a5cc63d79','Maha E-Seva Kendra & Digital Services','maha-e-seva','MAHA_E_SEVA','Vinod Kadam','admin@mahaeseva.com','9876543210','Shop No. 1, Main Market Road','Pune','Pune','Maharashtra','411001',NULL,'ACTIVE','ENTERPRISE','2031-11-24',10,50,20480,'{\"sms_sender_id\":\"MHSEVA\",\"currency\":\"INR\",\"thermal_receipt_header\":\"MAHA E-SEVA SERVICES\",\"whatsapp_default_template_lang\":\"mr\",\"whatsapp_broadcast_default_service\":\"\\u0936\\u093e\\u0938\\u0915\\u0940\\u092f \\u0938\\u0947\\u0935\\u093e \\u0935 \\u092f\\u094b\\u091c\\u0928\\u093e\",\"whatsapp_broadcast_default_status\":\"\\u0928\\u0935\\u0940\\u0928 \\u0928\\u094b\\u0902\\u0926\\u0923\\u0940 \\u0938\\u0941\\u0930\\u0942 \\u0906\\u0939\\u0947\",\"whatsapp_broadcast_default_app_no\":\"MAHA-ALERT\",\"advertising_banner_enabled\":false}','2026-11-24 00:27:26','2026-11-24 01:31:31',NULL);
 /*!40000 ALTER TABLE `tenants` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1554,7 +1554,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,NULL,NULL,'Platform Super Administrator','superadmin@mahaeseva.gov.in','9000000000',NULL,'$2y$12$UsxihDxmKlb4CElli0WHOuyx5CDUpHb17wn4l3G6xP7uVyPEuUWOG','ACTIVE',0,NULL,NULL,NULL,NULL,NULL,0,NULL,'2026-11-24 00:27:26','2026-11-24 00:27:26',NULL),(2,1,1,'Ajit Deshmukh (Owner)','admin@mahaeseva.com','9876543210',NULL,'$2y$12$HA0On1kBUK0UnNltDpsB6eGBXnai0ZnzfvPrCS3y.5m13/sMp3K2a','ACTIVE',0,NULL,NULL,NULL,NULL,NULL,0,NULL,'2026-11-24 00:27:27','2026-11-24 00:27:27',NULL);
+INSERT INTO `users` VALUES (1,NULL,NULL,'Platform Super Administrator','superadmin@mahaeseva.gov.in','9000000000',NULL,'$2y$12$UsxihDxmKlb4CElli0WHOuyx5CDUpHb17wn4l3G6xP7uVyPEuUWOG','ACTIVE',0,NULL,NULL,NULL,NULL,NULL,0,NULL,'2026-11-24 00:27:26','2026-11-24 00:27:26',NULL),(2,1,1,'Vinod Kadam','admin@mahaeseva.com','9876543210',NULL,'$2y$12$HA0On1kBUK0UnNltDpsB6eGBXnai0ZnzfvPrCS3y.5m13/sMp3K2a','ACTIVE',0,NULL,NULL,NULL,NULL,NULL,0,NULL,'2026-11-24 00:27:27','2026-11-24 01:31:31',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1567,4 +1567,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-24 11:30:59
+-- Dump completed on 2026-11-24 12:31:47

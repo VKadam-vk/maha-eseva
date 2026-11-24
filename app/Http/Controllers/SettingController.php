@@ -100,6 +100,22 @@ class SettingController extends Controller
             'settings_json' => $newSettings,
         ]);
 
+        // Automatically sync the logged-in Owner's user profile name & mobile
+        if ($user->isBusinessOwner() || $user->isSuperAdmin()) {
+            $user->update([
+                'name' => $validated['contact_name'],
+                'mobile' => $validated['contact_mobile'],
+            ]);
+        }
+
+        // Also sync Main Branch contact person
+        if ($tenant->mainBranch) {
+            $tenant->mainBranch->update([
+                'contact_person' => $validated['contact_name'],
+                'contact_mobile' => $validated['contact_mobile'],
+            ]);
+        }
+
         AuditService::log('SETTINGS_UPDATED', $tenant);
 
         return back()->with('success', 'Organization and WhatsApp settings updated successfully.');
