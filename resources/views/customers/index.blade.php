@@ -346,11 +346,12 @@
 
                     <!-- Gender Filter (Crucial for Ladki Bahin Scheme!) -->
                     <div>
-                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">लिंग (Gender):</label>
-                        <select id="bc_filter_gender" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px;">
-                            <option value="">-- All Genders (सर्व) --</option>
-                            <option value="FEMALE">👩 फक्त महिला (लाडकी बहीण)</option>
-                            <option value="MALE">👨 फक्त पुरुष</option>
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">लिंग (Gender Filter):</label>
+                        <select id="bc_filter_gender" class="form-select form-select-sm" onchange="fetchBroadcastPreview()" style="font-size: 12px; font-weight: 600;">
+                            <option value="">-- All Genders (सर्व लिंग) --</option>
+                            <option value="FEMALE">👩 फक्त महिला (लाडकी बहीण / Women Only)</option>
+                            <option value="MALE">👨 फक्त पुरुष (Men Only)</option>
+                            <option value="OTHER">⚧️ इतर (Other)</option>
                         </select>
                     </div>
 
@@ -400,9 +401,9 @@
             <!-- STEP 2: RECIPIENT DIRECTORY & CHERRY-PICK CHECKLIST -->
             <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span style="font-size: 12.5px; font-weight: 800; color: #0f172a;">
-                            २. पात्र ग्राहकांची यादी (Recipient Checklist):
+                            २. संपर्क यादी (Select Contacts):
                         </span>
                         <span style="font-size: 11.5px; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-weight: 800; border: 1px solid #86efac;">
                             🎯 <span id="bcSelectedCount">0</span> ग्राहक निवडले (एकूण <span id="bcTotalCount">0</span> पैकी)
@@ -411,37 +412,46 @@
                             खर्च: <strong>₹ <span id="bcEstimatedCost">0.00</span></strong>
                         </span>
                     </div>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn btn-xs btn-outline-success" onclick="toggleSelectAllBc(true)" style="font-size: 11px; padding: 2px 8px;">
-                            <i class="fa-solid fa-check-double"></i> सर्व निवडा (All)
+
+                    <!-- Action and Search Toolbar -->
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="bcTableSearch" class="form-control form-control-sm" placeholder="🔍 यादीत त्वरित शोधा..." oninput="filterBcTableClientSide()" style="font-size: 11px; width: 170px; padding: 3px 8px; border-color: #86efac;">
+                        <button type="button" class="btn btn-xs btn-outline-success" onclick="toggleSelectAllBc(true)" style="font-size: 11px; padding: 3px 8px; font-weight: 700;">
+                            <i class="fa-solid fa-check-double"></i> सर्व निवडा
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary" onclick="toggleSelectAllBc(false)" style="font-size: 11px; padding: 2px 8px;">
-                            <i class="fa-solid fa-xmark"></i> सर्व काढा (Clear)
+                        <button type="button" class="btn btn-xs btn-outline-danger" onclick="toggleSelectAllBc(false)" style="font-size: 11px; padding: 3px 8px; font-weight: 700;">
+                            <i class="fa-solid fa-xmark"></i> सर्व काढा
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-primary" onclick="fetchBroadcastPreview()" style="font-size: 11px; padding: 2px 8px;">
-                            <i class="fa-solid fa-arrows-rotate"></i> रिफ्रेश
+                        <button type="button" class="btn btn-xs btn-warning text-dark" onclick="prepareManualPick()" style="font-size: 11px; padding: 3px 8px; font-weight: 700;" title="सर्व अनचेक करून १-२ ग्राहक स्वतः टिक करा">
+                            <i class="fa-solid fa-hand-pointer"></i> १-२ स्वतः निवडा
                         </button>
                     </div>
                 </div>
 
+                <div style="font-size: 11px; color: #475569; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                    <span>💡 <strong>मॅन्युअल निवड टीप:</strong> जर तुम्हाला फक्त १ किंवा २ ग्राहक निवडायचे असतील, तर वर <strong>'१-२ स्वतः निवडा'</strong> दाबा आणि खालील ग्राहकावर क्लिक करा.</span>
+                    <span id="bcFilteredCountNote" style="font-weight: 600; color: #166534;"></span>
+                </div>
+
                 <!-- Scrollable Checklist Table -->
-                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
                     <table class="table table-sm table-hover" style="margin-bottom: 0; font-size: 12px;">
                         <thead style="background: #f1f5f9; position: sticky; top: 0; z-index: 10;">
                             <tr>
                                 <th style="width: 36px; text-align: center;">
                                     <input type="checkbox" id="bcSelectAllCheckbox" onchange="toggleSelectAllBc(this.checked)" checked style="accent-color: #16a34a; cursor: pointer;">
                                 </th>
-                                <th>ग्राहकाचे नाव (Name)</th>
+                                <th>नाव (Name)</th>
                                 <th>WhatsApp मोबाईल</th>
-                                <th>गाव / शहर</th>
-                                <th>व्यवसाय / वर्ग</th>
+                                <th>लिंग व गाव</th>
+                                <th>वर्ग व व्यवसाय</th>
                                 <th style="text-align: center;">रेटिंग</th>
+                                <th style="text-align: center; width: 75px;">ॲक्शन</th>
                             </tr>
                         </thead>
                         <tbody id="bcCustomerTableBody">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 18px; color: #64748b;">
+                                <td colspan="7" style="text-align: center; padding: 18px; color: #64748b;">
                                     <i class="fa-solid fa-circle-notch fa-spin"></i> CRM मधील ग्राहक लोड होत आहेत...
                                 </td>
                             </tr>
@@ -644,7 +654,7 @@ function fetchBroadcastPreview() {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align: center; padding: 16px; color: #64748b;">
+                <td colspan="7" style="text-align: center; padding: 16px; color: #64748b;">
                     <i class="fa-solid fa-circle-notch fa-spin"></i> CRM मधील ग्राहक फिल्टर होत आहेत...
                 </td>
             </tr>
@@ -673,16 +683,30 @@ function fetchBroadcastPreview() {
     .then(res => {
         if (res.success) {
             bcLoadedCustomers = res.customers || [];
+            
+            // Auto-populate tenant defaults if first time or available
+            if (res.defaults) {
+                const sEl = document.getElementById('bc_param_service');
+                const stEl = document.getElementById('bc_param_status');
+                const appEl = document.getElementById('bc_param_app_no');
+                const customTa = document.getElementById('bcCustomMessageText');
+                if (sEl && (!sEl.dataset.userEdited || sEl.value === '')) sEl.value = res.defaults.service;
+                if (stEl && (!stEl.dataset.userEdited || stEl.value === '')) stEl.value = res.defaults.status;
+                if (appEl && (!appEl.dataset.userEdited || appEl.value === '')) appEl.value = res.defaults.app_no;
+                if (customTa && customTa.value === '' && res.defaults.custom_template) customTa.value = res.defaults.custom_template;
+                updateBcTemplatePreview();
+            }
+
             renderBcCustomerList(bcLoadedCustomers, res.total_count, res.estimated_cost);
         } else {
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626; padding: 14px;">${res.error || 'ग्राहकांची यादी आणता आली नाही.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">${res.error || 'ग्राहकांची यादी आणता आली नाही.'}</td></tr>`;
             }
         }
     })
     .catch(err => {
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626; padding: 14px;">Server Error: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">Server Error: ${err.message}</td></tr>`;
         }
     });
 }
@@ -701,7 +725,7 @@ function renderBcCustomerList(customers, totalCount, cost) {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 18px; color: #94a3b8; font-style: italic;">
+                    <td colspan="7" style="text-align: center; padding: 18px; color: #94a3b8; font-style: italic;">
                         ⚠️ निवडलेल्या फिल्टरनुसार CRM मध्ये कोणताही सक्रिय ग्राहक सापडला नाही. कृपया फिल्टर बदला.
                     </td>
                 </tr>
@@ -718,26 +742,41 @@ function renderBcCustomerList(customers, totalCount, cost) {
         for (let i = 0; i < (c.star_rating || 5); i++) {
             stars += '⭐';
         }
+
+        const isFemale = (c.gender || '').toUpperCase() === 'FEMALE';
+        const isMale = (c.gender || '').toUpperCase() === 'MALE';
+        const genderBadge = isFemale 
+            ? `<span style="font-size: 10px; font-weight: 700; color: #be185d; background: #fce7f3; padding: 1px 6px; border-radius: 4px; border: 1px solid #fbcfe8;">👩 महिला</span>`
+            : (isMale ? `<span style="font-size: 10px; font-weight: 700; color: #1d4ed8; background: #dbeafe; padding: 1px 6px; border-radius: 4px; border: 1px solid #bfdbfe;">👨 पुरुष</span>` : `<span style="font-size: 10px; color: #64748b;">${c.gender}</span>`);
+
         rowsHtml += `
-            <tr style="cursor: pointer;" onclick="toggleBcCustomerRow(event, ${c.id})">
+            <tr id="bcRow_${c.id}" class="bc-cust-row" style="cursor: pointer; background: #f0fdf4; transition: background 0.15s ease;" onclick="toggleBcCustomerRow(event, ${c.id})">
                 <td style="text-align: center;" onclick="event.stopPropagation()">
-                    <input type="checkbox" value="${c.id}" class="bc-cust-checkbox" checked onchange="updateBcSelectedCount()" style="accent-color: #16a34a; cursor: pointer;">
+                    <input type="checkbox" value="${c.id}" class="bc-cust-checkbox" checked onchange="handleCheckboxChange(${c.id})" style="accent-color: #16a34a; cursor: pointer; width: 15px; height: 15px;">
                 </td>
-                <td style="font-weight: 700; color: #1e293b;">
+                <td style="font-weight: 700; color: #1e293b;" class="bc-search-target-name">
                     ${c.name}
                 </td>
-                <td style="font-family: var(--font-mono); color: #166534; font-weight: 600;">
+                <td style="font-family: var(--font-mono); color: #166534; font-weight: 700;" class="bc-search-target-mobile">
                     <i class="fa-brands fa-whatsapp"></i> ${c.mobile}
                 </td>
                 <td style="color: #475569;">
-                    ${c.city}
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        ${genderBadge}
+                        <span style="font-size: 11px;">${c.city}</span>
+                    </div>
                 </td>
                 <td style="color: #475569;">
-                    <span style="font-size: 11px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">${c.category}</span>
-                    <span style="font-size: 11px; color: #64748b;">${c.occupation}</span>
+                    <span style="font-size: 10.5px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 600;">${c.category}</span>
+                    <span style="font-size: 10.5px; color: #64748b;">${c.occupation}</span>
                 </td>
-                <td style="text-align: center; font-size: 11px;">
+                <td style="text-align: center; font-size: 10.5px;">
                     ${stars}
+                </td>
+                <td style="text-align: center;" onclick="event.stopPropagation()">
+                    <button type="button" class="btn btn-xs btn-outline-success" onclick="selectOnlyThisBcCustomer(event, ${c.id})" style="font-size: 10px; padding: 1px 6px; font-weight: 700; border-radius: 4px;" title="फक्त हा १ ग्राहक निवडा">
+                        फक्त हा १
+                    </button>
                 </td>
             </tr>
         `;
@@ -747,17 +786,81 @@ function renderBcCustomerList(customers, totalCount, cost) {
     updateBcSelectedCount();
 }
 
+function handleCheckboxChange(id) {
+    const cb = document.querySelector(`.bc-cust-checkbox[value="${id}"]`);
+    const row = document.getElementById(`bcRow_${id}`);
+    if (cb && row) {
+        row.style.background = cb.checked ? '#f0fdf4' : 'transparent';
+    }
+    updateBcSelectedCount();
+}
+
 function toggleBcCustomerRow(e, id) {
     const cb = document.querySelector(`.bc-cust-checkbox[value="${id}"]`);
     if (cb && e.target !== cb) {
         cb.checked = !cb.checked;
-        updateBcSelectedCount();
+        handleCheckboxChange(id);
+    }
+}
+
+function selectOnlyThisBcCustomer(e, id) {
+    if (e) e.stopPropagation();
+    // Uncheck all
+    document.querySelectorAll('.bc-cust-checkbox').forEach(cb => {
+        cb.checked = false;
+        const row = document.getElementById(`bcRow_${cb.value}`);
+        if (row) row.style.background = 'transparent';
+    });
+    // Check only this one
+    const targetCb = document.querySelector(`.bc-cust-checkbox[value="${id}"]`);
+    const targetRow = document.getElementById(`bcRow_${id}`);
+    if (targetCb) targetCb.checked = true;
+    if (targetRow) targetRow.style.background = '#f0fdf4';
+
+    const mainCb = document.getElementById('bcSelectAllCheckbox');
+    if (mainCb) mainCb.checked = false;
+
+    updateBcSelectedCount();
+}
+
+function prepareManualPick() {
+    toggleSelectAllBc(false);
+    const note = document.getElementById('bcFilteredCountNote');
+    if (note) {
+        note.innerHTML = `<span style="color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 4px;">🎯 सर्व अनचेक केले! आता खाली तुम्हाला हवे ते १ किंवा २ ग्राहक टिक करा.</span>`;
+    }
+    const searchInput = document.getElementById('bcTableSearch');
+    if (searchInput) searchInput.focus();
+}
+
+function filterBcTableClientSide() {
+    const term = (document.getElementById('bcTableSearch')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.bc-cust-row');
+    let visibleCount = 0;
+    rows.forEach(r => {
+        const name = (r.querySelector('.bc-search-target-name')?.textContent || '').toLowerCase();
+        const mobile = (r.querySelector('.bc-search-target-mobile')?.textContent || '').toLowerCase();
+        if (!term || name.includes(term) || mobile.includes(term)) {
+            r.style.display = '';
+            visibleCount++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+
+    const note = document.getElementById('bcFilteredCountNote');
+    if (note) {
+        note.textContent = term ? `शोध निकाल: ${visibleCount} ग्राहक आढळले` : '';
     }
 }
 
 function toggleSelectAllBc(select) {
     const cbs = document.querySelectorAll('.bc-cust-checkbox');
-    cbs.forEach(cb => cb.checked = select);
+    cbs.forEach(cb => {
+        cb.checked = select;
+        const row = document.getElementById(`bcRow_${cb.value}`);
+        if (row) row.style.background = select ? '#f0fdf4' : 'transparent';
+    });
     const mainCb = document.getElementById('bcSelectAllCheckbox');
     if (mainCb) mainCb.checked = select;
     updateBcSelectedCount();

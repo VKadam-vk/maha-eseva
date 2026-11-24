@@ -193,7 +193,7 @@ class WhatsAppService
 
     /**
      * Send Application Status Update via WhatsApp.
-     * Uses the officially approved Meta Utility Template 'application_status' (mr)
+     * Uses the officially approved Meta Utility Template ('application_status' or 'application_update')
      * so it delivers guaranteed to any citizen even outside the Meta 24-hour window!
      */
     public function sendApplicationStatusNotification(Application $application, ?string $customStatus = null): array
@@ -203,12 +203,18 @@ class WhatsAppService
             return ['success' => false, 'error' => 'Customer has no valid mobile number.'];
         }
 
+        $tenant = $application->tenant ?? Tenant::first();
+        $settings = $tenant?->settings_json ?? [];
+        $preferredLang = $settings['whatsapp_default_template_lang'] ?? 'mr';
+
         $status = $customStatus ?? $application->work_status;
         $serviceName = $application->service?->sub_service_name ?: $application->service?->main_service_name ?: 'सेवा';
         $customerName = !empty($customer->name) ? $customer->name : 'नागरिक';
         $appNumber = !empty($application->application_number) ? $application->application_number : ('SR-' . $application->id);
+        $centerName = $tenant?->name ?? 'Maha E-Seva Kendra';
+        $centerPhone = $tenant?->contact_mobile ?? '';
 
-        // 1. Dispatch via approved Meta Utility template 'application_status' (mr)
+        // 1. Dispatch via approved Meta Utility template
         // Meta template parameters: {{1}}=Name, {{2}}=Service, {{3}}=Status, {{4}}=Application No
         $components = [
             [
@@ -222,33 +228,50 @@ class WhatsAppService
             ],
         ];
 
-        $res = $this->sendTemplate($customer->mobile, 'application_status', 'mr', $components, $application->tenant);
+        if ($preferredLang === 'en') {
+            $res = $this->sendTemplate($customer->mobile, 'application_update', 'en', $components, $tenant);
+            if (!$res['success'] && str_contains(strtolower($res['error'] ?? ''), 'language')) {
+                $res = $this->sendTemplate($customer->mobile, 'application_update', 'en_US', $components, $tenant);
+            }
+        } else {
+            $res = $this->sendTemplate($customer->mobile, 'application_status', 'mr', $components, $tenant);
+        }
 
         // Fallback: If template dispatch fails (e.g. template issue), fall back to custom text message
         if (!$res['success']) {
             Log::warning("[WhatsApp Status Notification] Template dispatch failed: " . ($res['error'] ?? '') . ". Retrying via custom message.");
-            $centerName = $application->tenant?->name ?? 'Maha E-Seva Kendra';
-            $statusEmoji = match ($status) {
-                'APPROVED', 'READY', 'COMPLETED' => '✅',
-                'REJECTED', 'CANCELLED' => '❌',
-                'IN_PROGRESS' => '⏳',
-                default => '📋',
-            };
-
-            $msg = "{$statusEmoji} *{$centerName} - अर्ज स्थिती अपडेट*\n\n"
-                 . "नमस्कार *{$customerName}*,\n"
-                 . "तुमच्या *{$serviceName}* अर्जाची स्थिती (Status) आता *{$status}* झाली आहे.\n"
-                 . "• अर्ज क्र. (SR): *{$appNumber}*\n";
-
-            if (in_array($status, ['APPROVED', 'READY', 'COMPLETED'])) {
-                $msg .= "\n🎉 *तुमचा दाखला/कागदपत्र तयार आहे.* कृपया केंद्रात येऊन मूळ प्रत घेऊन जावी.\n";
-            } elseif ($status === 'REJECTED' && !empty($application->pending_remarks)) {
-                $msg .= "\n⚠️ त्रुटी रिमार्क: {$application->pending_remarks}\n";
+            
+            $remarksText = '';
+            if ($status === 'REJECTED' && !empty($application->pending_remarks)) {
+                $remarksText = "\n⚠️ त्रुटी रिमार्क: {$application->pending_remarks}\n";
+            } elseif (in_array($status, ['APPROVED', 'READY', 'COMPLETED'])) {
+                $remarksText = "\n🎉 *तुमचा दाखला/कागदपत्र तयार आहे.* कृपया केंद्रात येऊन मूळ प्रत घेऊन जावी.\n";
             }
 
-            $msg .= "\nधन्यवाद!\n_{$centerName}_";
+            $customFormat = trim($settings['whatsapp_status_msg_format'] ?? '');
+            if (!empty($customFormat)) {
+                $msg = str_replace(
+                    ['{customer_name}', '{service_name}', '{status}', '{application_no}', '{center_name}', '{center_mobile}', '{remarks}', '{date}'],
+                    [$customerName, $serviceName, $status, $appNumber, $centerName, $centerPhone, $remarksText, now()->format('d/m/Y h:i A')],
+                    $customFormat
+                );
+            } else {
+                $statusEmoji = match ($status) {
+                    'APPROVED', 'READY', 'COMPLETED' => '✅',
+                    'REJECTED', 'CANCELLED' => '❌',
+                    'IN_PROGRESS' => '⏳',
+                    default => '📋',
+                };
 
-            $res = $this->sendMessage($customer->mobile, $msg, $application->tenant);
+                $msg = "{$statusEmoji} *{$centerName} - अर्ज स्थिती अपडेट*\n\n"
+                     . "नमस्कार *{$customerName}*,\n"
+                     . "तुमच्या *{$serviceName}* अर्जाची स्थिती (Status) आता *{$status}* झाली आहे.\n"
+                     . "• अर्ज क्र. (SR): *{$appNumber}*\n"
+                     . $remarksText
+                     . "\nधन्यवाद!\n_{$centerName}_";
+            }
+
+            $res = $this->sendMessage($customer->mobile, $msg, $tenant);
         }
 
         // Record in notification logs
@@ -259,7 +282,7 @@ class WhatsAppService
             'channel' => 'WHATSAPP',
             'recipient' => $customer->mobile,
             'title' => "WhatsApp: Status {$status}",
-            'message' => "Template: application_status (mr) | Status: {$status}",
+            'message' => "Template: " . ($preferredLang === 'en' ? 'application_update' : 'application_status') . " | Status: {$status}",
             'status' => $res['success'] ? 'SENT' : 'FAILED',
             'provider_response' => json_encode($res),
             'sent_at' => now(),

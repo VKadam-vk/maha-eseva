@@ -417,9 +417,9 @@ class CustomerController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        // 3. Gender filter
-        if ($request->filled('gender') && in_array($request->gender, ['MALE', 'FEMALE', 'OTHER'])) {
-            $query->where('gender', $request->gender);
+        // 3. Gender filter (Strict Case-Insensitive Matching)
+        if ($request->filled('gender') && in_array(strtoupper(trim($request->gender)), ['MALE', 'FEMALE', 'OTHER'])) {
+            $query->whereRaw('UPPER(gender) = ?', [strtoupper(trim($request->gender))]);
         }
 
         // 4. Star Rating filter
@@ -453,6 +453,8 @@ class CustomerController extends Controller
             ->limit(250)
             ->get();
 
+        $settings = $tenant->settings_json ?? [];
+
         return response()->json([
             'success' => true,
             'total_count' => $totalCount,
@@ -469,6 +471,13 @@ class CustomerController extends Controller
                 ];
             }),
             'estimated_cost' => round($totalCount * 0.12, 2),
+            'defaults' => [
+                'service' => $settings['whatsapp_broadcast_default_service'] ?? 'शासकीय सेवा व योजना माहिती',
+                'status' => $settings['whatsapp_broadcast_default_status'] ?? 'नवीन नोंदणी सुरू आहे',
+                'app_no' => $settings['whatsapp_broadcast_default_app_no'] ?? 'MAHA-ALERT',
+                'custom_template' => $settings['whatsapp_broadcast_custom_template'] ?? '',
+                'template_name' => ($settings['whatsapp_default_template_lang'] ?? 'mr') === 'en' ? 'application_update' : 'application_status',
+            ],
         ]);
     }
 
@@ -542,7 +551,10 @@ class CustomerController extends Controller
                             ],
                         ],
                     ];
-                    $res = $whatsAppService->sendTemplate($customer->mobile, 'application_update', 'en_US', $components, $tenant);
+                    $res = $whatsAppService->sendTemplate($customer->mobile, 'application_update', 'en', $components, $tenant);
+                    if (!$res['success'] && str_contains(strtolower($res['error'] ?? ''), 'language')) {
+                        $res = $whatsAppService->sendTemplate($customer->mobile, 'application_update', 'en_US', $components, $tenant);
+                    }
                 } else {
                     // Default to approved Marathi template: application_status (mr)
                     $components = [
@@ -588,8 +600,30 @@ class CustomerController extends Controller
                 $errors[] = "{$customer->name} ({$customer->mobile}): " . ($res['error'] ?? 'Delivery failed');
             }
 
-            // Small delay (50ms) to ensure smooth outbound rate
-            usleep(50000);
+            // Safe throttle (100ms) between outbound requests to respect Meta API rate limits
+            usleep(100000);
+        }
+
+        // Log broadcast activity in AuditLog
+        try {
+            AuditLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'WHATSAPP_BROADCAST',
+                'entity_type' => Customer::class,
+                'entity_id' => null,
+                'new_values' => [
+                    'mode' => $mode,
+                    'template' => $templateName,
+                    'sent_count' => $sentCount,
+                    'failed_count' => $failedCount,
+                    'total_targeted' => $customers->count(),
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('[Broadcast AuditLog]: ' . $e->getMessage());
         }
 
         return response()->json([

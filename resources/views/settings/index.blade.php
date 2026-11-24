@@ -143,6 +143,113 @@
                     <!-- Live Test Result Banner -->
                     <div id="waTestResultBox" style="display: none; margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-size: 12px;"></div>
                 </div>
+
+                <!-- WhatsApp Message Formats & Templates Customization Card -->
+                <div style="margin-top: 22px; padding-top: 20px; border-top: 1.5px dashed #86efac;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <h4 style="font-size: 14.5px; font-weight: 800; margin: 0; color: #166534; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-pen-to-square" style="color: #16a34a;"></i> WhatsApp मेसेज फॉरमॅट्स व टेम्पलेट्स (Message Formats Customization)
+                            </h4>
+                            <p style="font-size: 11.5px; color: #15803d; margin: 3px 0 0 0;">
+                                नागरिकांना जाणारे स्टेटस मेसेज, अर्ज नोंदणी आणि ब्रॉडकास्ट मेसेजचे फॉरमॅट तुमच्या आवडीनुसार बदला.
+                            </p>
+                        </div>
+                        <span style="font-size: 11px; background: #ffffff; color: #166534; padding: 3px 10px; border-radius: 20px; font-weight: 700; border: 1px solid #86efac;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Personalized
+                        </span>
+                    </div>
+
+                    @php
+                        $waSet = $tenant->settings_json ?? [];
+                        $defaultTmplLang = $waSet['whatsapp_default_template_lang'] ?? 'mr';
+                        $defaultStatusText = $waSet['whatsapp_status_msg_format'] ?? "📋 *{center_name} - अर्ज स्थिती अपडेट*\n\nनमस्कार *{customer_name}*,\nतुमच्या *{service_name}* अर्जाची स्थिती आता *{status}* झाली आहे.\n• अर्ज क्र. (SR): *{application_no}*\n\n{remarks}\nधन्यवाद!\n📞 {center_mobile}\n_{center_name}_";
+                        $defaultAppCreatedText = $waSet['whatsapp_app_created_msg_format'] ?? "📝 *{center_name} - अर्ज नोंदणी*\n\nनमस्कार *{customer_name}*,\nतुमचा *{service_name}* अर्ज यशस्वीरीत्या दाखल झाला आहे.\n• संदर्भ क्र.: *{application_no}*\n\nकामाची प्रगती पाहण्यासाठी केंद्राशी संपर्क साधा.\n📞 {center_mobile}\n_{center_name}_";
+                        $defaultBcService = $waSet['whatsapp_broadcast_default_service'] ?? 'शासकीय सेवा व योजना माहिती';
+                        $defaultBcStatus = $waSet['whatsapp_broadcast_default_status'] ?? 'नवीन नोंदणी सुरू आहे';
+                        $defaultBcAppNo = $waSet['whatsapp_broadcast_default_app_no'] ?? 'MAHA-ALERT';
+                        $defaultBcCustomText = $waSet['whatsapp_broadcast_custom_template'] ?? "📢 *{center_name} - महत्त्वाची सूचना*\n\nनमस्कार *{name}*,\nआमच्या केंद्रावर नवीन शासकीय योजना व दाखल्यांचे अर्ज भरून मिळतील. अधिक माहितीसाठी आजच केंद्रास भेट द्या.\n\n📞 {center_mobile}\n_{center_name}_";
+                    @endphp
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <!-- 1. Default Template Selection -->
+                        <div style="background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                            <label class="form-label" style="font-weight: 700; color: #166534; font-size: 12px; margin-bottom: 4px;">
+                                Meta Official Utility Template (१००% हमखास डिलिव्हरी):
+                            </label>
+                            <select name="whatsapp_default_template_lang" class="form-select form-select-sm" style="font-size: 12.5px; border-color: #86efac;">
+                                <option value="mr" {{ $defaultTmplLang === 'mr' ? 'selected' : '' }}>
+                                    मराठी टेम्पलेट ('application_status' - Meta Approved)
+                                </option>
+                                <option value="en" {{ $defaultTmplLang === 'en' ? 'selected' : '' }}>
+                                    English Template ('application_update' - Meta Approved)
+                                </option>
+                            </select>
+                            <p style="font-size: 10.5px; color: #64748b; margin: 5px 0 0 0;">
+                                हे Meta कडून मान्यताप्राप्त टेम्पलेट २४ तासांची अट नसतानाही प्रत्येक नागरिकाच्या मोबाईलवर खात्रीशीर जाते.
+                            </p>
+                        </div>
+
+                        <!-- 2. Broadcast Defaults -->
+                        <div style="background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                            <label class="form-label" style="font-weight: 700; color: #166534; font-size: 12px; margin-bottom: 4px;">
+                                ब्रॉडकास्ट डीफॉल्ट सेवा व संदर्भ (Broadcast Defaults):
+                            </label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <span style="font-size: 10.5px; color: #475569; display: block;">सेवा/योजना शीर्षक:</span>
+                                    <input type="text" name="whatsapp_broadcast_default_service" value="{{ $defaultBcService }}" class="form-control form-control-sm" style="font-size: 11.5px; border-color: #86efac;">
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; color: #475569; display: block;">स्थिती/कृती:</span>
+                                    <input type="text" name="whatsapp_broadcast_default_status" value="{{ $defaultBcStatus }}" class="form-control form-control-sm" style="font-size: 11.5px; border-color: #86efac;">
+                                </div>
+                            </div>
+                            <div style="margin-top: 6px;">
+                                <span style="font-size: 10.5px; color: #475569; display: block;">नोटीस/संदर्भ क्र.:</span>
+                                <input type="text" name="whatsapp_broadcast_default_app_no" value="{{ $defaultBcAppNo }}" class="form-control form-control-sm" style="font-size: 11.5px; border-color: #86efac;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Status Notification Format -->
+                    <div style="background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <label class="form-label" style="font-weight: 700; color: #166534; font-size: 12px; margin-bottom: 0;">
+                                १-क्लिक अर्ज स्थिती मेसेज फॉरमॅट (Status Update Message):
+                            </label>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 10.5px; color: #475569; margin-right: 4px; align-self: center;">टॅग्ज क्लिक करा:</span>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{customer_name}')" style="font-size: 10px; padding: 1px 5px;">{customer_name}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{service_name}')" style="font-size: 10px; padding: 1px 5px;">{service_name}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{status}')" style="font-size: 10px; padding: 1px 5px;">{status}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{application_no}')" style="font-size: 10px; padding: 1px 5px;">{application_no}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{center_name}')" style="font-size: 10px; padding: 1px 5px;">{center_name}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_status_format_ta', '{center_mobile}')" style="font-size: 10px; padding: 1px 5px;">{center_mobile}</button>
+                            </div>
+                        </div>
+                        <textarea id="wa_status_format_ta" name="whatsapp_status_msg_format" rows="5" class="form-control" style="font-family: var(--font-mono); font-size: 12px; border-color: #86efac; line-height: 1.45;">{{ $defaultStatusText }}</textarea>
+                    </div>
+
+                    <!-- 4. Broadcast Custom Message Template -->
+                    <div style="background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <label class="form-label" style="font-weight: 700; color: #166534; font-size: 12px; margin-bottom: 0;">
+                                कस्टम ब्रॉडकास्ट संदेश टेम्पलेट (Custom Broadcast Message):
+                            </label>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 10.5px; color: #475569; margin-right: 4px; align-self: center;">टॅग्ज:</span>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_bc_custom_ta', '{name}')" style="font-size: 10px; padding: 1px 5px;">{name}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_bc_custom_ta', '{center_name}')" style="font-size: 10px; padding: 1px 5px;">{center_name}</button>
+                                <button type="button" class="btn btn-xs btn-outline-success" onclick="insertSettingWaTag('wa_bc_custom_ta', '{center_mobile}')" style="font-size: 10px; padding: 1px 5px;">{center_mobile}</button>
+                            </div>
+                        </div>
+                        <textarea id="wa_bc_custom_ta" name="whatsapp_broadcast_custom_template" rows="4" class="form-control" style="font-family: var(--font-mono); font-size: 12px; border-color: #86efac; line-height: 1.45;">{{ $defaultBcCustomText }}</textarea>
+                        <p style="font-size: 10.5px; color: #64748b; margin: 5px 0 0 0;">
+                            💡 कस्टम मेसेज फक्त ज्या ग्राहकांशी २४ तासांत व्हॉट्सअॅपवर बोलणे झाले आहे त्यांच्याकडे जातो. सर्व ग्राहकांसाठी वरील Meta Utility Template वापरावे.
+                        </p>
+                    </div>
+                </div>
             </div>
             @endif
 
@@ -281,6 +388,17 @@
 </div>
 
 <script>
+function insertSettingWaTag(textareaId, tag) {
+    const ta = document.getElementById(textareaId);
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    ta.value = text.substring(0, start) + tag + text.substring(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + tag.length;
+}
+
 function toggleWaTokenVisibility() {
     const input = document.getElementById('wa_access_token');
     const icon = document.getElementById('waTokenEyeIcon');
