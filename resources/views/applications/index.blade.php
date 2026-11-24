@@ -2395,26 +2395,32 @@
 
         // Double-click on Work Details or Pending Remarks to view & copy full content cleanly
         document.addEventListener('dblclick', function(e) {
-            const row = e.target.closest('tr.recent-row');
+            const row = e.target.closest('tr[id^="row-app-"]');
             if (!row) return;
 
             // Ignore double clicks on buttons, links, or select dropdowns
             if (e.target.closest('button, a, select')) return;
 
-            const appId = row.id.replace('row-app-', '');
+            const appId = row.dataset.appId || row.id.replace('row-app-', '');
             if (!appId) return;
 
-            const srvEl = row.querySelector('.desk-main-service-title');
-            const subEl = row.querySelector('.desk-sub-badge');
-            const srvName = (srvEl ? srvEl.textContent.trim() : '') + (subEl ? ' ➔ ' + subEl.textContent.trim() : '');
+            const mainSrv = row.dataset.main_service || '';
+            const subSrv = row.dataset.sub_service || '';
+            const srvName = (mainSrv ? mainSrv : '') + (subSrv ? ' ➔ ' + subSrv : '');
 
             const td = e.target.closest('td');
             if (e.target.closest('#view_wd_' + appId) || (td && td.querySelector(`#work_details_${appId}`))) {
-                const text = document.getElementById(`work_details_${appId}`)?.value || document.getElementById(`view_wd_${appId}`)?.textContent || '';
-                openQuickNotesModal('Work Details (कामाचा तपशील)', srvName, text, true);
+                const wdInput = document.getElementById(`work_details_${appId}`);
+                const viewWd = document.getElementById(`view_wd_${appId}`);
+                let text = (wdInput ? wdInput.value : (viewWd ? viewWd.textContent : '')) || '';
+                if (text.trim() === '-') text = '';
+                openQuickNotesModal('Work Details (कामाचा तपशील)', srvName || 'Application #' + appId, text, true);
             } else if (e.target.closest('#view_pr_' + appId) || (td && td.querySelector(`#payment_remarks_${appId}`))) {
-                const text = document.getElementById(`payment_remarks_${appId}`)?.value || document.getElementById(`view_pr_${appId}`)?.textContent || '';
-                openQuickNotesModal('Pending Remark / Notes', srvName, text, false);
+                const prInput = document.getElementById(`payment_remarks_${appId}`);
+                const viewPr = document.getElementById(`view_pr_${appId}`);
+                let text = (prInput ? prInput.value : (viewPr ? viewPr.textContent : '')) || '';
+                if (text.trim() === '-') text = '';
+                openQuickNotesModal('Pending Remark / Notes', srvName || 'Application #' + appId, text, false);
             }
         });
 
