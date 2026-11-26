@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Application;
 use App\Models\Branch;
+use App\Models\CashAdjustment;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\FollowUp;
@@ -45,6 +46,23 @@ class ReportService
             ->whereIn('work_status', [Application::STATUS_APPROVED, Application::STATUS_READY, Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
             ->count();
 
+        // Quick Cash In (Receive) and Cash Out (Spend) calculations
+        $totalExtraReceived = 0.0;
+        $totalSpent = 0.0;
+        $todayExtraReceived = 0.0;
+        $todaySpent = 0.0;
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('cash_adjustments')) {
+            $adjQuery = CashAdjustment::where('tenant_id', $tenantId)->when($branchId, fn($q) => $q->where('branch_id', $branchId));
+            $totalExtraReceived = (float) (clone $adjQuery)->where('type', 'RECEIVE')->sum('amount');
+            $totalSpent = (float) (clone $adjQuery)->where('type', 'SPEND')->sum('amount');
+            $todayExtraReceived = (float) (clone $adjQuery)->where('type', 'RECEIVE')->whereDate('entry_date', $today)->sum('amount');
+            $todaySpent = (float) (clone $adjQuery)->where('type', 'SPEND')->whereDate('entry_date', $today)->sum('amount');
+        }
+
+        $netRevenue = ($totalRevenue + $totalExtraReceived) - $totalSpent;
+        $todayNetRevenue = ($todayRevenue + $todayExtraReceived) - $todaySpent;
+
         // Status pipeline breakdown
         $statusCounts = Application::where('tenant_id', $tenantId)
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
@@ -80,7 +98,8 @@ class ReportService
             'totalBranches', 'totalCustomers', 'totalApplications', 'totalRevenue',
             'todayCustomers', 'todayApplications', 'todayRevenue', 'monthRevenue',
             'pendingApplications', 'completedApplications', 'statusCounts',
-            'topServices', 'branchPerformance', 'recentApplications'
+            'topServices', 'branchPerformance', 'recentApplications',
+            'totalExtraReceived', 'totalSpent', 'netRevenue', 'todayExtraReceived', 'todaySpent', 'todayNetRevenue'
         );
     }
 
@@ -120,11 +139,29 @@ class ReportService
             ->limit(5)
             ->get();
 
+        // Quick Cash In (Receive) and Cash Out (Spend) calculations
+        $totalExtraReceived = 0.0;
+        $totalSpent = 0.0;
+        $todayExtraReceived = 0.0;
+        $todaySpent = 0.0;
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('cash_adjustments')) {
+            $adjQuery = CashAdjustment::where('tenant_id', $tenantId)->where('branch_id', $branchId);
+            $totalExtraReceived = (float) (clone $adjQuery)->where('type', 'RECEIVE')->sum('amount');
+            $totalSpent = (float) (clone $adjQuery)->where('type', 'SPEND')->sum('amount');
+            $todayExtraReceived = (float) (clone $adjQuery)->where('type', 'RECEIVE')->whereDate('entry_date', $today)->sum('amount');
+            $todaySpent = (float) (clone $adjQuery)->where('type', 'SPEND')->whereDate('entry_date', $today)->sum('amount');
+        }
+
+        $netCollection = ($totalCollection + $totalExtraReceived) - $totalSpent;
+        $todayNetCollection = ($todayCollection + $todayExtraReceived) - $todaySpent;
+
         return compact(
             'todayCustomers', 'todayApplications', 'todayCollection', 'totalCollection',
             'totalBilled', 'pendingAmount',
             'totalCustomers', 'totalApplications', 'pendingWork',
-            'completedWork', 'dueFollowUps', 'recentApplications'
+            'completedWork', 'dueFollowUps', 'recentApplications',
+            'totalExtraReceived', 'totalSpent', 'netCollection', 'todayExtraReceived', 'todaySpent', 'todayNetCollection'
         );
     }
 

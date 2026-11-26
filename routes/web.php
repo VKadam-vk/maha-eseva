@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CashAdjustmentController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerPortalController;
 use App\Http\Controllers\DashboardController;
@@ -211,6 +212,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/applications/{application}/send-whatsapp', [ApplicationController::class, 'sendWhatsAppStatus'])->name('applications.send_whatsapp');
     Route::post('/customers/broadcast-preview', [CustomerController::class, 'previewBroadcast'])->name('customers.broadcast_preview');
     Route::post('/customers/broadcast-whatsapp', [CustomerController::class, 'broadcastWhatsApp'])->name('customers.broadcast_whatsapp');
+
+    // Fast Cash Adjustments (Receive / Spend)
+    Route::post('/cash-adjustments', [CashAdjustmentController::class, 'store'])->name('cash_adjustments.store');
 
     // Organization & Branch Settings
     Route::prefix('settings')->name('settings.')->group(function () {

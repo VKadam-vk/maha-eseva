@@ -9,6 +9,12 @@
         <p class="page-subtitle">Centralized multi-branch performance, collections and application tracking</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn" onclick="openCashModal('RECEIVE')" style="background: #10b981; color: #ffffff; font-weight: 700; border: none; padding: 7px 16px; border-radius: 6px; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 4px rgba(16,185,129,0.25); cursor: pointer;">
+            <i class="fa-solid fa-circle-plus"></i> Receive RS
+        </button>
+        <button type="button" class="btn" onclick="openCashModal('SPEND')" style="background: #ef4444; color: #ffffff; font-weight: 700; border: none; padding: 7px 16px; border-radius: 6px; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 2px 4px rgba(239,68,68,0.25); cursor: pointer;">
+            <i class="fa-solid fa-circle-minus"></i> Spend RS
+        </button>
         <a href="{{ route('fast_entry.index') }}" class="btn btn-indigo">
             <i class="fa-solid fa-table-cells"></i> Fast Daily Entry
         </a>
@@ -19,11 +25,20 @@
 <div class="metrics-grid">
     <div class="metric-card saffron">
         <div>
-            <div class="metric-label">Total Revenue Collected</div>
-            <div class="metric-value">₹{{ number_format($totalRevenue, 2) }}</div>
-            <div class="metric-subtext">
+            <div class="metric-label">Total Revenue Collected (Net)</div>
+            <div class="metric-value">₹{{ number_format($netRevenue ?? $totalRevenue, 2) }}</div>
+            <div class="metric-subtext" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: 11.5px;">
+                <span title="Services Collection" style="color: #059669; font-weight: 600;"><i class="fa-solid fa-receipt"></i> Srv: ₹{{ number_format($totalRevenue, 2) }}</span>
+                @if(($totalExtraReceived ?? 0) > 0)
+                <span title="Extra Received (+)" style="color: #10b981; font-weight: 700;">+ ₹{{ number_format($totalExtraReceived, 2) }}</span>
+                @endif
+                @if(($totalSpent ?? 0) > 0)
+                <span title="Spend / Expenses (-)" style="color: #ef4444; font-weight: 700;">- ₹{{ number_format($totalSpent, 2) }}</span>
+                @endif
+            </div>
+            <div class="metric-subtext" style="margin-top: 3px;">
                 <i class="fa-solid fa-arrow-trend-up" style="color: #10b981;"></i>
-                <span>₹{{ number_format($todayRevenue, 2) }} collected today</span>
+                <span>₹{{ number_format($todayNetRevenue ?? $todayRevenue, 2) }} collected today</span>
             </div>
         </div>
         <div class="metric-icon-box saffron">
@@ -140,4 +155,6 @@
         </table>
     </div>
 </div>
+
+@include('dashboard.partials.cash_modal')
 @endsection
