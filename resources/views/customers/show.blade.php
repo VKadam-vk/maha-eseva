@@ -1599,11 +1599,11 @@ function filterServicesTableByActiveMember() {
         let memName = 'या सदस्यासाठी';
         if (window.activeFamilyFilter === 'HEAD') {
             memName = currentCustomerName;
+        } else if (window.activeFamilyFilter === 'ALL') {
+            memName = 'कुटुंबासाठी';
         } else if (currentFamilyMembers) {
             const m = currentFamilyMembers.find(x => x.id == window.activeFamilyFilter);
             if (m) memName = `${m.name} (${m.relation_label || m.relation})`;
-        } else if (window.activeFamilyFilter === 'ALL') {
-            memName = 'कुटुंबासाठी';
         }
         emptyRow.innerHTML = `
             <td colspan="15" style="text-align: center; padding: 22px 12px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0;">
@@ -3755,11 +3755,6 @@ document.addEventListener('keydown', function(e) {
         if (textarea && textarea.style.display !== 'none' && textarea === document.activeElement) {
             e.preventDefault();
             saveQuickNotesContent();
-        }
-    }
-});
-            const text = document.getElementById('se_payment_remarks')?.value || '';
-            openQuickNotesModal('Pending Remark / Notes', srvName, text, false);
         }
     }
 });
