@@ -1791,6 +1791,9 @@
                                     <button type="button" class="excel-col-filter-btn" data-col="status" title="Filter by Status">
                                         <i class="fa-solid fa-filter"></i>
                                     </button>
+                                    <button type="button" onclick="openStatusReorderModal()" title="Change Status Sequence (Drag & Drop)" style="background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 11px; padding: 2px 4px;">
+                                        <i class="fa-solid fa-arrow-down-up-across-line"></i>
+                                    </button>
                                 </div>
                             </th>
                             <!-- Actions & Quick Links (Sticky Right, Far Edge) -->
@@ -1939,6 +1942,7 @@
                                     <option value="COMPLETED">COMPLETED</option>
                                     <option value="REJECTED">REJECTED</option>
                                     <option value="__NEW_CUSTOM__">➕ Custom Status...</option>
+                                    <option value="__REORDER_STATUSES__">⇅ Reorder Sequence (क्रम बदला)...</option>
                                 </select>
                             </td>
 
@@ -3885,18 +3889,18 @@ function applyStatusSelectStyle(el) {
 
 function renderStatusOptionsHtml(currentStatus, serviceName) {
     const cleanCur = (currentStatus || 'PENDING').trim().toUpperCase();
-    const serviceStatuses = getSavedStatusesForService(serviceName) || [];
-    const defaults = [
-        'PENDING',
+    const serviceStatuses = (typeof getSavedStatusesForService === 'function' && serviceName) ? (getSavedStatusesForService(serviceName) || []) : [];
+    const orderedList = (typeof getGlobalStatusOrder === 'function') ? getGlobalStatusOrder() : [
         'IN_PROGRESS',
-        'WAITING_FOR_DOCS',
+        'PENDING',
+        'WAITING FOR DOCS',
         'SUBMITTED',
         'READY',
         'DELIVERED',
         'COMPLETED',
         'REJECTED'
     ];
-    const allStatuses = Array.from(new Set([cleanCur, ...serviceStatuses, ...defaults])).filter(Boolean);
+    const allStatuses = Array.from(new Set([cleanCur, ...orderedList, ...serviceStatuses])).filter(Boolean);
 
     let html = '';
     allStatuses.forEach(st => {
@@ -3904,11 +3908,34 @@ function renderStatusOptionsHtml(currentStatus, serviceName) {
         html += `<option value="${escapeHtml(st)}" ${isSel}>${escapeHtml(st)}</option>`;
     });
     html += `<option value="__NEW_CUSTOM__">➕ Custom Status...</option>`;
+    html += `<option value="__REORDER_STATUSES__">⇅ Reorder Sequence (क्रम बदला)...</option>`;
     return html;
+}
+
+function refreshAllStatusDropdowns() {
+    const seStatus = document.getElementById('se_status');
+    if (seStatus) {
+        const curVal = seStatus.value || seStatus.dataset.prev || 'IN_PROGRESS';
+        seStatus.innerHTML = renderStatusOptionsHtml(curVal);
+        seStatus.value = curVal;
+        applyStatusInputStyle(seStatus);
+    }
+    document.querySelectorAll('.committed-row .status-select, #active-customer-services-table .status-select').forEach(sel => {
+        const curVal = sel.value || sel.dataset.prev || 'PENDING';
+        sel.innerHTML = renderStatusOptionsHtml(curVal);
+        sel.value = curVal;
+        applyStatusInputStyle(sel);
+    });
 }
 
 function onCommittedStatusSelectChange(selectEl, appId, serviceName) {
     if (!selectEl) return;
+    if (selectEl.value === '__REORDER_STATUSES__') {
+        selectEl.value = selectEl.dataset.prev || 'PENDING';
+        applyStatusInputStyle(selectEl);
+        openStatusReorderModal();
+        return;
+    }
     if (selectEl.value === '__NEW_CUSTOM__') {
         const custom = prompt('Enter custom status name:');
         if (custom && custom.trim()) {
@@ -3935,6 +3962,12 @@ function onCommittedStatusSelectChange(selectEl, appId, serviceName) {
 
 function onActiveStatusSelectChange(selectEl) {
     if (!selectEl) return;
+    if (selectEl.value === '__REORDER_STATUSES__') {
+        selectEl.value = selectEl.dataset.prev || 'IN_PROGRESS';
+        applyStatusInputStyle(selectEl);
+        openStatusReorderModal();
+        return;
+    }
     if (selectEl.value === '__NEW_CUSTOM__') {
         const custom = prompt('Enter custom status name:');
         if (custom && custom.trim()) {
@@ -5984,6 +6017,8 @@ function sendDirectWhatsApp(appId, e) {
 }
 
 initCustomStatuses();
+refreshAllStatusDropdowns();
 </script>
+@include('partials.status_reorder_modal')
 @endpush
 @endsection
