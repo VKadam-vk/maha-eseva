@@ -2273,8 +2273,10 @@
 // ==========================================
 let currentLoadedCustomer = null;
 let loadedApplications = {};
-const allServices = @json($services);
-const allEmployees = @json($employees);
+window.allServices = @json($services);
+const allServices = window.allServices;
+window.allEmployees = @json($employees);
+const allEmployees = window.allEmployees;
 const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
 const CAN_DELETE_SERVICES = {{ auth()->user()?->canDeleteServices() ? 'true' : 'false' }};
 const IS_SOFTWARE_OWNER = {{ auth()->user()?->isSoftwareOwner() ? 'true' : 'false' }};
@@ -3541,7 +3543,8 @@ renderOccupationOptions('');
 // ==========================================
 function getEmployeeName(empId, fallback = '') {
     if (!empId) return (fallback || '').toUpperCase();
-    const emp = (window.allEmployees || []).find(e => e.id == empId);
+    const empList = window.allEmployees || (typeof allEmployees !== 'undefined' ? allEmployees : []);
+    const emp = (empList || []).find(e => e.id == empId);
     if (!emp) return (fallback || '').toUpperCase();
     const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || fallback || '');
     return name.toUpperCase();
@@ -3568,7 +3571,8 @@ function isEmployeeAllowedForService(emp, serviceId = null, mainServiceName = nu
 
 function getEmployeeOptionsHtml(selectedId, serviceId = null, mainServiceName = null) {
     let html = '<option value="">-- Unassigned --</option>';
-    (window.allEmployees || []).forEach(emp => {
+    const empList = window.allEmployees || (typeof allEmployees !== 'undefined' ? allEmployees : []);
+    (empList || []).forEach(emp => {
         const isAllowed = isEmployeeAllowedForService(emp, serviceId, mainServiceName);
         const isSelected = (selectedId && emp.id == selectedId);
 

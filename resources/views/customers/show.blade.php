@@ -1169,6 +1169,7 @@
                         <!-- 8. Follow-Up Date -->
                         <td>
                             <input type="date" id="se_followup" class="excel-input"
+                                   value="{{ date('Y-m-d') }}"
                                    style="font-size: 11.5px; font-weight: 600; color: #475569;"
                                    title="Pick follow-up date for reminders and citizen tracking"
                                    onkeydown="handleActiveRowKey(event)">
@@ -1443,8 +1444,10 @@
 // 1. DATA MASTER & STATE
 // ==========================================
 const currentCustomerId = {{ $customer->id }};
-const allServices = @json($activeServices);
-const allEmployees = @json($employees);
+window.allServices = @json($activeServices);
+const allServices = window.allServices;
+window.allEmployees = @json($employees);
+const allEmployees = window.allEmployees;
 const IS_ADMIN = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
 const CAN_DELETE_SERVICES = {{ auth()->user()?->canDeleteServices() ? 'true' : 'false' }};
 let loadedApplications = {};
@@ -2224,7 +2227,8 @@ function isEmployeeAllowedForService(emp, serviceId = null, mainServiceName = nu
 
 function getEmployeeOptionsHtml(selectedEmployeeId, serviceId = null, mainServiceName = null) {
     let html = '<option value="">-- Unassigned --</option>';
-    (window.allEmployees || []).forEach(emp => {
+    const empList = window.allEmployees || (typeof allEmployees !== 'undefined' ? allEmployees : []);
+    (empList || []).forEach(emp => {
         const isAllowed = isEmployeeAllowedForService(emp, serviceId, mainServiceName);
         const isSel = selectedEmployeeId && (emp.id == selectedEmployeeId);
 
@@ -2563,7 +2567,8 @@ function openReceiptModal(appId) {
 
 function getEmployeeName(empId, fallback = '') {
     if (!empId) return (fallback || '').toUpperCase();
-    const emp = (window.allEmployees || []).find(e => e.id == empId);
+    const empList = window.allEmployees || (typeof allEmployees !== 'undefined' ? allEmployees : []);
+    const emp = (empList || []).find(e => e.id == empId);
     if (!emp) return (fallback || '').toUpperCase();
     const name = (emp.user && emp.user.name) ? emp.user.name : (emp.name || fallback || '');
     return name.toUpperCase();
@@ -2869,6 +2874,14 @@ function onMainServiceChange(mainName) {
     }
 }
 
+function getTodayIsoDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function onSubServiceChange(serviceId) {
     if (!serviceId) {
         resetActiveRowFields();
@@ -2879,6 +2892,12 @@ function onSubServiceChange(serviceId) {
     if (!srv) return;
 
     updateActiveRowOperatorOptions(srv.id, srv.main_service_name);
+
+    // By default Follow-up Date is always Today's Date
+    const followUpInput = document.getElementById('se_followup');
+    if (followUpInput) {
+        followUpInput.value = getTodayIsoDate();
+    }
 
     const price = parseFloat(srv.price) || 0;
     document.getElementById('se_rate').value = price;
@@ -2942,7 +2961,7 @@ function resetActiveRowFields() {
     document.getElementById('se_work_details').style.height = '30px';
     document.getElementById('se_payment_remarks').value = '';
     document.getElementById('se_payment_remarks').style.height = '30px';
-    document.getElementById('se_followup').value = '';
+    document.getElementById('se_followup').value = getTodayIsoDate();
     updateActiveRowOperatorOptions(null, null);
 }
 
@@ -3373,6 +3392,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (seStatus) {
         seStatus.value = '';
         applyStatusInputStyle(seStatus);
+    }
+
+    const seFollowup = document.getElementById('se_followup');
+    if (seFollowup && !seFollowup.value) {
+        seFollowup.value = getTodayIsoDate();
     }
 
     if (window.ExcelTableFilter) {
