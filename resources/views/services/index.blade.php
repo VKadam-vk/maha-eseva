@@ -2,6 +2,41 @@
 
 @section('title', 'Services Master')
 
+@push('styles')
+<style>
+    /* Services Table Horizontal Scrollbars */
+    .table-responsive,
+    #servicesTopScrollbar,
+    #servicesFloatingScrollbar {
+        scrollbar-width: auto;
+        scrollbar-color: #0284c7 #e2e8f0;
+    }
+    .table-responsive::-webkit-scrollbar,
+    #servicesTopScrollbar::-webkit-scrollbar,
+    #servicesFloatingScrollbar::-webkit-scrollbar {
+        height: 12px !important;
+    }
+    .table-responsive::-webkit-scrollbar-track,
+    #servicesTopScrollbar::-webkit-scrollbar-track,
+    #servicesFloatingScrollbar::-webkit-scrollbar-track {
+        background: #e2e8f0 !important;
+        border-radius: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb,
+    #servicesTopScrollbar::-webkit-scrollbar-thumb,
+    #servicesFloatingScrollbar::-webkit-scrollbar-thumb {
+        background: #0284c7 !important;
+        border-radius: 6px;
+        border: 2px solid #e2e8f0;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover,
+    #servicesTopScrollbar::-webkit-scrollbar-thumb:hover,
+    #servicesFloatingScrollbar::-webkit-scrollbar-thumb:hover {
+        background: #0369a1 !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="page-header">
     <div>
@@ -47,12 +82,23 @@
                 <a href="{{ route('services.index') }}" class="btn btn-secondary" title="Clear Filters">Reset</a>
             </div>
 
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #64748b;">
-                <span style="background: #f1f5f9; padding: 6px 12px; border-radius: 6px; font-weight: 600; border: 1px solid #e2e8f0;">
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <!-- 1-Click Quick Scroll Buttons -->
+                <div style="display: flex; align-items: center; gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
+                    <span style="font-size: 11px; font-weight: 700; color: #0284c7;"><i class="fa-solid fa-arrows-left-right"></i> Scroll:</span>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="scrollServicesTable(-280)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Left">
+                        <i class="fa-solid fa-chevron-left"></i> Left
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="scrollServicesTable(280)" style="padding: 2px 7px; font-size: 11px; height: 24px; line-height: 1; border-radius: 4px;" title="Scroll Right">
+                        Right <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <span style="background: #f1f5f9; padding: 6px 12px; border-radius: 6px; font-weight: 600; border: 1px solid #e2e8f0; font-size: 13px; color: #64748b;">
                     <i class="fa-solid fa-layer-group" style="color: #4f46e5; margin-right: 4px;"></i>
                     {{ $groupedServices->count() }} Main Services
                 </span>
-                <span style="background: #ecfdf5; color: #065f46; padding: 6px 12px; border-radius: 6px; font-weight: 600; border: 1px solid #a7f3d0;">
+                <span style="background: #ecfdf5; color: #065f46; padding: 6px 12px; border-radius: 6px; font-weight: 600; border: 1px solid #a7f3d0; font-size: 13px;">
                     <i class="fa-solid fa-sitemap" style="color: #059669; margin-right: 4px;"></i>
                     {{ $services->count() }} Total Sub-Services
                 </span>
@@ -63,7 +109,12 @@
 
 <!-- Grouped Services Table -->
 <div class="erp-card" style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-    <div class="table-responsive">
+    <!-- Top Synced Horizontal Scrollbar -->
+    <div id="servicesTopScrollbar" style="overflow-x: auto; overflow-y: hidden; height: 13px; background: #e2e8f0; border-bottom: 1.5px solid #cbd5e1; display: none;">
+        <div id="servicesTopScrollbarInner" style="height: 1px;"></div>
+    </div>
+
+    <div class="table-responsive" id="servicesTableWrap">
         <table class="erp-table" id="servicesTable" style="margin-bottom: 0;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
@@ -200,9 +251,105 @@
     </div>
 </div>
 
+<!-- Sticky Floating Bottom Horizontal Scrollbar -->
+<div id="servicesFloatingScrollbar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #0284c7; box-shadow: 0 -4px 12px rgba(0,0,0,0.15); z-index: 998; overflow-x: auto; overflow-y: hidden; height: 15px; display: none;">
+    <div id="servicesFloatingScrollbarInner" style="height: 1px;"></div>
+</div>
+
 @push('scripts')
 <script>
 let searchDebounceTimer = null;
+
+// 1-Click Scroll Services Table
+function scrollServicesTable(px) {
+    const wrap = document.getElementById('servicesTableWrap') || document.querySelector('.table-responsive');
+    if (wrap) {
+        wrap.scrollBy({ left: px, behavior: 'smooth' });
+    }
+}
+
+// Synchronized Top & Floating Horizontal Scrollbars for Services Table
+(function initServicesHorizontalScrollbars() {
+    const tableWrap = document.getElementById('servicesTableWrap') || document.querySelector('.table-responsive');
+    const table = document.getElementById('servicesTable');
+    const topScroll = document.getElementById('servicesTopScrollbar');
+    const topInner = document.getElementById('servicesTopScrollbarInner');
+    const floatScroll = document.getElementById('servicesFloatingScrollbar');
+    const floatInner = document.getElementById('servicesFloatingScrollbarInner');
+
+    if (!tableWrap || !table) return;
+
+    function syncScrollWidths() {
+        const scrollW = table.scrollWidth;
+        const clientW = tableWrap.clientWidth;
+        const needsScroll = scrollW > clientW + 5;
+
+        if (topScroll && topInner) {
+            topInner.style.width = scrollW + 'px';
+            topScroll.style.display = needsScroll ? 'block' : 'none';
+        }
+        if (floatScroll && floatInner) {
+            floatInner.style.width = scrollW + 'px';
+        }
+        checkFloatVisibility();
+    }
+
+    function checkFloatVisibility() {
+        if (!floatScroll || !tableWrap) return;
+        const scrollW = table.scrollWidth;
+        const clientW = tableWrap.clientWidth;
+        const needsScroll = scrollW > clientW + 5;
+
+        if (!needsScroll) {
+            floatScroll.style.display = 'none';
+            return;
+        }
+
+        const rect = tableWrap.getBoundingClientRect();
+        const isBottomVisible = (rect.bottom <= window.innerHeight);
+        const isTopAboveScreen = (rect.top < window.innerHeight);
+
+        if (isTopAboveScreen && !isBottomVisible) {
+            floatScroll.style.display = 'block';
+            const sidebar = document.querySelector('.erp-sidebar') || document.querySelector('.sidebar');
+            const sidebarW = sidebar ? sidebar.offsetWidth : 240;
+            floatScroll.style.left = sidebarW + 'px';
+        } else {
+            floatScroll.style.display = 'none';
+        }
+    }
+
+    let isSyncing = false;
+    function syncScroll(source, targets) {
+        if (isSyncing) return;
+        isSyncing = true;
+        targets.forEach(t => {
+            if (t && t !== source) t.scrollLeft = source.scrollLeft;
+        });
+        setTimeout(() => { isSyncing = false; }, 10);
+    }
+
+    tableWrap.addEventListener('scroll', () => {
+        syncScroll(tableWrap, [topScroll, floatScroll]);
+    });
+    if (topScroll) {
+        topScroll.addEventListener('scroll', () => {
+            syncScroll(topScroll, [tableWrap, floatScroll]);
+        });
+    }
+    if (floatScroll) {
+        floatScroll.addEventListener('scroll', () => {
+            syncScroll(floatScroll, [tableWrap, topScroll]);
+        });
+    }
+
+    window.addEventListener('scroll', checkFloatVisibility);
+    window.addEventListener('resize', syncScrollWidths);
+
+    // Initial sync
+    setTimeout(syncScrollWidths, 100);
+    setTimeout(syncScrollWidths, 500);
+})();
 
 // Real-time client side filter
 function autoFilterServices(val) {
@@ -213,6 +360,7 @@ function autoFilterServices(val) {
     if (!query) {
         groupRows.forEach(gr => gr.style.display = '');
         subRows.forEach(sr => sr.style.display = '');
+        window.dispatchEvent(new Event('resize'));
         return;
     }
 
@@ -248,6 +396,8 @@ function autoFilterServices(val) {
         }
     });
 
+    window.dispatchEvent(new Event('resize'));
+
     // Debounced server filter for exact DB searches if needed
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => {
@@ -275,6 +425,8 @@ function toggleGroup(groupKey) {
     if (icon) {
         icon.style.transform = isCurrentlyHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
     }
+
+    window.dispatchEvent(new Event('resize'));
 }
 </script>
 @endpush
