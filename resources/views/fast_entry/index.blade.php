@@ -1918,6 +1918,7 @@
                             <!-- 9. Follow-Up Date -->
                             <td style="padding: 4px 6px;">
                                 <input type="date" id="se_followup" class="excel-date-input"
+                                       value="{{ date('Y-m-d') }}"
                                        title="Expected Follow-up Date"
                                        onkeydown="handleRowKeyDown(event)">
                             </td>
@@ -4968,6 +4969,14 @@ function onMainServiceChange(mainName) {
     }
 }
 
+function getTodayIsoDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function onSubServiceChange(serviceId) {
     if (!serviceId) {
         resetActiveRowFields();
@@ -5001,9 +5010,8 @@ function onSubServiceChange(serviceId) {
     const docs = Array.isArray(srv.required_documents_json) ? srv.required_documents_json.join(', ') : '';
     document.getElementById('se_docs_list').value = docs;
 
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + days);
-    document.getElementById('se_followup').value = targetDate.toISOString().split('T')[0];
+    // By default Follow-up Date is always Today's Date
+    document.getElementById('se_followup').value = getTodayIsoDate();
 
     // Update Row-level Apply Now & Watch Tutorial buttons
     const rowBtnApply = document.getElementById('row-btn-apply');
@@ -5068,7 +5076,7 @@ function resetActiveRowFields() {
     document.getElementById('se_payment_remarks').value = '';
     document.getElementById('se_payment_remarks').style.height = '34px';
     document.getElementById('se_docs_list').value = '';
-    document.getElementById('se_followup').value = '';
+    document.getElementById('se_followup').value = getTodayIsoDate();
     updateActiveRowOperatorOptions(null, null);
 }
 
@@ -5491,6 +5499,13 @@ document.addEventListener('keydown', function(e) {
 // Initialize Status Datalist & Excel Table Column Filter on boot
 document.addEventListener('DOMContentLoaded', function() {
     initCustomStatuses();
+
+    // Ensure Follow-up date is defaulted to today on load
+    const feInitFu = document.getElementById('se_followup');
+    if (feInitFu && !feInitFu.value) {
+        feInitFu.value = getTodayIsoDate();
+    }
+
     renderActivePaymentModeOptions('Cash');
 
     // Auto-detect mobile query parameter from URL (e.g. if page was reloaded or linked)

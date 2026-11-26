@@ -652,7 +652,7 @@ class FastEntryController extends Controller
                     'payment_remarks' => $validated['payment_remarks'] ?? null,
                     'documents_list' => $validated['documents_list'] ?? null,
                     'pending_remarks' => $validated['pending_remarks'] ?? null,
-                    'follow_up_date' => $validated['follow_up_date'] ?? null,
+                    'follow_up_date' => !empty($validated['follow_up_date']) ? $validated['follow_up_date'] : now()->toDateString(),
                 ], $user);
 
                 return $app->load(['service', 'customer', 'assignedEmployee.user', 'familyMember']);
@@ -661,7 +661,7 @@ class FastEntryController extends Controller
             // Automatically synchronize with CRM Follow-ups
             $this->syncApplicationFollowUp(
                 $application,
-                $validated['follow_up_date'] ?? null,
+                !empty($validated['follow_up_date']) ? $validated['follow_up_date'] : now()->toDateString(),
                 $validated['work_details'] ?? null,
                 $user->id
             );
