@@ -278,6 +278,12 @@ class ServiceController extends Controller
             }
         }
 
+        // Prevent accidental cascade deletion of existing customer applications
+        $appCount = $service->applications()->count();
+        if ($appCount > 0) {
+            return back()->with('error', "Cannot delete this service because {$appCount} customer application(s) are linked to it. You can toggle it Inactive instead.");
+        }
+
         $old = $service->toArray();
         $service->delete();
         AuditService::log('SERVICE_DELETED', $service, $old, null);

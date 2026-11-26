@@ -28,6 +28,14 @@
         <h3 style="color: white; margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-sliders"></i> {{ $service->main_service_name }} &mdash; {{ $service->sub_service_name }}
         </h3>
+        <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="margin: 0;"
+              onsubmit="return confirm('⚠️ खात्री करा: तुम्ही \'{{ addslashes($service->sub_service_name ?: $service->main_service_name) }}\' ही सर्व्हिस कायमस्वरूपी काढून टाकू इच्छिता का?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.25); color: #fee2e2; border: 1px solid rgba(254, 202, 202, 0.5); font-weight: 700; padding: 6px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-trash-can"></i> Delete Service
+            </button>
+        </form>
     </div>
 
     <div class="erp-card-body" style="padding: 28px;">

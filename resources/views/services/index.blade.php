@@ -171,9 +171,19 @@
                                 </form>
                             </td>
                             <td style="text-align: right; padding-right: 20px;">
-                                <a href="{{ route('services.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit Sub-Service" style="padding: 4px 10px; font-size: 12px;">
-                                    <i class="fa-solid fa-pen-to-square"></i> Edit
-                                </a>
+                                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                    <a href="{{ route('services.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit Sub-Service" style="padding: 4px 10px; font-size: 12px;">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </a>
+                                    <form action="{{ route('services.destroy', $s->id) }}" method="POST" style="margin: 0; display: inline;"
+                                          onsubmit="return confirm('⚠️ खात्री करा: तुम्ही \'{{ addslashes($s->sub_service_name ?: $s->main_service_name) }}\' ही सर्व्हिस काढून टाकू इच्छिता का?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm" title="Delete Service (सर्व्हिस काढा)" style="padding: 4px 10px; font-size: 12px; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                                            <i class="fa-solid fa-trash-can"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

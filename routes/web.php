@@ -155,6 +155,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show')->middleware('permission:employees.view');
         Route::get('/{employee}/edit', [EmployeeController::class, 'edit'])->name('edit')->middleware('permission:employees.edit');
         Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update')->middleware('permission:employees.edit');
+        Route::post('/{employee}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('toggle_status')->middleware('permission:employees.edit');
+        Route::post('/{employee}/reset-password', [EmployeeController::class, 'resetPassword'])->name('reset_password')->middleware('permission:employees.edit');
+        Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy')->middleware('permission:employees.edit');
         Route::post('/{employee}/tasks', [EmployeeController::class, 'storeTask'])->name('tasks.store')->middleware('permission:employees.edit');
         Route::post('/tasks/{task}/status', [EmployeeController::class, 'updateTaskStatus'])->name('tasks.status');
     });

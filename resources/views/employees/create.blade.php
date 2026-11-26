@@ -67,7 +67,7 @@
                             </button>
                         </div>
                         <small style="color: #64748b; font-size: 11.5px; margin-top: 4px; display: block;">
-                            <i class="fa-solid fa-circle-info" style="color: #0284c7;"></i> Pre-filled with default password <code>12345678</code>. Employee can change it after login.
+                            <i class="fa-solid fa-circle-info" style="color: #0284c7;"></i> Pre-filled with default password <code>12345678</code>. Only Admin can reset/manage operator passwords.
                         </small>
                     </div>
                 </div>

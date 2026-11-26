@@ -148,6 +148,13 @@ class AuthController extends Controller
      */
     public function updatePassword(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        // Operators cannot change password on their own; only Admin can reset it
+        if ($user->isEmployee() && !$user->isBusinessOwner() && !$user->isSuperAdmin()) {
+            return back()->with('error', 'ऑपरेटर स्वतःचा पासवर्ड परस्पर बदलू शकत नाहीत. पासवर्ड बदलण्यासाठी कृपया केंद्र व्यवस्थापकांशी (Admin) संपर्क साधा.');
+        }
+
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],

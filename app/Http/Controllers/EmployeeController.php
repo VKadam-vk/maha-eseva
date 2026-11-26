@@ -184,7 +184,17 @@ class EmployeeController extends Controller
             AuditService::log('EMPLOYEE_CREATED', $employee, null, $employee->toArray());
         });
 
-        return redirect()->route('employees.index')->with('success', 'Employee created successfully! Login Email: ' . $validated['email'] . ' | Default Password: ' . (!empty($validated['password']) ? $validated['password'] : '12345678'));
+        $empPassword = !empty($validated['password']) ? $validated['password'] : '12345678';
+        return redirect()->route('employees.index')
+            ->with('success', "Operator {$validated['name']} created successfully!")
+            ->with('new_operator_credentials', [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'mobile' => $validated['mobile'],
+                'password' => $empPassword,
+                'designation' => $validated['designation'],
+                'login_url' => route('login'),
+            ]);
     }
 
     /**
@@ -388,5 +398,90 @@ class EmployeeController extends Controller
         ]);
 
         return back()->with('success', 'Task status updated.');
+    }
+
+    /**
+     * Toggle operator active/inactive status.
+     */
+    public function toggleStatus(Employee $employee): RedirectResponse
+    {
+        $authUser = Auth::user();
+        if ($authUser->isBranchAdmin() && (int) $employee->branch_id !== (int) $authUser->branch_id) {
+            abort(403, 'Unauthorized: Branch Admin can only update staff within their assigned branch.');
+        }
+
+        $newStatus = $employee->status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        $employee->update(['status' => $newStatus]);
+        if ($employee->user) {
+            $employee->user->update(['status' => $newStatus]);
+        }
+
+        AuditService::log('EMPLOYEE_STATUS_TOGGLED', $employee, null, ['status' => $newStatus]);
+
+        $empName = $employee->user?->name ?? 'Operator';
+        $msg = $newStatus === 'ACTIVE'
+            ? "Operator {$empName} has been ACTIVATED (ऑपरेटर खाते सक्रिय केले, आता ते लॉगिन करू शकतात)."
+            : "Operator {$empName} has been DEACTIVATED (ऑपरेटर खाते निष्क्रिय केले, त्यांचे लॉगिन तात्पुरते बंद आहे).";
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Reset operator password (Admin controlled).
+     */
+    public function resetPassword(Request $request, Employee $employee): RedirectResponse
+    {
+        $authUser = Auth::user();
+        if ($authUser->isBranchAdmin() && (int) $employee->branch_id !== (int) $authUser->branch_id) {
+            abort(403, 'Unauthorized: Only admins can reset staff passwords.');
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        if ($employee->user) {
+            $employee->user->update([
+                'password' => Hash::make($validated['password']),
+            ]);
+        }
+
+        AuditService::log('EMPLOYEE_PASSWORD_RESET', $employee, null, ['reset_by' => $authUser->id]);
+
+        $empName = $employee->user?->name ?? 'Operator';
+        return back()
+            ->with('success', "Password for {$empName} has been reset successfully!")
+            ->with('new_operator_credentials', [
+                'name' => $empName,
+                'email' => $employee->user?->email,
+                'mobile' => $employee->user?->mobile,
+                'password' => $validated['password'],
+                'designation' => $employee->designation,
+                'branch' => $employee->branch?->name,
+                'login_url' => route('login'),
+            ]);
+    }
+
+    /**
+     * Delete an employee / operator.
+     */
+    public function destroy(Employee $employee): RedirectResponse
+    {
+        $authUser = Auth::user();
+        if ($authUser->isBranchAdmin() && (int) $employee->branch_id !== (int) $authUser->branch_id) {
+            abort(403, 'Unauthorized: Cannot delete staff from another branch.');
+        }
+
+        $empName = $employee->user?->name ?? 'Operator';
+
+        DB::transaction(function () use ($employee) {
+            if ($employee->user) {
+                $employee->user->delete();
+            }
+            $employee->delete();
+            AuditService::log('EMPLOYEE_DELETED', $employee);
+        });
+
+        return redirect()->route('employees.index')->with('success', "Operator {$empName} has been deleted successfully (ऑपरेटर हटवला गेला आहे).");
     }
 }
