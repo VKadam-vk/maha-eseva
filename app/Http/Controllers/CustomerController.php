@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\CustomerCategory;
 use App\Models\NotificationLog;

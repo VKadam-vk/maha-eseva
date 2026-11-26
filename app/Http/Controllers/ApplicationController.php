@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\ApplicationFieldHistory;
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Employee;
