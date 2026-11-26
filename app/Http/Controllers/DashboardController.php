@@ -22,11 +22,8 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         if ($user->isSuperAdmin() || $user->isBusinessOwner()) {
-            // Default to owner's own branch (Main Head Office) so dashboard reflects their own center's operations
+            // Strict scoping: Main Head Office / Owner's branch
             $selectedBranchId = $user->branch_id ?? 1;
-            if ($request->has('branch_id')) {
-                $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
-            }
 
             $data = $this->reportService->getBusinessOwnerDashboard($user->tenant_id ?? 1, $selectedBranchId);
             $branches = \App\Models\Branch::where('tenant_id', $user->tenant_id ?? 1)->where('status', 'ACTIVE')->get();

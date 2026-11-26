@@ -9,20 +9,6 @@
         <p class="page-subtitle">Centralized multi-branch performance, collections and application tracking</p>
     </div>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        @if(isset($branches) && $branches->count() > 1)
-        <form method="GET" action="{{ route('dashboard') }}" style="margin: 0;">
-            <select name="branch_id" class="form-select form-select-sm" onchange="this.form.submit()" style="font-weight: 700; font-size: 12.5px; border-color: #cbd5e1; height: 36px; padding: 4px 10px; border-radius: 6px; background: #ffffff; cursor: pointer;">
-                @foreach($branches as $b)
-                    <option value="{{ $b->id }}" {{ (isset($selectedBranchId) && $selectedBranchId == $b->id) ? 'selected' : '' }}>
-                        📍 {{ $b->name }} {{ $b->is_main_branch ? '(Head Office)' : '' }}
-                    </option>
-                @endforeach
-                <option value="all" {{ (isset($selectedBranchId) && is_null($selectedBranchId)) ? 'selected' : '' }}>
-                    🌐 All Branches (Overview)
-                </option>
-            </select>
-        </form>
-        @endif
         <a href="{{ route('fast_entry.index') }}" class="btn btn-indigo">
             <i class="fa-solid fa-table-cells"></i> Fast Daily Entry
         </a>

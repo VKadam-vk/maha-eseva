@@ -725,22 +725,6 @@
                        style="font-size: 12px; font-weight: 600;">
             </div>
 
-            <!-- Branch Filter for Business Owner -->
-            @if((Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner()) && isset($branches) && $branches->count() > 1)
-            <div style="flex: 1.5; min-width: 180px;">
-                <label style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 3px; display: block;">Branch / Center</label>
-                <select name="branch_id" class="form-select form-select-sm" style="font-size: 12px; font-weight: 700;" onchange="this.form.submit()">
-                    @foreach($branches as $b)
-                        <option value="{{ $b->id }}" {{ (isset($selectedBranchId) && $selectedBranchId == $b->id) ? 'selected' : '' }}>
-                            📍 {{ $b->name }} {{ $b->is_main_branch ? '(Head Office)' : '' }}
-                        </option>
-                    @endforeach
-                    <option value="all" {{ (isset($selectedBranchId) && is_null($selectedBranchId)) ? 'selected' : '' }}>
-                        🌐 All Branches (Overview)
-                    </option>
-                </select>
-            </div>
-            @endif
 
             <!-- Service Filter -->
             <div style="flex: 1.5; min-width: 170px;">

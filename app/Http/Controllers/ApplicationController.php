@@ -73,15 +73,9 @@ class ApplicationController extends Controller
             $query->where('assigned_employee_id', $request->employee_id);
         }
 
-        // Branch-level isolation: By default, users see only their own branch's applications
-        $selectedBranchId = $user->branch_id;
-        if ($request->has('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
-        }
-
-        if ($selectedBranchId) {
-            $query->where('branch_id', $selectedBranchId);
-        }
+        // Branch-level isolation: Each center/branch (including Head Office) only sees its own applications
+        $selectedBranchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $selectedBranchId);
 
         if ($request->filled('from_date')) {
             $query->whereDate('application_date', '>=', $request->from_date);

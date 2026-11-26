@@ -40,11 +40,9 @@ class FollowUpController extends Controller
             $query->where('tenant_id', $user->tenant_id);
         }
 
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $query->where('branch_id', $request->branch_id);
-        }
+        // Branch-level isolation: Each center only sees its own reminders/follow-ups
+        $branchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $branchId);
 
         if ($user->isEmployee()) {
             if ($user->hasServiceRestrictions()) {
@@ -89,17 +87,11 @@ class FollowUpController extends Controller
             $allCountQuery->where('tenant_id', $user->tenant_id);
         }
 
-        if ($user->branch_id) {
-            $todayCountQuery->where('branch_id', $user->branch_id);
-            $tomorrowCountQuery->where('branch_id', $user->branch_id);
-            $overdueCountQuery->where('branch_id', $user->branch_id);
-            $allCountQuery->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $todayCountQuery->where('branch_id', $request->branch_id);
-            $tomorrowCountQuery->where('branch_id', $request->branch_id);
-            $overdueCountQuery->where('branch_id', $request->branch_id);
-            $allCountQuery->where('branch_id', $request->branch_id);
-        }
+        $branchId = $user->branch_id ?? 1;
+        $todayCountQuery->where('branch_id', $branchId);
+        $tomorrowCountQuery->where('branch_id', $branchId);
+        $overdueCountQuery->where('branch_id', $branchId);
+        $allCountQuery->where('branch_id', $branchId);
 
         if ($user->isEmployee()) {
             if ($user->hasServiceRestrictions()) {

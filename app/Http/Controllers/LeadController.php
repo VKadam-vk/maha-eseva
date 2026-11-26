@@ -35,6 +35,10 @@ class LeadController extends Controller
         $user = Auth::user();
         $query = Lead::with(['service', 'branch', 'assignedEmployee.user', 'convertedCustomer', 'convertedApplication']);
 
+        // Strict branch isolation
+        $branchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $branchId);
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }

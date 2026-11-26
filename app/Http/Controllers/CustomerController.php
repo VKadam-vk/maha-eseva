@@ -43,15 +43,9 @@ class CustomerController extends Controller
             });
         }
 
-        // Branch-level isolation: By default, users see only their own branch's customers
-        $selectedBranchId = $user->branch_id;
-        if ($request->has('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
-        }
-
-        if ($selectedBranchId) {
-            $query->where('branch_id', $selectedBranchId);
-        }
+        // Branch-level isolation: Each center/branch (including Head Office) only sees its own customers
+        $selectedBranchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $selectedBranchId);
 
         if ($request->filled('occupation')) {
             $query->whereRaw('UPPER(occupation) = ?', [strtoupper(trim($request->occupation))]);
@@ -225,6 +219,12 @@ class CustomerController extends Controller
     {
         $user = Auth::user();
         $this->authorize('view', $customer);
+
+        // Branch-level isolation: Only users belonging to the customer's branch can view customer profile
+        $userBranchId = $user->branch_id ?? 1;
+        if ($customer->branch_id && (int) $customer->branch_id !== (int) $userBranchId) {
+            abort(403, 'तुम्हाला इतर शाखेच्या (Branch) ग्राहकाची माहिती पाहण्याची परवानगी नाही.');
+        }
 
         // Restrict employee access to customer profile if no allowed services match
         if ($user->hasServiceRestrictions()) {

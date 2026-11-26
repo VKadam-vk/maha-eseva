@@ -27,15 +27,9 @@ class EmployeeController extends Controller
         $user = Auth::user();
         $query = Employee::with(['user.permissions', 'branch', 'services'])->withCount(['applications', 'tasks', 'followUps']);
 
-        // Branch-level isolation: By default, users see only their assigned branch's operators
-        $selectedBranchId = $user->branch_id;
-        if ($request->has('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
-        }
-
-        if ($selectedBranchId) {
-            $query->where('branch_id', $selectedBranchId);
-        }
+        // Branch-level isolation: Each center/branch (including Head Office) only sees its own operators
+        $selectedBranchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $selectedBranchId);
 
         $employees = $query->paginate(15)->withQueryString();
         $branches = $user->tenant?->branches()->where('status', 'ACTIVE')->get() ?? collect();

@@ -34,12 +34,9 @@ class BillingController extends Controller
             $query->where('tenant_id', $user->tenant_id);
         }
 
-        // Strict branch isolation for sub-branch admin / employee
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $query->where('branch_id', $request->branch_id);
-        }
+        // Strict branch isolation for all users
+        $branchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $branchId);
 
         if ($request->filled('payment_mode')) {
             $query->where('payment_mode', $request->payment_mode);
@@ -80,13 +77,9 @@ class BillingController extends Controller
             $appsBase->where('tenant_id', $user->tenant_id);
         }
 
-        if ($user->branch_id) {
-            $paymentsBase->where('branch_id', $user->branch_id);
-            $appsBase->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $paymentsBase->where('branch_id', $request->branch_id);
-            $appsBase->where('branch_id', $request->branch_id);
-        }
+        $branchId = $user->branch_id ?? 1;
+        $paymentsBase->where('branch_id', $branchId);
+        $appsBase->where('branch_id', $branchId);
 
         $totalCollected = (float) (clone $paymentsBase)->sum('amount');
         $todayCollected = (float) (clone $paymentsBase)->whereDate('payment_date', now()->toDateString())->sum('amount');
@@ -133,11 +126,8 @@ class BillingController extends Controller
             $query->where('tenant_id', $user->tenant_id);
         }
 
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $query->where('branch_id', $request->branch_id);
-        }
+        $branchId = $user->branch_id ?? 1;
+        $query->where('branch_id', $branchId);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
