@@ -50,3 +50,4 @@ class CashAdjustmentController extends Controller
         return back()->with('success', $msg);
     }
 }
+

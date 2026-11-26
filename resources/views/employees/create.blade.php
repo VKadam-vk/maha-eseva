@@ -34,12 +34,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label required">Assigned Branch</label>
-                        <select name="branch_id" class="form-select" required>
-                            @foreach($branches as $b)
-                                <option value="{{ $b->id }}" {{ old('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }} ({{ $b->branch_code }})</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label" style="color: #475569; font-weight: 700;">Assigned Branch</label>
+                        <div style="background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 9px 14px; font-weight: 700; color: #1e293b; font-size: 13.5px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>📍 {{ Auth::user()->branch?->name ?? 'Main Head Office' }} ({{ Auth::user()->branch?->branch_code ?? 'HO-01' }})</span>
+                            <span class="badge badge-ready" style="font-size: 10px; background: #e0e7ff; color: #4338ca;">Auto-Assigned</span>
+                        </div>
+                        <input type="hidden" name="branch_id" value="{{ Auth::user()->branch_id ?? 1 }}">
                     </div>
                 </div>
 

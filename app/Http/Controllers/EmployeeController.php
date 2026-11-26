@@ -84,7 +84,7 @@ class EmployeeController extends Controller
             'email' => ['required', 'email', 'unique:users,email'],
             'mobile' => ['required', 'string', 'max:20'],
             'password' => ['nullable', 'string', 'min:6'],
-            'branch_id' => ['required', 'exists:branches,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
             'designation' => ['required', 'string', 'max:100'],
             'joining_date' => ['nullable', 'date'],
             'salary' => ['nullable', 'numeric', 'min:0'],
@@ -102,17 +102,14 @@ class EmployeeController extends Controller
 
         $authUser = Auth::user();
         $tenantId = $authUser->tenant_id;
+        // Auto-assign to current logged-in user's branch
+        $branchId = $authUser->branch_id ?? 1;
 
-        // Prevent cross-branch employee creation by Branch Admin
-        if ($authUser->isBranchAdmin() && (int) $validated['branch_id'] !== (int) $authUser->branch_id) {
-            abort(403, 'Unauthorized: Branch Admin can only create staff within their assigned branch.');
-        }
-
-        DB::transaction(function () use ($request, $validated, $tenantId) {
+        DB::transaction(function () use ($request, $validated, $tenantId, $branchId) {
             $empPassword = !empty($validated['password']) ? $validated['password'] : '12345678';
             $user = User::create([
                 'tenant_id' => $tenantId,
-                'branch_id' => $validated['branch_id'],
+                'branch_id' => $branchId,
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'mobile' => $validated['mobile'],
@@ -155,7 +152,7 @@ class EmployeeController extends Controller
 
             $employee = Employee::create([
                 'tenant_id' => $tenantId,
-                'branch_id' => $validated['branch_id'],
+                'branch_id' => $branchId,
                 'user_id' => $user->id,
                 'employee_code' => $code,
                 'designation' => $validated['designation'],
@@ -266,7 +263,7 @@ class EmployeeController extends Controller
             'email' => ['required', 'email', 'unique:users,email,' . $employee->user_id],
             'mobile' => ['required', 'string', 'max:20'],
             'password' => ['nullable', 'string', 'min:8'],
-            'branch_id' => ['required', 'exists:branches,id'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
             'designation' => ['required', 'string', 'max:100'],
             'joining_date' => ['nullable', 'date'],
             'salary' => ['nullable', 'numeric', 'min:0'],
@@ -283,12 +280,13 @@ class EmployeeController extends Controller
             'all_services' => ['nullable'],
         ]);
 
-        DB::transaction(function () use ($request, $validated, $employee) {
+        DB::transaction(function () use ($request, $validated, $employee, $authUser) {
+            $branchId = $employee->branch_id ?? ($authUser->branch_id ?? 1);
             $userUpdates = [
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'mobile' => $validated['mobile'],
-                'branch_id' => $validated['branch_id'],
+                'branch_id' => $branchId,
                 'status' => $validated['status'] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
             ];
 
@@ -299,7 +297,7 @@ class EmployeeController extends Controller
             $employee->user->update($userUpdates);
 
             $employee->update([
-                'branch_id' => $validated['branch_id'],
+                'branch_id' => $branchId,
                 'designation' => $validated['designation'],
                 'joining_date' => $validated['joining_date'] ?? $employee->joining_date,
                 'salary' => $validated['salary'] ?? 0.00,
