@@ -42,10 +42,14 @@ class CustomerController extends Controller
             });
         }
 
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $query->where('branch_id', $request->branch_id);
+        // Branch-level isolation: By default, users see only their own branch's customers
+        $selectedBranchId = $user->branch_id;
+        if ($request->has('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
+        }
+
+        if ($selectedBranchId) {
+            $query->where('branch_id', $selectedBranchId);
         }
 
         if ($request->filled('occupation')) {
@@ -54,8 +58,15 @@ class CustomerController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        $isPrivilegedUser = $user->isSuperAdmin() 
+            || $user->isBusinessOwner() 
+            || $user->isBranchAdmin() 
+            || $user->isAdmin()
+            || str_contains(strtoupper($user->roles->pluck('name')->implode(' ')), 'OWNER')
+            || str_contains(strtoupper($user->roles->pluck('name')->implode(' ')), 'ADMIN');
+
         // Restrict employee visibility: an employee sees customers they created, or customers with applications in their allowed services
-        if (!$user->isAdmin()) {
+        if (!$isPrivilegedUser) {
             $allowedServiceIds = $user->getAllowedServiceIds();
             $empId = $user->employee?->id;
             $query->where(function ($q) use ($user, $allowedServiceIds, $empId) {
@@ -93,11 +104,7 @@ class CustomerController extends Controller
             ->sort()
             ->values();
 
-        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
-        if ($user->branch_id) {
-            $branchesQuery->where('id', $user->branch_id);
-        }
-        $branches = $branchesQuery->get() ?? collect();
+        $branches = Branch::where('tenant_id', $tenantId)->where('status', 'ACTIVE')->get();
 
         $cities = Customer::where('tenant_id', $tenantId)
             ->whereNotNull('city')
@@ -108,7 +115,7 @@ class CustomerController extends Controller
             ->sort()
             ->values();
 
-        return view('customers.index', compact('customers', 'categories', 'branches', 'occupations', 'cities'));
+        return view('customers.index', compact('customers', 'categories', 'branches', 'occupations', 'cities', 'selectedBranchId'));
     }
 
     /**

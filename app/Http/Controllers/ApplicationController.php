@@ -72,10 +72,14 @@ class ApplicationController extends Controller
             $query->where('assigned_employee_id', $request->employee_id);
         }
 
-        if ($user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
-            $query->where('branch_id', $request->branch_id);
+        // Branch-level isolation: By default, users see only their own branch's applications
+        $selectedBranchId = $user->branch_id;
+        if ($request->has('branch_id') && ($user->isSuperAdmin() || $user->isBusinessOwner())) {
+            $selectedBranchId = $request->branch_id === 'all' ? null : (int) $request->branch_id;
+        }
+
+        if ($selectedBranchId) {
+            $query->where('branch_id', $selectedBranchId);
         }
 
         if ($request->filled('from_date')) {
@@ -113,11 +117,7 @@ class ApplicationController extends Controller
         }
         $employees = $employeesQuery->get() ?? collect();
 
-        $branchesQuery = $user->tenant?->branches()->where('status', 'ACTIVE');
-        if ($user->branch_id) {
-            $branchesQuery->where('id', $user->branch_id);
-        }
-        $branches = $branchesQuery->get() ?? collect();
+        $branches = Branch::where('tenant_id', $user->tenant_id ?? 1)->where('status', 'ACTIVE')->get();
 
         $statuses = [
             Application::STATUS_NEW,
@@ -149,7 +149,8 @@ class ApplicationController extends Controller
             'totalBilled',
             'totalReceived',
             'totalRemaining',
-            'existingPaymentModes'
+            'existingPaymentModes',
+            'selectedBranchId'
         ));
     }
 

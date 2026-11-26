@@ -18,32 +18,36 @@ class ReportService
 {
     /**
      * Aggregated metrics for Business Owner Dashboard.
+     * When $branchId is provided, scopes all performance and financial metrics strictly to that branch.
      */
-    public function getBusinessOwnerDashboard(int $tenantId): array
+    public function getBusinessOwnerDashboard(int $tenantId, ?int $branchId = null): array
     {
         $today = now()->toDateString();
         $thisMonth = now()->format('Y-m');
 
         $totalBranches = Branch::where('tenant_id', $tenantId)->count();
-        $totalCustomers = Customer::where('tenant_id', $tenantId)->count();
-        $totalApplications = Application::where('tenant_id', $tenantId)->count();
-        $totalRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->sum('amount');
+        $totalCustomers = Customer::where('tenant_id', $tenantId)->when($branchId, fn($q) => $q->where('branch_id', $branchId))->count();
+        $totalApplications = Application::where('tenant_id', $tenantId)->when($branchId, fn($q) => $q->where('branch_id', $branchId))->count();
+        $totalRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->when($branchId, fn($q) => $q->where('branch_id', $branchId))->sum('amount');
         
-        $todayCustomers = Customer::where('tenant_id', $tenantId)->whereDate('created_at', $today)->count();
-        $todayApplications = Application::where('tenant_id', $tenantId)->whereDate('created_at', $today)->count();
-        $todayRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->whereDate('payment_date', $today)->sum('amount');
-        $monthRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->where('payment_date', 'like', "{$thisMonth}%")->sum('amount');
+        $todayCustomers = Customer::where('tenant_id', $tenantId)->when($branchId, fn($q) => $q->where('branch_id', $branchId))->whereDate('created_at', $today)->count();
+        $todayApplications = Application::where('tenant_id', $tenantId)->when($branchId, fn($q) => $q->where('branch_id', $branchId))->whereDate('created_at', $today)->count();
+        $todayRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->when($branchId, fn($q) => $q->where('branch_id', $branchId))->whereDate('payment_date', $today)->sum('amount');
+        $monthRevenue = (float) Payment::where('tenant_id', $tenantId)->where('payment_status', 'SUCCESS')->when($branchId, fn($q) => $q->where('branch_id', $branchId))->where('payment_date', 'like', "{$thisMonth}%")->sum('amount');
 
         $pendingApplications = Application::where('tenant_id', $tenantId)
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->whereNotIn('work_status', [Application::STATUS_DELIVERED, Application::STATUS_CLOSED, Application::STATUS_REJECTED, Application::STATUS_CANCELLED])
             ->count();
 
         $completedApplications = Application::where('tenant_id', $tenantId)
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->whereIn('work_status', [Application::STATUS_APPROVED, Application::STATUS_READY, Application::STATUS_DELIVERED, Application::STATUS_CLOSED])
             ->count();
 
         // Status pipeline breakdown
         $statusCounts = Application::where('tenant_id', $tenantId)
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->select('work_status', DB::raw('count(*) as count'))
             ->groupBy('work_status')
             ->pluck('count', 'work_status')
@@ -52,6 +56,7 @@ class ReportService
         // Top 5 Services by volume
         $topServices = Service::where('services.tenant_id', $tenantId)
             ->join('applications', 'applications.service_id', '=', 'services.id')
+            ->when($branchId, fn($q) => $q->where('applications.branch_id', $branchId))
             ->select('services.id', 'services.main_service_name', 'services.sub_service_name', DB::raw('count(applications.id) as app_count'), DB::raw('sum(applications.total_amount) as total_revenue'))
             ->groupBy('services.id', 'services.main_service_name', 'services.sub_service_name')
             ->orderByDesc('app_count')
@@ -65,6 +70,7 @@ class ReportService
 
         // Recent 5 applications
         $recentApplications = Application::where('tenant_id', $tenantId)
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->with(['customer', 'service', 'assignedEmployee.user'])
             ->latest()
             ->limit(5)

@@ -128,17 +128,28 @@ class User extends Authenticatable
 
     public function isBusinessOwner(): bool
     {
-        return $this->hasRole('BUSINESS_OWNER');
+        return $this->hasRole('BUSINESS_OWNER')
+            || $this->hasRole('business_owner')
+            || $this->hasRole('business-owner')
+            || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'OWNER')
+            || str_contains(strtoupper($this->roles->pluck('slug')->implode(' ')), 'OWNER');
     }
 
     public function isBranchAdmin(): bool
     {
-        return $this->hasRole('BRANCH_ADMIN');
+        return $this->hasRole('BRANCH_ADMIN')
+            || $this->hasRole('branch_admin')
+            || $this->hasRole('branch-admin')
+            || str_contains(strtoupper($this->roles->pluck('slug')->implode(' ')), 'BRANCH_ADMIN');
     }
 
     public function isAdmin(): bool
     {
-        return $this->isSuperAdmin() || $this->isBusinessOwner() || $this->isBranchAdmin();
+        return $this->isSuperAdmin() 
+            || $this->isBusinessOwner() 
+            || $this->isBranchAdmin()
+            || str_contains(strtoupper($this->roles->pluck('name')->implode(' ')), 'ADMIN')
+            || str_contains(strtoupper($this->roles->pluck('slug')->implode(' ')), 'ADMIN');
     }
 
     public function isEmployee(): bool

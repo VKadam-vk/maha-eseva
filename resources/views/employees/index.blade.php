@@ -8,9 +8,25 @@
         <h1 class="page-title">Staff & Operator Directory</h1>
         <p class="page-subtitle">Manage service counter operators, credentials, branch assignments and login status</p>
     </div>
-    <a href="{{ route('employees.create') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-plus"></i> Add New Operator
-    </a>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        @if((Auth::user()->isSuperAdmin() || Auth::user()->isBusinessOwner()) && isset($branches) && $branches->count() > 1)
+        <form method="GET" action="{{ route('employees.index') }}" style="margin: 0;">
+            <select name="branch_id" class="form-select form-select-sm" onchange="this.form.submit()" style="font-weight: 700; font-size: 12.5px; border-color: #cbd5e1; height: 38px; padding: 4px 10px; border-radius: 6px; background: #ffffff; cursor: pointer;">
+                @foreach($branches as $b)
+                    <option value="{{ $b->id }}" {{ (isset($selectedBranchId) && $selectedBranchId == $b->id) ? 'selected' : '' }}>
+                        📍 {{ $b->name }} {{ $b->is_main_branch ? '(Head Office)' : '' }}
+                    </option>
+                @endforeach
+                <option value="all" {{ (isset($selectedBranchId) && is_null($selectedBranchId)) ? 'selected' : '' }}>
+                    🌐 All Branches (Overview)
+                </option>
+            </select>
+        </form>
+        @endif
+        <a href="{{ route('employees.create') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-user-plus"></i> Add New Operator
+        </a>
+    </div>
 </div>
 
 <div class="erp-card">
