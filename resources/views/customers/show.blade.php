@@ -262,13 +262,18 @@
     .pocket-excel-table tr.committed-row-locked .excel-operator-select,
     .pocket-excel-table tr.committed-row-locked .excel-date-input,
     .pocket-excel-table tr.committed-row-locked .payment-mode-select,
-    .pocket-excel-table tr.committed-row-locked .btn-cell-history,
-    .pocket-excel-table tr.committed-row-locked .btn-doc-eye-small {
+    .pocket-excel-table tr.committed-row-locked .btn-cell-history {
         pointer-events: none !important;
         user-select: none !important;
         border-color: transparent !important;
         box-shadow: none !important;
         cursor: default !important;
+    }
+
+    .pocket-excel-table tr.committed-row-locked .btn-doc-eye-small {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
     }
 
     .pocket-excel-table tr.committed-row-locked input.excel-cell-input,
@@ -277,9 +282,8 @@
         background: transparent !important;
     }
 
-    /* Hide History Buttons & Sub-Service Small Eye When Row is Locked */
-    .pocket-excel-table tr.committed-row-locked .btn-cell-history,
-    .pocket-excel-table tr.committed-row-locked .btn-doc-eye-small {
+    /* Hide History Buttons When Row is Locked */
+    .pocket-excel-table tr.committed-row-locked .btn-cell-history {
         display: none !important;
     }
 
@@ -3222,11 +3226,8 @@ function openDocsModal(e) {
     if (!srv && mainService) {
         srv = allServices.find(s => s.main_service_name === mainService);
     }
-    if (!srv && allServices && allServices.length > 0) {
-        srv = allServices[0];
-    }
     if (!srv) {
-        alert('No services available.');
+        alert('कृपया आधी Main Service आणि Sub Service निवडा! (Please select a service first.)');
         return;
     }
     openDocsModalWithService(srv);

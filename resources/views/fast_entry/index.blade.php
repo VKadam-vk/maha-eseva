@@ -4013,12 +4013,8 @@ function openDocsModal(e) {
     if (!srv && mainService) {
         srv = allServices.find(s => s.main_service_name === mainService);
     }
-    // If no service chosen yet, default to first available service so modal always opens!
-    if (!srv && allServices && allServices.length > 0) {
-        srv = allServices[0];
-    }
     if (!srv) {
-        alert('No services available.');
+        alert('कृपया आधी Main Service आणि Sub Service निवडा! (Please select a service first.)');
         return;
     }
     openDocsModalWithService(srv);
